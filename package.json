@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@react-navigation/elements": "^2.2.5",
@@ -27,12 +28,15 @@
     "expo-haptics": "~14.0.1",
     "expo-font": "~13.0.3",
     "expo-blur": "~14.0.3",
-    "expo-audio": "~0.3.4"
+    "expo-audio": "~0.3.4",
+    "expo-router": "~4.0.17"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~18.3.12",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "~8.0.1"
   },
   "private": true
 }
