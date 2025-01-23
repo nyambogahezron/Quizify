@@ -1,0 +1,12 @@
+Project Description:
+- Create a funny quiz app.
+- Users will be asked about funny and gamed quizzes.
+- Users will be given options to choose from and gain points.
+- The app will include background sound and images that match the quiz category.
+
+Technical Dependencies:
+- React Navigation for navigation.
+- React Reanimated for animations.
+- No framework for styling.
+- Zustand for state management.
+- Use React Native.
