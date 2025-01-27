@@ -1,21 +1,30 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from './src/screen/HomeScreen';
+import QuizScreen from './src/screen/QuizScreen';
+import ResultScreen from './src/screen/ResultScreen';
+import { BottomTabNavigation } from './src/components/navigation/BottomTab';
+
+export type RootStackParamList = {
+  MainTabs: undefined;
+  Quiz: { category: string };
+  Result: { score: number; totalQuestions: number; coins: number };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
-  const Stack = createNativeStackNavigator();
-
-  function RootStack() {
-    return (
-      <Stack.Navigator>
-        <Stack.Screen name='Home' component={HomeScreen} />
-      </Stack.Navigator>
-    );
-  }
   return (
     <NavigationContainer>
-      <RootStack />
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name='MainTabs' component={BottomTabNavigation} />
+        <Stack.Screen name='Quiz' component={QuizScreen} />
+        <Stack.Screen name='Result' component={ResultScreen} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
