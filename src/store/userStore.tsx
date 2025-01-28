@@ -1,27 +1,26 @@
 import { create } from 'zustand';
+import { getUser } from '../lib/db';
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  level: number;
-}
-
-interface UserStore {
-  user: User;
-  setUser: (user: User) => void;
-}
-
-const useUserStore = create<UserStore>((set) => ({
+interface UserState {
   user: {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    avatar: 'https://via.placeholder.com/40',
-    level: 1,
-  },
-  setUser: (user) => set({ user }),
-}));
+    id: string;
+    name: string;
+    username: string;
+    level: number;
+  } | null;
+  setUser: (user: UserState['user']) => void;
+  loadUser: () => Promise<void>;
+}
 
-export default useUserStore;
+export const useUserStore = create<UserState>((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+  loadUser: async () => {
+    try {
+      const user = await getUser() as UserState['user'];
+      set({ user });
+    } catch (error) {
+      console.error('Error loading user:', error);
+    }
+  },
+}));

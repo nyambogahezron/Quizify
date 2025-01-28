@@ -4,6 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import QuizScreen from './src/screen/QuizScreen';
 import ResultScreen from './src/screen/ResultScreen';
 import { BottomTabNavigation } from './src/components/navigation/BottomTab';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { initDatabase } from './src/lib/db';
+import { useUserStore } from './src/store/userStore';
 
 export type RootStackParamList = {
   MainTabs: undefined;
@@ -14,17 +17,30 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
+
+  const { user, loadUser } = useUserStore();
+
+  React.useEffect(() => {
+    const init = async () => {
+      await initDatabase();
+      await loadUser();
+    };
+    init();
+  }, []);
+
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name='MainTabs' component={BottomTabNavigation} />
-        <Stack.Screen name='Quiz' component={QuizScreen} />
-        <Stack.Screen name='Result' component={ResultScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GestureHandlerRootView>
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name='MainTabs' component={BottomTabNavigation} />
+          <Stack.Screen name='Quiz' component={QuizScreen} />
+          <Stack.Screen name='Result' component={ResultScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
