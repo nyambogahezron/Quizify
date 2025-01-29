@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  interpolate,
-  Extrapolate,
-} from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
+import Animated, { useSharedValue, withSpring } from 'react-native-reanimated';
+import {
+  Directions,
+  Gesture,
+  GestureDetector,
+} from 'react-native-gesture-handler';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
+import { slides } from '../lib/data';
+import { slidesProps } from '../lib/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -26,123 +27,91 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'OnBoard'>;
 };
 
-const slides = [
-  {
-    id: 1,
-    title: 'Welcome to QuizMaster',
-    description:
-      'Embark on a journey of knowledge and fun with our interactive quiz platform.',
-    icon: '🎯',
-  },
-  {
-    id: 2,
-    title: 'Learn & Compete',
-    description:
-      'Challenge yourself with various quiz categories, track your progress, and compete with friends.',
-    icon: '🏆',
-  },
-  {
-    id: 3,
-    title: 'User Agreement',
-    description:
-      'By continuing, you agree to our Terms of Service and Privacy Policy. We value your privacy and ensure your data is protected.',
-    icon: '📜',
-  },
-];
-
 export default function OnboardingScreen({ navigation }: Props) {
   const translateX = useSharedValue(0);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const [slidesData, setSlidesData] = React.useState<slidesProps>();
 
-  const rStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  const rSlideStyles = slides.map((_, index) => {
-    const inputRange = [
-      (index - 1) * SCREEN_WIDTH,
-      index * SCREEN_WIDTH,
-      (index + 1) * SCREEN_WIDTH,
-    ];
-
-    return useAnimatedStyle(() => {
-      const scale = interpolate(
-        -translateX.value,
-        inputRange,
-        [0.8, 1, 0.8],
-        Extrapolate.CLAMP
-      );
-
-      const opacity = interpolate(
-        -translateX.value,
-        inputRange,
-        [0.4, 1, 0.4],
-        Extrapolate.CLAMP
-      );
-
-      return {
-        transform: [{ scale }],
-        opacity,
-      };
-    });
-  });
-
-  const pan = Gesture.Pan()
-    .onUpdate((event) => {
-      const newValue = -activeIndex * SCREEN_WIDTH + event.translationX;
-      translateX.value = newValue;
-    })
-    .onEnd((event) => {
-      const direction = event.velocityX > 0 ? -1 : 1;
-      const shouldSwipe =
-        Math.abs(event.velocityX) > 500 ||
-        Math.abs(event.translationX) > SCREEN_WIDTH / 3;
-
-      let newIndex = activeIndex;
-      if (shouldSwipe) {
-        newIndex = Math.max(
-          0,
-          Math.min(slides.length - 1, activeIndex + direction)
-        );
-      }
-
-      translateX.value = withSpring(-newIndex * SCREEN_WIDTH, {
-        velocity: event.velocityX,
-        damping: 20,
-      });
-      setActiveIndex(newIndex);
-    });
+  React.useEffect(() => {
+    setSlidesData(slides[activeIndex]);
+  }, [activeIndex]);
 
   const handleGetStarted = () => {
-    // Navigate to main app
     navigation.replace('MainTabs');
   };
 
+  const endOnboarding = () => {
+    setActiveIndex(0);
+    navigation.navigate('MainTabs');
+  };
+
+  const onContinue = () => {
+    const isLastSlide = activeIndex === slides.length - 1;
+
+    if (isLastSlide) {
+      endOnboarding();
+    } else {
+      setActiveIndex(activeIndex + 1);
+    }
+  };
+
+  const onBack = () => {
+    const isFirstSlide = activeIndex === 0;
+
+    if (!isFirstSlide) {
+      setActiveIndex(activeIndex - 1);
+    }
+    endOnboarding();
+  };
+
+  const onSkip = () => {
+    endOnboarding();
+  };
+
+  const onSwipe = Gesture.Simultaneous(
+    Gesture.Fling().direction(Directions.LEFT).onEnd(onContinue),
+    Gesture.Fling().direction(Directions.RIGHT).onEnd(onBack)
+  );
+
   return (
     <SafeAreaView style={styles.container}>
-      <GestureDetector gesture={pan}>
-        <Animated.View style={[styles.slidesContainer, rStyle]}>
-          {slides.map((slide, index) => {
-            return (
-              <Animated.View
-                key={slide.id}
-                style={[styles.slide, rSlideStyles[index]]}
+      <StatusBar barStyle='light-content' backgroundColor='#8B5CF6' />
+      <GestureDetector gesture={onSwipe}>
+        <Animated.View style={[styles.slidesContainer]}>
+          {/* skip btn */}
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: 15,
+              right: 25,
+              zIndex: 999,
+            }}
+          >
+            <AntDesign
+              name='rightcircleo'
+              size={30}
+              color='#fff'
+              onPress={() => onSkip()}
+            />
+          </Animated.View>
+          {slidesData && (
+            <Animated.View key={slidesData.id} style={[styles.slide]}>
+              <LinearGradient
+                colors={['#8B5CF6', '#7C3AED']}
+                style={styles.gradientContainer}
               >
-                <LinearGradient
-                  colors={['#8B5CF6', '#7C3AED']}
-                  style={styles.gradientContainer}
-                >
-                  <View style={styles.content}>
-                    <View style={styles.iconContainer}>
-                      <Text style={styles.icon}>{slide.icon}</Text>
-                    </View>
-                    <Text style={styles.title}>{slide.title}</Text>
-                    <Text style={styles.description}>{slide.description}</Text>
+                <View style={styles.content}>
+                  <View style={styles.iconContainer}>
+                    <Text style={styles.icon}>{slidesData.icon}</Text>
                   </View>
-                </LinearGradient>
-              </Animated.View>
-            );
-          })}
+                  <Text style={styles.title}>{slidesData.title}</Text>
+                  <Text style={styles.description}>
+                    {slidesData.description}
+                  </Text>
+                </View>
+              </LinearGradient>
+            </Animated.View>
+          )}
         </Animated.View>
       </GestureDetector>
 
@@ -192,6 +161,7 @@ const styles = StyleSheet.create({
   slidesContainer: {
     flex: 1,
     flexDirection: 'row',
+    position: 'relative',
   },
   slide: {
     width: SCREEN_WIDTH,
@@ -234,7 +204,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#8B5CF6',
   },
   pagination: {
     flexDirection: 'row',

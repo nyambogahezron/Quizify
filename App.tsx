@@ -5,6 +5,9 @@ import { BottomTabNavigation } from './src/components/navigation/BottomTab';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initDatabase } from './src/lib/db';
 import { useUserStore } from './src/store/userStore';
+import * as SplashScreen from 'expo-splash-screen';
+import * as Font from 'expo-font';
+
 import QuizScreen from './src/screen/QuizScreen';
 import ResultScreen from './src/screen/ResultScreen';
 import ProfileScreen from './src/screen/ProfileScreen';
@@ -28,9 +31,12 @@ export type RootStackParamList = {
   OnBoard: undefined;
 };
 
+SplashScreen.preventAutoHideAsync();
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
+  const [appIsReady, setAppIsReady] = React.useState(false);
   const { loadUser } = useUserStore();
 
   React.useEffect(() => {
@@ -40,6 +46,34 @@ export default function App() {
     };
     init();
   }, []);
+
+  React.useEffect(() => {
+    async function prepare() {
+      try {
+        await Font.loadAsync({
+          'Rb-bold': require('./assets/fonts/RobotoCondensed-Bold.ttf'),
+          'Rb-regular': require('./assets/fonts/RobotoCondensed-Regular.ttf'),
+          'Rb-medium': require('./assets/fonts/RobotoCondensed-Medium.ttf'),
+        });
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+        await SplashScreen.hideAsync();
+      }
+    }
+    prepare();
+  }, []);
+
+  const onLayoutRootView = React.useCallback(() => {
+    if (appIsReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView>

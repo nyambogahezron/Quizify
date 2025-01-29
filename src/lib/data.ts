@@ -1,3 +1,5 @@
+import { slidesProps } from './types';
+
 export const bookmarkedQuizzes = [
   {
     id: '1',
@@ -429,5 +431,29 @@ export const mockQuestions = [
     question: 'What is the smallest country in the world?',
     options: ['Monaco', 'Maldives', 'Vatican City', 'San Marino'],
     correctAnswer: 2,
+  },
+];
+
+export const slides: slidesProps[] = [
+  {
+    id: 1,
+    title: 'Welcome to Quizify',
+    description:
+      'Embark on a journey of knowledge and fun with our interactive quiz platform.',
+    icon: '🎯',
+  },
+  {
+    id: 2,
+    title: 'Learn & Compete',
+    description:
+      'Challenge yourself with various quiz categories, track your progress, and compete with friends.',
+    icon: '🏆',
+  },
+  {
+    id: 3,
+    title: 'User Agreement',
+    description:
+      'By continuing, you agree to our Terms of Service and Privacy Policy. We value your privacy and ensure your data is protected.',
+    icon: '📜',
   },
 ];
