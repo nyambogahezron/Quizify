@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -23,7 +23,7 @@ import { RootStackParamList } from '../../App';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type Props = {
-  navigation: NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
+  navigation: NativeStackNavigationProp<RootStackParamList, 'OnBoard'>;
 };
 
 const slides = [
@@ -54,6 +54,39 @@ export default function OnboardingScreen({ navigation }: Props) {
   const translateX = useSharedValue(0);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const rStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const rSlideStyles = slides.map((_, index) => {
+    const inputRange = [
+      (index - 1) * SCREEN_WIDTH,
+      index * SCREEN_WIDTH,
+      (index + 1) * SCREEN_WIDTH,
+    ];
+
+    return useAnimatedStyle(() => {
+      const scale = interpolate(
+        -translateX.value,
+        inputRange,
+        [0.8, 1, 0.8],
+        Extrapolate.CLAMP
+      );
+
+      const opacity = interpolate(
+        -translateX.value,
+        inputRange,
+        [0.4, 1, 0.4],
+        Extrapolate.CLAMP
+      );
+
+      return {
+        transform: [{ scale }],
+        opacity,
+      };
+    });
+  });
+
   const pan = Gesture.Pan()
     .onUpdate((event) => {
       const newValue = -activeIndex * SCREEN_WIDTH + event.translationX;
@@ -80,10 +113,6 @@ export default function OnboardingScreen({ navigation }: Props) {
       setActiveIndex(newIndex);
     });
 
-  const rStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
   const handleGetStarted = () => {
     // Navigate to main app
     navigation.replace('MainTabs');
@@ -94,35 +123,11 @@ export default function OnboardingScreen({ navigation }: Props) {
       <GestureDetector gesture={pan}>
         <Animated.View style={[styles.slidesContainer, rStyle]}>
           {slides.map((slide, index) => {
-            const inputRange = [
-              (index - 1) * SCREEN_WIDTH,
-              index * SCREEN_WIDTH,
-              (index + 1) * SCREEN_WIDTH,
-            ];
-
-            const rSlideStyle = useAnimatedStyle(() => {
-              const scale = interpolate(
-                -translateX.value,
-                inputRange,
-                [0.8, 1, 0.8],
-                Extrapolate.CLAMP
-              );
-
-              const opacity = interpolate(
-                -translateX.value,
-                inputRange,
-                [0.4, 1, 0.4],
-                Extrapolate.CLAMP
-              );
-
-              return {
-                transform: [{ scale }],
-                opacity,
-              };
-            });
-
             return (
-              <Animated.View key={slide.id} style={[styles.slide, rSlideStyle]}>
+              <Animated.View
+                key={slide.id}
+                style={[styles.slide, rSlideStyles[index]]}
+              >
                 <LinearGradient
                   colors={['#8B5CF6', '#7C3AED']}
                   style={styles.gradientContainer}

@@ -6,20 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { RouteProp } from '@react-navigation/native';
-
+import { mockQuestions } from '../lib/data';
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Quiz'>;
   route: RouteProp<RootStackParamList, 'Quiz'>;
 };
-
-const mockQuestions = [
-  {
-    question: 'Which soccer team won the FIFA World Cup for the first time?',
-    options: ['Uruguay', 'Brazil', 'Italy', 'Germany'],
-    correctAnswer: 0,
-  },
-  // Add more questions as needed
-];
 
 const TIMER_SECONDS = 60;
 

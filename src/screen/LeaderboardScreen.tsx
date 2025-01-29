@@ -10,28 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-
-const leaderboardData = [
-  {
-    id: '1',
-    name: 'John Doe',
-    score: 2800,
-    avatar: 'https://via.placeholder.com/40',
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    score: 2650,
-    avatar: 'https://via.placeholder.com/40',
-  },
-  {
-    id: '3',
-    name: 'Mike Johnson',
-    score: 2400,
-    avatar: 'https://via.placeholder.com/40',
-  },
-  // Add more users as needed
-];
+import { leaderboardData } from '../lib/data';
 
 export default function LeaderboardScreen() {
   const renderItem = ({ item, index }: { item: any; index: number }) => (

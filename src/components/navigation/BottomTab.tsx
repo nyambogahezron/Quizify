@@ -1,9 +1,8 @@
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useLinkBuilder, useTheme } from '@react-navigation/native';
 import { Text, PlatformPressable } from '@react-navigation/elements';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
-
 import HomeScreen from '../../screen/HomeScreen';
 import LeaderboardScreen from '../../screen/LeaderboardScreen';
 import BookmarksScreen from '../../screen/BookmarksScreen';
@@ -86,31 +85,23 @@ export function BottomTabBar({
             onLongPress={onLongPress}
             style={{ flex: 1 }}
           >
-            <View
-              style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: 60,
-                marginBottom: 2,
-              }}
-            >
+            <View style={styles.container}>
               <View
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 5,
-                  backgroundColor: isFocused ? colors.primary : 'transparent',
-                  marginBottom: 5,
-                }}
+                style={[
+                  styles.wrapper,
+                  {
+                    backgroundColor: isFocused ? colors.primary : 'transparent',
+                  },
+                ]}
               />
               {icons[route.name](
                 isFocused
                   ? { size: 24, color: colors.primary, focused: true }
-                  : { size: 24, color: colors.text, focused: false }
+                  : { size: 24, color: '#fff', focused: false }
               )}
               <Text
                 style={{
-                  color: isFocused ? colors.primary : colors.text,
+                  color: isFocused ? colors.primary : '#fff',
                   fontSize: 12,
                   marginTop: 3,
                 }}
@@ -133,7 +124,6 @@ export function BottomTabNavigation() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#ffffff',
           borderTopWidth: 0,
           elevation: 0,
           height: 60,
@@ -148,3 +138,18 @@ export function BottomTabNavigation() {
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 60,
+    backgroundColor: '#7C3AED',
+  },
+  wrapper: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginBottom: 5,
+  },
+});

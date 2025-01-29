@@ -9,24 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-
-const bookmarkedQuizzes = [
-  {
-    id: '1',
-    title: 'World History',
-    questions: 15,
-    completed: 8,
-    icon: '🌍',
-  },
-  {
-    id: '2',
-    title: 'Mathematics',
-    questions: 20,
-    completed: 12,
-    icon: '📐',
-  },
-  // Add more quizzes as needed
-];
+import { bookmarkedQuizzes } from '../lib/data';
 
 export default function BookmarksScreen() {
   const renderItem = ({ item }: { item: any }) => (

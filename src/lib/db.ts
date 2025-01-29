@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
-const db = SQLite.openDatabase('quizapp.db');
+const db = SQLite.openDatabaseAsync('quizapp.db');
 
 export const initDatabase = () => {
   return new Promise((resolve, reject) => {

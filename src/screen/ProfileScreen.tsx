@@ -1,20 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-
-const achievements = [
-  { id: '1', title: 'Quick Learner', description: 'Complete 5 quizzes in a day', icon: '🚀', progress: 3, total: 5 },
-  { id: '2', title: 'Knowledge Master', description: 'Score 100% in 3 quizzes', icon: '🎯', progress: 2, total: 3 },
-  { id: '3', title: 'Quiz Champion', description: 'Win 10 daily challenges', icon: '👑', progress: 7, total: 10 },
-];
-
-const recentActivity = [
-  { id: '1', quiz: 'World History', score: 8, total: 10, date: '2 hours ago', icon: '🌍' },
-  { id: '2', quiz: 'Mathematics', score: 9, total: 10, date: 'Yesterday', icon: '📐' },
-  { id: '3', quiz: 'Science', score: 7, total: 10, date: '2 days ago', icon: '🔬' },
-];
+import { achievements, recentActivity } from '../lib/data';
 
 export default function ProfileScreen() {
   return (
@@ -60,14 +55,22 @@ export default function ProfileScreen() {
                     <Text style={styles.iconText}>{achievement.icon}</Text>
                   </View>
                   <View style={styles.achievementInfo}>
-                    <Text style={styles.achievementTitle}>{achievement.title}</Text>
-                    <Text style={styles.achievementDescription}>{achievement.description}</Text>
+                    <Text style={styles.achievementTitle}>
+                      {achievement.title}
+                    </Text>
+                    <Text style={styles.achievementDescription}>
+                      {achievement.description}
+                    </Text>
                     <View style={styles.progressBar}>
-                      <View 
+                      <View
                         style={[
-                          styles.progress, 
-                          { width: `${(achievement.progress / achievement.total) * 100}%` }
-                        ]} 
+                          styles.progress,
+                          {
+                            width: `${
+                              (achievement.progress / achievement.total) * 100
+                            }%`,
+                          },
+                        ]}
                       />
                     </View>
                     <Text style={styles.progressText}>

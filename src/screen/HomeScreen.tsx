@@ -4,42 +4,20 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ScrollView,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-const quizCategories = [
-  { id: 1, name: 'Football', icon: '⚽️' },
-  { id: 2, name: 'Science', icon: '🔬' },
-  { id: 3, name: 'Fashion', icon: '👕' },
-  { id: 4, name: 'Movie', icon: '🎬' },
-  { id: 5, name: 'Music', icon: '🎵' },
-];
-
-const moreGames = [
-  {
-    id: 1,
-    name: 'Language Quiz',
-    questions: 15,
-    players: '24.7k',
-    icon: '⚔️',
-  },
-  {
-    id: 2,
-    name: 'Exam Quiz',
-    questions: 12,
-    players: '12.5k',
-    icon: '🎯',
-  },
-];
+import { quizCategories, moreGames } from '../lib/data';
 
 export type RootStackParamList = {
   Quiz: { category: string };
+  Profile: undefined;
+  WordGame: undefined;
 };
 
 export default function HomeScreen() {
@@ -51,16 +29,21 @@ export default function HomeScreen() {
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.profile}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Profile')}
+              style={styles.profile}
+            >
               <Image
-                source={{ uri: 'https://via.placeholder.com/40' }}
+                source={{
+                  uri: 'https://icons.veryicon.com/png/o/internet--web/prejudice/user-128.png',
+                }}
                 style={styles.avatar}
               />
               <View>
                 <Text style={styles.username}>Roxane Harley</Text>
                 <Text style={styles.level}>Level 1</Text>
               </View>
-            </View>
+            </TouchableOpacity>
             <View style={styles.coins}>
               <Ionicons name='flash' size={20} color='#FF6B6B' />
               <Text style={styles.coinsText}>1200</Text>
@@ -126,8 +109,9 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   key={game.id}
                   style={styles.gameCard}
-                  onPress={() =>
-                    navigation.navigate('Quiz', { category: game.name })
+                  onPress={
+                    () => navigation.navigate('WordGame')
+                    // navigation.navigate('Quiz', { category: game.name })
                   }
                 >
                   <Text style={styles.gameIcon}>{game.icon}</Text>
@@ -304,7 +288,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   gameCard: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
