@@ -9,7 +9,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import {
   Directions,
   Gesture,
@@ -19,7 +26,6 @@ import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { slides } from '../lib/data';
-import { slidesProps } from '../lib/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -30,11 +36,6 @@ type Props = {
 export default function OnboardingScreen({ navigation }: Props) {
   const translateX = useSharedValue(0);
   const [activeIndex, setActiveIndex] = React.useState(0);
-  const [slidesData, setSlidesData] = React.useState<slidesProps>();
-
-  React.useEffect(() => {
-    setSlidesData(slides[activeIndex]);
-  }, [activeIndex]);
 
   const handleGetStarted = () => {
     navigation.replace('MainTabs');
@@ -51,7 +52,12 @@ export default function OnboardingScreen({ navigation }: Props) {
     if (isLastSlide) {
       endOnboarding();
     } else {
-      setActiveIndex(activeIndex + 1);
+      const newIndex = activeIndex + 1;
+      translateX.value = withTiming(-newIndex * SCREEN_WIDTH, {
+        duration: 800,
+        easing: Easing.inOut(Easing.quad),
+      });
+      setActiveIndex(newIndex);
     }
   };
 
@@ -59,9 +65,13 @@ export default function OnboardingScreen({ navigation }: Props) {
     const isFirstSlide = activeIndex === 0;
 
     if (!isFirstSlide) {
-      setActiveIndex(activeIndex - 1);
+      const newIndex = activeIndex - 1;
+      translateX.value = withTiming(-newIndex * SCREEN_WIDTH, {
+        duration: 800,
+        easing: Easing.inOut(Easing.quad),
+      });
+      setActiveIndex(newIndex);
     }
-    endOnboarding();
   };
 
   const onSkip = () => {
@@ -73,45 +83,68 @@ export default function OnboardingScreen({ navigation }: Props) {
     Gesture.Fling().direction(Directions.RIGHT).onEnd(onBack)
   );
 
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle='light-content' backgroundColor='#8B5CF6' />
       <GestureDetector gesture={onSwipe}>
-        <Animated.View style={[styles.slidesContainer]}>
-          {/* skip btn */}
-          <Animated.View
-            style={{
-              position: 'absolute',
-              top: 15,
-              right: 25,
-              zIndex: 999,
-            }}
-          >
-            <AntDesign
-              name='rightcircleo'
-              size={30}
-              color='#fff'
-              onPress={() => onSkip()}
-            />
-          </Animated.View>
-          {slidesData && (
-            <Animated.View key={slidesData.id} style={[styles.slide]}>
-              <LinearGradient
-                colors={['#8B5CF6', '#7C3AED']}
-                style={styles.gradientContainer}
+        <Animated.View style={[styles.slidesContainer, animatedStyle]}>
+          {slides.map((slide, index) => {
+            const slideAnimatedStyle = useAnimatedStyle(() => {
+              const opacity = interpolate(
+                translateX.value,
+                [
+                  (index - 1) * -SCREEN_WIDTH,
+                  index * -SCREEN_WIDTH,
+                  (index + 1) * -SCREEN_WIDTH,
+                ],
+                [0, 1, 0],
+                Extrapolation.CLAMP
+              );
+              return { opacity };
+            });
+
+            return (
+              <Animated.View
+                key={slide.id}
+                style={[styles.slide, slideAnimatedStyle]}
               >
-                <View style={styles.content}>
-                  <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>{slidesData.icon}</Text>
+                {/* skip btn */}
+                <Animated.View
+                  style={{
+                    position: 'absolute',
+                    top: 15,
+                    right: 25,
+                    zIndex: 999,
+                  }}
+                >
+                  <AntDesign
+                    name='rightcircleo'
+                    size={30}
+                    color='#fff'
+                    onPress={() => onSkip()}
+                  />
+                </Animated.View>
+                <LinearGradient
+                  colors={['#8B5CF6', '#7C3AED']}
+                  style={styles.gradientContainer}
+                >
+                  <View style={styles.content}>
+                    <View style={styles.iconContainer}>
+                      <Text style={styles.icon}>{slide.icon}</Text>
+                    </View>
+                    <Text style={styles.title}>{slide.title}</Text>
+                    <Text style={styles.description}>{slide.description}</Text>
                   </View>
-                  <Text style={styles.title}>{slidesData.title}</Text>
-                  <Text style={styles.description}>
-                    {slidesData.description}
-                  </Text>
-                </View>
-              </LinearGradient>
-            </Animated.View>
-          )}
+                </LinearGradient>
+              </Animated.View>
+            );
+          })}
         </Animated.View>
       </GestureDetector>
 
@@ -136,14 +169,7 @@ export default function OnboardingScreen({ navigation }: Props) {
             <Text style={styles.getStartedText}>Get Started</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={() => {
-              const newIndex = activeIndex + 1;
-              translateX.value = withSpring(-newIndex * SCREEN_WIDTH);
-              setActiveIndex(newIndex);
-            }}
-          >
+          <TouchableOpacity style={styles.nextButton} onPress={onContinue}>
             <Text style={styles.nextButtonText}>Next</Text>
             <Ionicons name='arrow-forward' size={20} color='white' />
           </TouchableOpacity>
@@ -161,7 +187,7 @@ const styles = StyleSheet.create({
   slidesContainer: {
     flex: 1,
     flexDirection: 'row',
-    position: 'relative',
+    width: SCREEN_WIDTH * slides.length,
   },
   slide: {
     width: SCREEN_WIDTH,
