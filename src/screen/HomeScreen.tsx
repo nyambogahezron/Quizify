@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -24,8 +25,9 @@ export default function HomeScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
-    <LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.container}>
+    <LinearGradient colors={['#666', '#555']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle='light-content' backgroundColor={'#555555'} />
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.header}>
@@ -288,7 +290,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   gameCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -308,7 +310,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   gameQuestions: {
-    color: '#666',
+    color: '#f2f2f2',
     fontSize: 14,
     marginBottom: 8,
   },
@@ -317,13 +319,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playersCount: {
-    color: '#666',
+    color: '#f2f2ff2',
     fontSize: 14,
     marginLeft: 4,
   },
   gameEnergy: {
     marginLeft: 'auto',
-    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    backgroundColor: 'rgba(255, 107, 107, 0.2)',
     padding: 8,
     borderRadius: 20,
   },

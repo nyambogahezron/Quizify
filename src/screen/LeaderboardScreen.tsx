@@ -37,7 +37,10 @@ export default function LeaderboardScreen() {
   );
 
   return (
-    <LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.container}>
+    <LinearGradient
+      colors={['#555', '#7C3AED', '#444']}
+      style={styles.container}
+    >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Text style={styles.title}>Leaderboard</Text>
@@ -92,7 +95,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: 'white',
+    // backgroundColor: 'white',
     marginTop: 20,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,

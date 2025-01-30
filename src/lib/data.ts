@@ -133,55 +133,6 @@ export const moreGames = [
     players: '8.3k',
     icon: '🧮',
   },
-  {
-    id: 4,
-    name: 'IQ Quiz',
-    questions: 20,
-    players: '5.6k',
-    icon: '🧠',
-  },
-  {
-    id: 5,
-    name: 'Geography Quiz',
-    questions: 25,
-    players: '3.2k',
-    icon: '🌍',
-  },
-  {
-    id: 6,
-    name: 'History Quiz',
-    questions: 30,
-    players: '1.8k',
-    icon: '📜',
-  },
-  {
-    id: 7,
-    name: 'Chemistry Quiz',
-    questions: 18,
-    players: '1.2k',
-    icon: '⚗️',
-  },
-  {
-    id: 8,
-    name: 'Biology Quiz',
-    questions: 22,
-    players: '0.8k',
-    icon: '🦠',
-  },
-  {
-    id: 9,
-    name: 'Physics Quiz',
-    questions: 16,
-    players: '0.4k',
-    icon: '🔭',
-  },
-  {
-    id: 10,
-    name: 'Space Quiz',
-    questions: 24,
-    players: '0.2k',
-    icon: '🚀',
-  },
 ];
 
 export const leaderboardData = [

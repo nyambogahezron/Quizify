@@ -1,22 +1,22 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { BottomTabNavigation } from './src/components/navigation/BottomTab';
+import { BottomTabNavigation } from '@/components/navigation/BottomTab';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { initDatabase } from './src/lib/db';
-import { useUserStore } from './src/store/userStore';
+import { initDatabase } from '@/lib/db';
+import { useUserStore } from '@/store/userStore';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 
-import QuizScreen from './src/screen/QuizScreen';
-import ResultScreen from './src/screen/ResultScreen';
-import ProfileScreen from './src/screen/ProfileScreen';
-import SettingsScreen from './src/screen/SettingsScreen';
-import LeaderboardScreen from './src/screen/LeaderboardScreen';
-import CreateAccountScreen from './src/screen/CreateAccountScreen';
-import WordMakerScreen from './src/screen/WordMakerGameScreen';
-import BookmarksScreen from './src/screen/BookmarksScreen';
-import OnboardingScreen from './src/screen/OnBoardScreen';
+import QuizScreen from '@/screen/QuizScreen';
+import ResultScreen from '@/screen/ResultScreen';
+import ProfileScreen from '@/screen/ProfileScreen';
+import SettingsScreen from '@/screen/SettingsScreen';
+import LeaderboardScreen from '@/screen/LeaderboardScreen';
+import CreateAccountScreen from '@/screen/CreateAccountScreen';
+import WordMakerScreen from '@/screen/WordMakerGameScreen';
+import BookmarksScreen from '@/screen/BookmarksScreen';
+import OnboardingScreen from '@/screen/OnBoardScreen';
 
 export type RootStackParamList = {
   MainTabs: undefined;

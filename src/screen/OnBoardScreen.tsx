@@ -179,6 +179,8 @@ const styles = StyleSheet.create({
   slide: {
     width: SCREEN_WIDTH,
     flex: 1,
+    // borderWidth: 1,
+    // borderColor: 'red',
   },
   gradientContainer: {
     flex: 1,
