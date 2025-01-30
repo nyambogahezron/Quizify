@@ -95,34 +95,21 @@ export default function OnboardingScreen({ navigation }: Props) {
       <GestureDetector gesture={onSwipe}>
         <Animated.View style={[styles.slidesContainer, animatedStyle]}>
           {slides.map((slide, index) => {
-            const slideAnimatedStyle = useAnimatedStyle(() => {
-              const opacity = interpolate(
-                translateX.value,
-                [
-                  (index - 1) * -SCREEN_WIDTH,
-                  index * -SCREEN_WIDTH,
-                  (index + 1) * -SCREEN_WIDTH,
-                ],
-                [0, 1, 0],
-                Extrapolation.CLAMP
-              );
-              return { opacity };
-            });
+            const opacity = interpolate(
+              translateX.value,
+              [
+                (index - 1) * -SCREEN_WIDTH,
+                index * -SCREEN_WIDTH,
+                (index + 1) * -SCREEN_WIDTH,
+              ],
+              [0, 1, 0],
+              Extrapolation.CLAMP
+            );
 
             return (
-              <Animated.View
-                key={slide.id}
-                style={[styles.slide, slideAnimatedStyle]}
-              >
+              <Animated.View key={slide.id} style={[styles.slide, { opacity }]}>
                 {/* skip btn */}
-                <Animated.View
-                  style={{
-                    position: 'absolute',
-                    top: 15,
-                    right: 25,
-                    zIndex: 999,
-                  }}
-                >
+                <Animated.View style={styles.skipIcon}>
                   <AntDesign
                     name='rightcircleo'
                     size={30}
@@ -147,7 +134,7 @@ export default function OnboardingScreen({ navigation }: Props) {
           })}
         </Animated.View>
       </GestureDetector>
-
+      {/* footer  */}
       <View style={styles.footer}>
         <View style={styles.pagination}>
           {slides.map((_, index) => (
@@ -215,6 +202,12 @@ const styles = StyleSheet.create({
   icon: {
     fontSize: 48,
   },
+  skipIcon: {
+    position: 'absolute',
+    top: 15,
+    right: 25,
+    zIndex: 999,
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -230,7 +223,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 20,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#7C3AED',
   },
   pagination: {
     flexDirection: 'row',
@@ -245,11 +238,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   paginationDotActive: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#8B5CF6',
     width: 20,
   },
   nextButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#8B5CF6',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
