@@ -1,26 +1,33 @@
-const primaryClr = '#FFC107';
-const secondaryClr = '#FF9800';
-const darkClr = '#333';
+const yellow = '#FFD700';
+const white = '#FFFFFF';
+const grayLight = 'rgba(255, 255, 255, 0.2)';
+const background = '#8B5CF6';
+const background2 = '#4C1D95';
 
 const Colors = {
   light: {
-    primary: primaryClr,
-    secondary: secondaryClr,
-    dark: darkClr,
-    dim: '#f0f0f0',
+    primary: '#8B5CF6',
+    secondary: '#FFD700',
+    dark: '#1A1A1A',
+    dim: '#F0F0F0',
   },
   dark: {
-    primary: primaryClr,
-    secondary: secondaryClr,
-    dark: darkClr,
-    dim: '#f0f0f0',
+    primary: '#8B5CF6',
+    secondary: '#FFCC00',
+    dark: '#FFFFFF',
+    dim: '#121212',
   },
   dim: {
-    primary: primaryClr,
-    secondary: secondaryClr,
-    dark: darkClr,
-    dim: '#f0f0f0',
+    primary: '#8B5CF6',
+    secondary: '#FFC107',
+    dark: '#333333',
+    dim: '#E0E0E0',
   },
+  yellow,
+  white,
+  grayLight,
+  background,
+  background2,
 };
 
 export default Colors;

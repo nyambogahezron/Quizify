@@ -72,12 +72,16 @@ export default function WordMakerScreen() {
       }
     })
     .onUpdate((event) => {
-      const col = Math.floor((event.x - 20) / CELL_SIZE);
-      const row = Math.floor((event.y - 120) / CELL_SIZE);
-      if (isValidPosition(row, col)) {
-        const newPos = { row, col };
-        if (!selectedCells.find((pos) => pos.row === row && pos.col === col)) {
-          setSelectedCells((prev) => [...prev, newPos]);
+      if (event.x >= 20 && event.y >= 120) {
+        const col = Math.floor((event.x - 20) / CELL_SIZE);
+        const row = Math.floor((event.y - 120) / CELL_SIZE);
+        if (isValidPosition(row, col)) {
+          const newPos = { row, col };
+          if (
+            !selectedCells.find((pos) => pos.row === row && pos.col === col)
+          ) {
+            setSelectedCells((prev) => [...prev, newPos]);
+          }
         }
       }
     })

@@ -12,9 +12,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../App';
 import { createUser } from '../lib/db';
 import { useUserStore } from '../store/userStore';
+import { RootStackParamList } from '@/lib/types';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'CreateAccount'>;

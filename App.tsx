@@ -7,29 +7,8 @@ import { initDatabase } from '@/lib/db';
 import { useUserStore } from '@/store/userStore';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
-
-import QuizScreen from '@/screen/QuizScreen';
-import ResultScreen from '@/screen/ResultScreen';
-import ProfileScreen from '@/screen/ProfileScreen';
-import SettingsScreen from '@/screen/SettingsScreen';
-import LeaderboardScreen from '@/screen/LeaderboardScreen';
-import CreateAccountScreen from '@/screen/CreateAccountScreen';
-import WordMakerScreen from '@/screen/WordMakerGameScreen';
-import BookmarksScreen from '@/screen/BookmarksScreen';
-import OnboardingScreen from '@/screen/OnBoardScreen';
-
-export type RootStackParamList = {
-  MainTabs: undefined;
-  Quiz: { category: string };
-  Result: { score: number; totalQuestions: number; coins: number };
-  Profile: undefined;
-  Bookmark: undefined;
-  Settings: undefined;
-  Leaderboard: undefined;
-  CreateAccount: undefined;
-  WordGame: undefined;
-  OnBoard: undefined;
-};
+import { RootStackParamList } from '@/lib/types';
+import SCREENS from '@/screen';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,7 +24,7 @@ export default function App() {
       await loadUser();
     };
     init();
-  }, []);
+  }, [loadUser]);
 
   React.useEffect(() => {
     async function prepare() {
@@ -84,16 +63,22 @@ export default function App() {
           }}
           initialRouteName='OnBoard'
         >
-          <Stack.Screen name='OnBoard' component={OnboardingScreen} />
+          <Stack.Screen name='OnBoard' component={SCREENS.OnboardingScreen} />
           <Stack.Screen name='MainTabs' component={BottomTabNavigation} />
-          <Stack.Screen name='Quiz' component={QuizScreen} />
-          <Stack.Screen name='Result' component={ResultScreen} />
-          <Stack.Screen name='Profile' component={ProfileScreen} />
-          <Stack.Screen name='Bookmark' component={BookmarksScreen} />
-          <Stack.Screen name='Settings' component={SettingsScreen} />
-          <Stack.Screen name='Leaderboard' component={LeaderboardScreen} />
-          <Stack.Screen name='CreateAccount' component={CreateAccountScreen} />
-          <Stack.Screen name='WordGame' component={WordMakerScreen} />
+          <Stack.Screen name='Quiz' component={SCREENS.QuizScreen} />
+          <Stack.Screen name='Result' component={SCREENS.ResultScreen} />
+          <Stack.Screen name='Profile' component={SCREENS.ProfileScreen} />
+          <Stack.Screen name='Bookmark' component={SCREENS.BookmarksScreen} />
+          <Stack.Screen name='Settings' component={SCREENS.SettingsScreen} />
+          <Stack.Screen
+            name='Leaderboard'
+            component={SCREENS.LeaderboardScreen}
+          />
+          <Stack.Screen
+            name='CreateAccount'
+            component={SCREENS.CreateAccountScreen}
+          />
+          <Stack.Screen name='WordGame' component={SCREENS.WordMakerScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>

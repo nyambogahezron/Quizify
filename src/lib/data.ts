@@ -388,6 +388,7 @@ export const mockQuestions = [
 export const slides: slidesProps[] = [
   {
     id: 1,
+    key: 'welcome',
     title: 'Welcome to Quizify',
     description:
       'Embark on a journey of knowledge and fun with our interactive quiz platform.',
@@ -395,16 +396,18 @@ export const slides: slidesProps[] = [
   },
   {
     id: 2,
-    title: 'Learn & Compete',
-    description:
-      'Challenge yourself with various quiz categories, track your progress, and compete with friends.',
-    icon: '🏆',
-  },
-  {
-    id: 3,
+    key: 'info',
     title: 'User Agreement',
     description:
       'By continuing, you agree to our Terms of Service and Privacy Policy. We value your privacy and ensure your data is protected.',
     icon: '📜',
+  },
+  {
+    id: 3,
+    key: 'userAgreement',
+    title: 'Learn & Compete',
+    description:
+      'Challenge yourself with various quiz categories, track your progress, and compete with friends.',
+    icon: '🏆',
   },
 ];

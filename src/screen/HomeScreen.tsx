@@ -14,12 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { quizCategories, moreGames } from '../lib/data';
-
-export type RootStackParamList = {
-  Quiz: { category: string };
-  Profile: undefined;
-  WordGame: undefined;
-};
+import { RootStackParamList } from '@/lib/types';
 
 export default function HomeScreen() {
   const navigation =
