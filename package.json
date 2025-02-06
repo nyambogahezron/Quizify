@@ -23,7 +23,7 @@
     "expo-linear-gradient": "~14.0.2",
     "expo-network": "~7.0.5",
     "expo-router": "~4.0.17",
-    "expo-sqlite": "~15.1.0",
+    "expo-sqlite": "~15.1.2",
     "expo-status-bar": "~2.0.1",
     "lottie-react-native": "7.1.0",
     "react": "18.3.1",
@@ -42,7 +42,8 @@
     "drizzle-kit": "^0.30.3",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~8.0.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "babel-plugin-inline-import": "^3.0.0"
   },
   "private": true
 }

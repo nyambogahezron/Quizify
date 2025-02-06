@@ -3,12 +3,20 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BottomTabNavigation } from '@/components/navigation/BottomTab';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { initDatabase } from '@/lib/db';
-import { useUserStore } from '@/store/userStore';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import { RootStackParamList } from '@/lib/types';
 import SCREENS from '@/screen';
+
+import * as SQLite from 'expo-sqlite';
+import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { usersTable } from './db/schema';
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
+import migrations from './drizzle/migrations';
+
+
+const expo = SQLite.openDatabaseSync('db.db');
+const db = drizzle(expo);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -16,15 +24,32 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   const [appIsReady, setAppIsReady] = React.useState(false);
-  const { loadUser } = useUserStore();
+  const { success, error } = useMigrations(db, migrations);
+  const [items, setItems] = React.useState<typeof usersTable.$inferSelect[] | null>(null);
+
+  console.log(items);
+
 
   React.useEffect(() => {
-    const init = async () => {
-      await initDatabase();
-      await loadUser();
-    };
-    init();
-  }, [loadUser]);
+    if (!success) return;
+    (async () => {
+      await db.delete(usersTable);
+      await db.insert(usersTable).values([
+        {
+            name: 'John',
+            age: 30,
+            email: 'john@example.com',
+        },
+      ]);
+      const users = await db.select().from(usersTable);
+      setItems(users);
+    })();
+  }, [success]);
+
+  if (error) {
+   console.log(error);
+  }
+
 
   React.useEffect(() => {
     async function prepare() {
