@@ -14,9 +14,10 @@ import { usersTable } from './db/schema';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from './drizzle/migrations';
 import Colors from '@/constants/Colors';
+import { useUserStore } from '@/store';
 
 const expo = SQLite.openDatabaseSync('db.db');
-const db = drizzle(expo);
+export const db = drizzle(expo);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,26 +26,14 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
 	const [appIsReady, setAppIsReady] = React.useState(false);
 	const { success, error } = useMigrations(db, migrations);
-	const [items, setItems] = React.useState<
-		(typeof usersTable.$inferSelect)[] | null
-	>(null);
 
-	console.log(items);
+	const storeUser = useUserStore((state) => state.setUser);
 
 	React.useEffect(() => {
 		if (!success) return;
-		(async () => {
-			await db.delete(usersTable);
-			await db.insert(usersTable).values([
-				{
-					name: 'John',
-					age: 30,
-					email: 'john@example.com',
-				},
-			]);
-			const users = await db.select().from(usersTable);
-			setItems(users);
-		})();
+
+		const user = db.select().from(usersTable).get();
+		storeUser(user ?? null);
 	}, [success]);
 
 	if (error) {

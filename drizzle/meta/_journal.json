@@ -8,6 +8,13 @@
       "when": 1738871588557,
       "tag": "0000_moaning_stellaris",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1739485454015,
+      "tag": "0001_panoramic_supernaut",
+      "breakpoints": true
     }
   ]
 }

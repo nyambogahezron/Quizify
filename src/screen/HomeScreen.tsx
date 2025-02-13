@@ -5,7 +5,6 @@ import {
 	StyleSheet,
 	TouchableOpacity,
 	ScrollView,
-	Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,16 +16,26 @@ import { RootStackParamList } from '@/lib/types';
 import Colors from '@/constants/Colors';
 import GameCard from '@/components/GameCard';
 import DailyTask from '@/components/DailyTask';
+import { useUserStore } from '@/store';
 
 export default function HomeScreen() {
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+	const user = useUserStore((state) => state.user);
+
+	React.useEffect(() => {
+		if (!user) {
+			navigation.push('CreateAccount');
+		}
+	}, []);
+
 	return (
-		<LinearGradient
-			colors={[Colors.background, Colors.background2]}
-			style={styles.container}
-		>
-			<SafeAreaView style={styles.safeArea}>
+		<SafeAreaView style={{ flex: 1 }}>
+			<LinearGradient
+				colors={[Colors.background, Colors.background2]}
+				style={{ flex: 1 }}
+			>
 				<ScrollView showsVerticalScrollIndicator={false}>
 					{/* Header */}
 					<View style={styles.header}>
@@ -34,20 +43,19 @@ export default function HomeScreen() {
 							onPress={() => navigation.navigate('Profile')}
 							style={styles.profile}
 						>
-							<Image
-								source={{
-									uri: 'https://icons.veryicon.com/png/o/internet--web/prejudice/user-128.png',
-								}}
-								style={styles.avatar}
-							/>
+							<View style={styles.avatar}>
+								<Text style={{ fontSize: 20 }}>{user?.avatar}</Text>
+							</View>
 							<View>
-								<Text style={styles.username}>Roxane Harley</Text>
-								<Text style={styles.level}>Level 1</Text>
+								<Text style={styles.username}>{user?.name}</Text>
+								<Text style={styles.level}>{`Level : ${
+									user?.level ?? ''
+								}`}</Text>
 							</View>
 						</TouchableOpacity>
 						<View style={styles.coins}>
 							<Ionicons name='flash' size={20} color={Colors.red1} />
-							<Text style={styles.coinsText}>1200</Text>
+							<Text style={styles.coinsText}>{user?.points}</Text>
 						</View>
 					</View>
 
@@ -99,18 +107,12 @@ export default function HomeScreen() {
 						</View>
 					</View>
 				</ScrollView>
-			</SafeAreaView>
-		</LinearGradient>
+			</LinearGradient>
+		</SafeAreaView>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
-	safeArea: {
-		flex: 1,
-	},
 	header: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
@@ -122,10 +124,16 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	avatar: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		textAlign: 'center',
 		width: 40,
 		height: 40,
 		borderRadius: 20,
 		marginRight: 12,
+		borderWidth: 1,
+		borderColor: Colors.grayLight,
+		boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
 	},
 	username: {
 		color: 'white',
@@ -141,6 +149,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		backgroundColor: Colors.grayLight,
 		padding: 8,
+		paddingHorizontal: 15,
 		borderRadius: 20,
 	},
 	coinsText: {
