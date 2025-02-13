@@ -102,9 +102,39 @@ export default function App() {
 					/>
 					<Stack.Screen name='Quiz' component={SCREENS.QuizScreen} />
 					<Stack.Screen name='Result' component={SCREENS.ResultScreen} />
-					<Stack.Screen name='Profile' component={SCREENS.ProfileScreen} />
-					<Stack.Screen name='Bookmark' component={SCREENS.BookmarksScreen} />
-					<Stack.Screen name='Settings' component={SCREENS.SettingsScreen} />
+					<Stack.Screen
+						name='Profile'
+						component={SCREENS.ProfileScreen}
+						options={{
+							headerShown: true,
+							headerTitle: 'Profile',
+							headerStyle: { backgroundColor: Colors.background },
+							headerTitleStyle: { color: Colors.white },
+							headerTintColor: Colors.white,
+						}}
+					/>
+					<Stack.Screen
+						name='Bookmark'
+						component={SCREENS.BookmarksScreen}
+						options={{
+							headerShown: true,
+							headerTitle: 'Bookmarks',
+							headerStyle: { backgroundColor: Colors.background },
+							headerTitleStyle: { color: Colors.white },
+							headerTintColor: Colors.white,
+						}}
+					/>
+					<Stack.Screen
+						name='Settings'
+						component={SCREENS.SettingsScreen}
+						options={{
+							headerShown: true,
+							headerTitle: 'Settings',
+							headerStyle: { backgroundColor: Colors.background },
+							headerTitleStyle: { color: Colors.white },
+							headerTintColor: Colors.white,
+						}}
+					/>
 					<Stack.Screen
 						name='Leaderboard'
 						component={SCREENS.LeaderboardScreen}
