@@ -23,99 +23,110 @@ SplashScreen.preventAutoHideAsync();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
-  const [appIsReady, setAppIsReady] = React.useState(false);
-  const { success, error } = useMigrations(db, migrations);
-  const [items, setItems] = React.useState<
-    (typeof usersTable.$inferSelect)[] | null
-  >(null);
+	const [appIsReady, setAppIsReady] = React.useState(false);
+	const { success, error } = useMigrations(db, migrations);
+	const [items, setItems] = React.useState<
+		(typeof usersTable.$inferSelect)[] | null
+	>(null);
 
-  console.log(items);
+	console.log(items);
 
-  React.useEffect(() => {
-    if (!success) return;
-    (async () => {
-      await db.delete(usersTable);
-      await db.insert(usersTable).values([
-        {
-          name: 'John',
-          age: 30,
-          email: 'john@example.com',
-        },
-      ]);
-      const users = await db.select().from(usersTable);
-      setItems(users);
-    })();
-  }, [success]);
+	React.useEffect(() => {
+		if (!success) return;
+		(async () => {
+			await db.delete(usersTable);
+			await db.insert(usersTable).values([
+				{
+					name: 'John',
+					age: 30,
+					email: 'john@example.com',
+				},
+			]);
+			const users = await db.select().from(usersTable);
+			setItems(users);
+		})();
+	}, [success]);
 
-  if (error) {
-    console.log(error);
-  }
+	if (error) {
+		console.log(error);
+	}
 
-  React.useEffect(() => {
-    async function prepare() {
-      try {
-        await Font.loadAsync({
-          'Rb-bold': require('./assets/fonts/RobotoCondensed-Bold.ttf'),
-          'Rb-regular': require('./assets/fonts/RobotoCondensed-Regular.ttf'),
-          'Rb-medium': require('./assets/fonts/RobotoCondensed-Medium.ttf'),
-        });
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setAppIsReady(true);
-        await SplashScreen.hideAsync();
-      }
-    }
-    prepare();
-  }, []);
+	React.useEffect(() => {
+		async function prepare() {
+			try {
+				await Font.loadAsync({
+					'Rb-bold': require('./assets/fonts/RobotoCondensed-Bold.ttf'),
+					'Rb-regular': require('./assets/fonts/RobotoCondensed-Regular.ttf'),
+					'Rb-medium': require('./assets/fonts/RobotoCondensed-Medium.ttf'),
+				});
+			} catch (e) {
+				console.warn(e);
+			} finally {
+				setAppIsReady(true);
+				await SplashScreen.hideAsync();
+			}
+		}
+		prepare();
+	}, []);
 
-  const onLayoutRootView = React.useCallback(() => {
-    if (appIsReady) {
-      SplashScreen.hideAsync();
-    }
-  }, [appIsReady]);
+	const onLayoutRootView = React.useCallback(() => {
+		if (appIsReady) {
+			SplashScreen.hideAsync();
+		}
+	}, [appIsReady]);
 
-  if (!appIsReady) {
-    return null;
-  }
+	if (!appIsReady) {
+		return null;
+	}
 
-  return (
-    <GestureHandlerRootView onLayout={onLayoutRootView}>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-          }}
-          initialRouteName='OnBoard'
-        >
-          <Stack.Screen name='OnBoard' component={SCREENS.OnboardingScreen} />
-          <Stack.Screen
-            name='MainTabs'
-            component={BottomTabNavigation}
-            options={{
-              statusBarBackgroundColor: Colors.background,
-              statusBarStyle: 'light',
-              contentStyle: {
-                backgroundColor: Colors.background2,
-              },
-            }}
-          />
-          <Stack.Screen name='Quiz' component={SCREENS.QuizScreen} />
-          <Stack.Screen name='Result' component={SCREENS.ResultScreen} />
-          <Stack.Screen name='Profile' component={SCREENS.ProfileScreen} />
-          <Stack.Screen name='Bookmark' component={SCREENS.BookmarksScreen} />
-          <Stack.Screen name='Settings' component={SCREENS.SettingsScreen} />
-          <Stack.Screen
-            name='Leaderboard'
-            component={SCREENS.LeaderboardScreen}
-          />
-          <Stack.Screen
-            name='CreateAccount'
-            component={SCREENS.CreateAccountScreen}
-          />
-          <Stack.Screen name='WordGame' component={SCREENS.WordMakerScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </GestureHandlerRootView>
-  );
+	return (
+		<GestureHandlerRootView onLayout={onLayoutRootView}>
+			<NavigationContainer>
+				<Stack.Navigator
+					screenOptions={{
+						headerShown: false,
+					}}
+					initialRouteName='OnBoard'
+				>
+					<Stack.Screen name='OnBoard' component={SCREENS.OnboardingScreen} />
+					<Stack.Screen
+						name='MainTabs'
+						component={BottomTabNavigation}
+						options={{
+							statusBarBackgroundColor: Colors.background,
+							statusBarStyle: 'light',
+							contentStyle: {
+								backgroundColor: Colors.background2,
+							},
+						}}
+					/>
+					<Stack.Screen name='Quiz' component={SCREENS.QuizScreen} />
+					<Stack.Screen name='Result' component={SCREENS.ResultScreen} />
+					<Stack.Screen name='Profile' component={SCREENS.ProfileScreen} />
+					<Stack.Screen name='Bookmark' component={SCREENS.BookmarksScreen} />
+					<Stack.Screen name='Settings' component={SCREENS.SettingsScreen} />
+					<Stack.Screen
+						name='Leaderboard'
+						component={SCREENS.LeaderboardScreen}
+					/>
+					<Stack.Screen
+						name='CreateAccount'
+						component={SCREENS.CreateAccountScreen}
+					/>
+					<Stack.Screen name='WordGame' component={SCREENS.WordMakerScreen} />
+					<Stack.Screen
+						name='QuizList'
+						component={SCREENS.QuizList}
+						options={{
+							headerShown: true,
+							headerTitle: 'Quiz List',
+							headerStyle: { backgroundColor: Colors.background },
+							headerTitleStyle: { color: Colors.white },
+							headerTintColor: Colors.white,
+						}}
+					/>
+				</Stack.Navigator>
+			</NavigationContainer>
+		</GestureHandlerRootView>
+	);
 }

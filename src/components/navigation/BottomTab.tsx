@@ -39,7 +39,7 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 	};
 
 	return (
-		<BlurView intensity={50} style={styles.wrapper}>
+		<BlurView intensity={90} style={styles.wrapper}>
 			{/* Wrap with BlurView */}
 			{state.routes.map((route: any, index: number) => {
 				const { options } = descriptors[route.key];
@@ -130,15 +130,15 @@ const styles = StyleSheet.create({
 	wrapper: {
 		position: 'absolute',
 		bottom: 0,
-		left: '2%',
-		right: '2%',
+		left: '3%',
+		right: '3%',
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		backgroundColor: Colors.background,
+		backgroundColor: 'rgba(76, 29, 149, 0.9)',
 		borderRadius: 20,
 		marginBottom: 15,
-		width: '96%',
+		width: '94%',
 		marginHorizontal: 'auto',
 		overflow: 'hidden',
 	},
