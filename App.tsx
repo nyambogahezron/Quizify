@@ -13,7 +13,7 @@ import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { usersTable } from './db/schema';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from './drizzle/migrations';
-
+import Colors from '@/constants/Colors';
 
 const expo = SQLite.openDatabaseSync('db.db');
 const db = drizzle(expo);
@@ -25,10 +25,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
   const [appIsReady, setAppIsReady] = React.useState(false);
   const { success, error } = useMigrations(db, migrations);
-  const [items, setItems] = React.useState<typeof usersTable.$inferSelect[] | null>(null);
+  const [items, setItems] = React.useState<
+    (typeof usersTable.$inferSelect)[] | null
+  >(null);
 
   console.log(items);
-
 
   React.useEffect(() => {
     if (!success) return;
@@ -36,9 +37,9 @@ export default function App() {
       await db.delete(usersTable);
       await db.insert(usersTable).values([
         {
-            name: 'John',
-            age: 30,
-            email: 'john@example.com',
+          name: 'John',
+          age: 30,
+          email: 'john@example.com',
         },
       ]);
       const users = await db.select().from(usersTable);
@@ -47,9 +48,8 @@ export default function App() {
   }, [success]);
 
   if (error) {
-   console.log(error);
+    console.log(error);
   }
-
 
   React.useEffect(() => {
     async function prepare() {
@@ -80,7 +80,7 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView onLayout={onLayoutRootView}>
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{
@@ -89,7 +89,17 @@ export default function App() {
           initialRouteName='OnBoard'
         >
           <Stack.Screen name='OnBoard' component={SCREENS.OnboardingScreen} />
-          <Stack.Screen name='MainTabs' component={BottomTabNavigation} />
+          <Stack.Screen
+            name='MainTabs'
+            component={BottomTabNavigation}
+            options={{
+              statusBarBackgroundColor: Colors.background,
+              statusBarStyle: 'light',
+              contentStyle: {
+                backgroundColor: Colors.background2,
+              },
+            }}
+          />
           <Stack.Screen name='Quiz' component={SCREENS.QuizScreen} />
           <Stack.Screen name='Result' component={SCREENS.ResultScreen} />
           <Stack.Screen name='Profile' component={SCREENS.ProfileScreen} />

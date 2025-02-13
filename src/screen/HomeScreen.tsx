@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,14 +14,17 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { quizCategories, moreGames } from '../lib/data';
 import { RootStackParamList } from '@/lib/types';
+import Colors from '@/constants/Colors';
 
 export default function HomeScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
-    <LinearGradient colors={['#666', '#555']} style={styles.container}>
+    <LinearGradient
+      colors={[Colors.background, Colors.background2]}
+      style={styles.container}
+    >
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle='light-content' backgroundColor={'#555555'} />
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.header}>

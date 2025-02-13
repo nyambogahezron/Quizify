@@ -7,17 +7,19 @@ import CreateAccountScreen from '@/screen/CreateAccountScreen';
 import WordMakerScreen from '@/screen/WordMakerGameScreen';
 import BookmarksScreen from '@/screen/BookmarksScreen';
 import OnboardingScreen from '@/screen/OnBoardScreen';
+import HomeScreen from '@/screen/HomeScreen';
 
 const SCREENS = {
-  QuizScreen,
-  ResultScreen,
-  ProfileScreen,
-  SettingsScreen,
-  LeaderboardScreen,
-  CreateAccountScreen,
-  WordMakerScreen,
-  BookmarksScreen,
-  OnboardingScreen,
+	HomeScreen,
+	QuizScreen,
+	ResultScreen,
+	ProfileScreen,
+	SettingsScreen,
+	LeaderboardScreen,
+	CreateAccountScreen,
+	WordMakerScreen,
+	BookmarksScreen,
+	OnboardingScreen,
 };
 
 export default SCREENS;
