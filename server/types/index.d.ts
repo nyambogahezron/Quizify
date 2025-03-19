@@ -2,13 +2,14 @@ import { Types } from 'mongoose';
 import { Response as ExpressResponse } from 'express';
 
 export type UserProps = {
-  userId: Types.ObjectId;
-  name: string;
-  email: string;
+	userId: Types.ObjectId;
+	name: string;
+	email: string;
+	username: string;
 };
 
 export type attachCookieProps = {
-  res: ExpressResponse;
-  token: string;
-  user: UserProps;
+	res: ExpressResponse;
+	token: string;
+	user: UserProps;
 };

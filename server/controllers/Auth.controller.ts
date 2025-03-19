@@ -52,7 +52,7 @@ export const RegisterUser = AsyncHandler(
 		});
 
 		user.set('password', undefined, { strict: false });
-		res.status(StatusCodes.CREATED).json({ success: true, data: user });
+		res.status(StatusCodes.CREATED).json({ data: user });
 	}
 );
 
@@ -89,9 +89,19 @@ export const VerifyEmail = AsyncHandler(async (req: Request, res: Response) => {
 
 	await user.save();
 
-	res
-		.status(StatusCodes.OK)
-		.json({ success: true, message: 'Email verified successfully' });
+	await SendEmail({
+		email: user.email,
+		name: user.name,
+		subject: 'Quizify - Welcome',
+		outro:
+			"Need help, or have questions? Just reply to this email, we'd love to help.",
+		buttonLink: 'https://quizify.com',
+		buttonTxt: 'Get Started',
+		intro: 'Welcome to Quizify',
+		instructions: 'Your email has been verified , enjoy the app',
+	});
+
+	res.status(StatusCodes.OK).json({ msg: 'Email verified successfully' });
 });
 
 /**
@@ -138,7 +148,7 @@ export const ResendVerificationCode = AsyncHandler(
 
 		res
 			.status(StatusCodes.OK)
-			.json({ success: true, message: 'Verification code sent successfully' });
+			.json({ msg: 'Verification code sent successfully' });
 	}
 );
 
@@ -166,7 +176,7 @@ export const LoginUser = AsyncHandler(async (req: Request, res: Response) => {
 
 	if (user.accountStatus !== 'active') {
 		throw new UnauthorizedError(
-			'Your Account is suspended due to too many login attempts'
+			'Your Account is suspended due to too many login attempts, click forgot password to reset your password'
 		);
 	}
 
@@ -176,20 +186,34 @@ export const LoginUser = AsyncHandler(async (req: Request, res: Response) => {
 		user.loginAttempts += 1;
 		await user.save();
 
-		if (user.loginAttempts >= 3) {
-			user.accountStatus = 'suspended';
+		if (user.loginAttempts >= 4) {
+			const verificationToken = generateCode();
+			const device = req.headers['user-agent'] || 'unknown device';
+			const time = new Date().toLocaleString();
+
+			// do a password reset
+
+			const resetToken = generateCode();
+			const tenMinutes = 10 * 60 * 1000;
+			const passwordResetExpires = Date.now() + tenMinutes;
+
+			user.passwordToken = CreateHash(resetToken);
+			user.passwordTokenExpires = new Date(passwordResetExpires);
+
 			await user.save();
 
 			await SendEmail({
 				email: user.email,
 				name: user.name,
 				subject: 'Quizify -Login Attempts',
-				intro:
-					'This is to notify you that your account as been suspended due to my login attempts', // TODO pass time and device
+				intro: `This is to notify you that your account as been suspended due to my login attempts
+					on ${device} at ${time}
+					
+					`,
 				instructions: 'Use the code below to reset your password',
-				buttonTxt: '',
+				buttonTxt: verificationToken,
 				buttonLink: '',
-				outro: '',
+				outro: `Need help, or have questions? Just reply to this email, we'd love to help.`,
 			});
 
 			throw new UnauthorizedError(
@@ -203,6 +227,7 @@ export const LoginUser = AsyncHandler(async (req: Request, res: Response) => {
 		userId: user._id,
 		name: user.name,
 		email: user.email,
+		username: user.username,
 	};
 	let refreshToken = '';
 
@@ -257,7 +282,7 @@ export const ForgotPassword = AsyncHandler(
 		const user = await User.findOne({ email });
 
 		if (!user) {
-			throw new BadRequestError('User not found');
+			throw new BadRequestError('Invalid credentials');
 		}
 
 		const resetToken = generateCode();
@@ -267,11 +292,19 @@ export const ForgotPassword = AsyncHandler(
 		user.passwordToken = CreateHash(resetToken);
 		user.passwordTokenExpires = new Date(passwordResetExpires);
 
+		await SendEmail({
+			email: user.email,
+			name: user.name,
+			subject: 'Quizify - Password Reset',
+			intro: 'Hello, we received a request to reset your password',
+			outro: `If you did not request a password reset, please ignore this email. Your password will not be changed.`,
+			instructions: 'Use the code below to reset your password',
+			buttonTxt: resetToken,
+		});
+
 		await user.save();
 
-		res
-			.status(StatusCodes.OK)
-			.json({ success: true, message: 'Reset token sent successfully' });
+		res.status(StatusCodes.OK).json({ msg: 'Reset token sent successfully' });
 	}
 );
 
@@ -309,15 +342,17 @@ export const ResetPassword = AsyncHandler(
 			throw new BadRequestError('Token expired');
 		}
 
+		// handle when user who was blocked reset password
 		user.password = password;
 		user.passwordToken = '';
 		user.passwordTokenExpires = undefined;
 		user.accountStatus = 'active';
+		user.loginAttempts = 0;
+		user.isVerified = true;
+		user.verificationToken = '';
 		await user.save();
 
-		res
-			.status(StatusCodes.OK)
-			.json({ success: true, message: 'Password reset successfully' });
+		res.status(StatusCodes.OK).json({ msg: 'Password reset successfully' });
 	}
 );
 
