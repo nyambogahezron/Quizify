@@ -11,11 +11,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from 'constants/Colors';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '.';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SettingsScreen() {
 	const [notifications, setNotifications] = React.useState(true);
 	const [sound, setSound] = React.useState(true);
 	const [vibration, setVibration] = React.useState(true);
+
+
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+	const handleLogout = () => {
+		// TODO: delete user local session
+		// TODO: delete session from database
+		// TODO: navigate to login screen
+		navigation.navigate('Login');
+	};
 
 	const renderSettingItem = (
 		icon: string,
@@ -38,10 +51,10 @@ export default function SettingsScreen() {
 	);
 
 	return (
-		<SafeAreaView style={{ flex: 1 }}>
+		<SafeAreaView style={{ flex:1}}>
 			<LinearGradient
 				colors={[Colors.background, Colors.background2]}
-				style={styles.container}
+				style={{ flex:1}}
 			>
 				<ScrollView style={styles.content}>
 					<View style={styles.section}>
@@ -100,7 +113,7 @@ export default function SettingsScreen() {
 						</TouchableOpacity>
 					</View>
 
-					<TouchableOpacity style={styles.logoutButton}>
+					<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
 						<Text style={styles.logoutText}>Log Out</Text>
 					</TouchableOpacity>
 				</ScrollView>
@@ -110,14 +123,8 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
 	content: {
-		flex: 1,
-		marginTop: 20,
 		padding: 15,
-		marginBottom: 70,
 	},
 	section: {
 		marginBottom: 32,

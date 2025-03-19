@@ -10,7 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { quizCategories } from '../lib/data';
-import { RootStackParamList } from 'lib/types';
+import { RootStackParamList } from '.';
 import Colors from 'constants/Colors';
 import GameCard from 'components/GameCard';
 

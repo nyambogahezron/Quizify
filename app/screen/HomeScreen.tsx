@@ -12,23 +12,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { quizCategories, moreGames } from '../lib/data';
-import { RootStackParamList } from 'lib/types';
+import { RootStackParamList } from '.';
 import Colors from 'constants/Colors';
 import GameCard from 'components/GameCard';
 import DailyTask from 'components/DailyTask';
-import { useUserStore } from 'store';
 
 export default function HomeScreen() {
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-	const user = useUserStore((state) => state.user);
-
-	React.useEffect(() => {
-		if (!user) {
-			navigation.push('CreateAccount');
-		}
-	}, []);
+	const user = {
+		avatar: '👤',
+		name: 'John Doe',
+		level: 1,
+		points: 100,
+	};
 
 	return (
 		<SafeAreaView style={{ flex: 1 }}>

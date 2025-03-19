@@ -11,8 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from 'lib/types';
-import { useUserStore } from 'store';
+import { RootStackParamList } from '.';
 import Colors from 'constants/Colors';
 
 type Props = {
@@ -21,17 +20,13 @@ type Props = {
 
 export default function CreateAccountScreen({ navigation }: Props) {
 	const [isLoading, setIsLoading] = React.useState(false);
-	const user = useUserStore((state) => state.user);
+	// const user = useUserStore((state) => state.user);
 	const [name, setName] = React.useState<string>('');
 	const [username, setUsername] = React.useState<string>('');
 	const [email, setEmail] = React.useState<string>('');
 	const [avatar, setAvatar] = React.useState<string | null>('');
 
-	React.useEffect(() => {
-		if (user) {
-			navigation.push('MainTabs');
-		}
-	}, []);
+	
 
 	const handleCreateAccount = async () => {};
 	return (

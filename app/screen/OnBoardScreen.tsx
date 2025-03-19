@@ -21,7 +21,7 @@ import { slides } from '../lib/data';
 import OnBoard from 'components/onBoard';
 import SlidesFooter from 'components/onBoard/SlidesFooter';
 import { LinearGradient } from 'expo-linear-gradient';
-import { RootStackParamList } from 'lib/types';
+import { RootStackParamList } from '.';
 import Colors from 'constants/Colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -40,7 +40,7 @@ export default function OnboardingScreen({ navigation }: Props) {
 
   const endOnboarding = () => {
     setActiveIndex(0);
-    navigation.navigate('MainTabs');
+    navigation.navigate('Login');
   };
 
   const onContinue = () => {
@@ -131,7 +131,7 @@ export default function OnboardingScreen({ navigation }: Props) {
                       onPress={() => onSkip()}
                     />
                   </Animated.View>
-                  <OnBoard slideKey={slide.key} getStarted={handleGetStarted} />
+                  <OnBoard slideKey={slide.key} />
                 </Animated.View>
               );
             })}

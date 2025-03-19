@@ -15,31 +15,53 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Toaster, toast } from 'sonner-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@/constants/Colors';
 import { StatusBar } from 'expo-status-bar';
+import { useRoute } from '@react-navigation/native';
 
-export default function LoginScreen({ navigation }: { navigation: any }) {
-	const [email, setEmail] = useState('');
+export default function ResetPasswordScreen({
+	navigation,
+}: {
+	navigation: any;
+}) {
+	const route = useRoute();
+	const { email } = route.params as { email: string };
+	const [token, settToken] = useState('');
 	const [password, setPassword] = useState('');
+	const [confirmPassword, setConfirmPassword] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
-	const handleLogin = async () => {
-		if (!email || !password) {
-			toast.error('Please fill in all fields');
+	const handleResetPassword = async () => {
+		if (!email || !token || !password || !confirmPassword) {
+			Alert.alert('Error', 'Please fill in all fields');
+			return;
+		}
+
+		if (password.length < 8) {
+			Alert.alert('Too short', 'Password must be at least 8 characters long');
+			return;
+		}
+
+		if (token.length !== 6) {
+			Alert.alert('Token Error', 'Code must be 6 digits long');
+			return;
+		}
+
+		if (password !== confirmPassword) {
+			Alert.alert('Error', 'Passwords do not match');
 			return;
 		}
 
 		try {
 			setIsLoading(true);
 			const response = await fetch(
-				'https://gb5zk1b0-5000.uks1.devtunnels.ms/api/v1/auth/login',
+				'https://gb5zk1b0-5000.uks1.devtunnels.ms/api/v1/auth/reset-password',
 				{
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ email, password }),
+					body: JSON.stringify({ email, token, password }),
 				}
 			);
 
@@ -51,28 +73,27 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 				throw new Error(data.message || 'Login failed');
 			}
 
-			await AsyncStorage.setItem('token', data.token);
-			toast.success('Login successful');
 			setIsLoading(false);
-			navigation.navigate('Home');
+
+			navigation.navigate('Login');
+			Alert.alert('Password reset successful');
 		} catch (error) {
 			setIsLoading(false);
 			console.log(error);
 
-			if (
-				error instanceof Error &&
-				error.message.startsWith('Your Account is suspended')
-			) {
-				Alert.alert('Authentication Error', 'Your Account is suspended', [
+			if (error instanceof Error && error.message.startsWith('Token expired')) {
+				Alert.alert('Token expired', 'Please request a new code', [
 					{
-						text: 'RESET PASSWORD',
+						text: 'Resend Code',
 						onPress: () => navigation.navigate('ForgotPassword'),
 					},
 				]);
+				navigation.navigate('ForgotPassword');
 				return;
 			}
 			const message = error instanceof Error ? error.message : 'Login failed';
-			Alert.alert('Authentication Error', message);
+			toast.error(message);
+			Alert.alert('Password reset failed', message);
 		} finally {
 			setIsLoading(false);
 		}
@@ -92,9 +113,9 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 						style={styles.content}
 					>
 						<View style={styles.header}>
-							<Text style={styles.title}>Welcome Back!</Text>
+							<Text style={styles.title}>Reset Password</Text>
 							<Text style={styles.subtitle}>
-								Login to continue your journey
+								Enter your email to reset password
 							</Text>
 						</View>
 
@@ -103,70 +124,52 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 								<MaterialCommunityIcons name='email' size={24} color='white' />
 								<TextInput
 									style={styles.input}
-									placeholder='Email'
+									placeholder='Code'
 									placeholderTextColor='#A0A0A0'
-									value={email}
-									onChangeText={setEmail}
+									value={token}
+									onChangeText={settToken}
 									autoCapitalize='none'
-									keyboardType='email-address'
+									keyboardType='numeric'
 								/>
 							</View>
+
 							<View style={styles.inputContainer}>
 								<MaterialCommunityIcons name='lock' size={24} color='white' />
 								<TextInput
+									onChangeText={setPassword}
 									style={styles.input}
 									placeholder='Password'
-									placeholderTextColor='#A0A0A0'
 									value={password}
-									onChangeText={setPassword}
-									secureTextEntry
+									placeholderTextColor='#A0A0A0'
+								/>
+							</View>
+
+							<View style={styles.inputContainer}>
+								<MaterialCommunityIcons name='lock' size={24} color='white' />
+								<TextInput
+									onChangeText={setConfirmPassword}
+									style={styles.input}
+									value={confirmPassword}
+									placeholder='Confirm Password'
+									placeholderTextColor='#A0A0A0'
 								/>
 							</View>
 							<TouchableOpacity
-								onPress={() => navigation.navigate('ForgotPassword')}
-								style={styles.forgotPassword}
-							>
-								<Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-							</TouchableOpacity>{' '}
-							<TouchableOpacity
-								style={styles.loginButton}
-								onPress={handleLogin}
-								disabled={isLoading}
+								style={[
+									styles.loginButton,
+									isLoading || !email ? styles.disabledButton : null,
+								]}
+								onPress={handleResetPassword}
+								disabled={
+									isLoading || !email || !token || !password || !confirmPassword
+								}
 							>
 								{isLoading ? (
 									<ActivityIndicator size='small' color={Colors.background} />
 								) : (
-									<Text style={styles.loginButtonText}>Login</Text>
+									<Text style={styles.loginButtonText}>Reset Password</Text>
 								)}
 							</TouchableOpacity>
-							<View style={styles.signupContainer}>
-								<Text style={styles.signupText}>Don't have an account?</Text>
-								<TouchableOpacity
-									style={styles.signupButton}
-									onPress={() => navigation.navigate('Register')}
-								>
-									<Text style={styles.signupButtonText}>Signup</Text>
-								</TouchableOpacity>
-							</View>
-							<View style={styles.socialLogin}>
-								<Text style={styles.socialText}>Or login with</Text>
-								<View style={styles.socialButtons}>
-									<TouchableOpacity style={styles.socialButton}>
-										<MaterialCommunityIcons
-											name='google'
-											size={24}
-											color='white'
-										/>
-									</TouchableOpacity>
-									<TouchableOpacity style={styles.socialButton}>
-										<MaterialCommunityIcons
-											name='facebook'
-											size={24}
-											color='white'
-										/>
-									</TouchableOpacity>
-								</View>
-							</View>
 						</View>
 					</KeyboardAvoidingView>
 				</LinearGradient>
@@ -237,55 +240,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		fontWeight: 'bold',
 	},
-	socialLogin: {
-		marginTop: 40,
-		alignItems: 'center',
-		gap: 20,
-	},
-	socialText: {
-		color: '#E0E0E0',
-		fontSize: 14,
-	},
-	socialButtons: {
-		flexDirection: 'row',
-		gap: 20,
-	},
-	socialButton: {
-		backgroundColor: 'rgba(255, 255, 255, 0.2)',
-		padding: 15,
-		borderRadius: 10,
-	},
-	demoButton: {
-		backgroundColor: 'rgba(255, 255, 255, 0.9)',
-		padding: 12,
-		borderRadius: 10,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 8,
-		marginTop: 10,
-	},
-	demoButtonText: {
-		color: '#3b5998',
-		fontSize: 16,
-		fontWeight: '600',
-	},
-	signupContainer: {
-		alignItems: 'center',
-		gap: 10,
-	},
-	signupText: {
-		color: '#E0E0E0',
-		fontSize: 14,
-	},
-	signupButton: {
-		backgroundColor: 'transparent',
-		padding: 10,
-		borderRadius: 10,
-	},
-	signupButtonText: {
-		color: '#fff',
-		fontSize: 16,
-		fontWeight: '600',
+	disabledButton: {
+		backgroundColor: '#ccc',
 	},
 });
