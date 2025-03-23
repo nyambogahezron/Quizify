@@ -1,0 +1,563 @@
+[
+	{
+		"title": "Introduction to JavaScript",
+		"description": "Test your knowledge of JavaScript basics",
+		"category": "Programming",
+		"difficulty": "easy",
+		"timeLimit": 60,
+		"questions": [
+			{
+				"question": "Which keyword is used to declare a variable in JavaScript?",
+				"options": ["var", "int", "string", "declare"],
+				"correctAnswer": "var",
+				"explanation": "In JavaScript, 'var' is one of the keywords used to declare variables, along with 'let' and 'const'."
+			},
+			{
+				"question": "What will '2' + 2 evaluate to in JavaScript?",
+				"options": ["4", "22", "Error", "undefined"],
+				"correctAnswer": "22",
+				"explanation": "JavaScript performs type coercion and treats the + operator as string concatenation when one operand is a string."
+			},
+			{
+				"question": "Which built-in method is used to convert a string to lowercase?",
+				"options": ["toLowerCase()", "toLower()", "changeCase()", "caseDown()"],
+				"correctAnswer": "toLowerCase()",
+				"explanation": "The toLowerCase() method returns the calling string value converted to lowercase."
+			},
+			{
+				"question": "How do you create a function in JavaScript?",
+				"options": [
+					"function myFunction()",
+					"create myFunction()",
+					"new Function()",
+					"def myFunction()"
+				],
+				"correctAnswer": "function myFunction()",
+				"explanation": "Functions in JavaScript are defined using the 'function' keyword followed by a name and parentheses."
+			},
+			{
+				"question": "Which operator is used for strict equality comparison?",
+				"options": ["==", "===", "=", "!="],
+				"correctAnswer": "===",
+				"explanation": "The === operator checks for strict equality, comparing both value and type without performing type conversion."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "World Geography",
+		"description": "Test your knowledge of world geography",
+		"category": "Geography",
+		"difficulty": "medium",
+		"timeLimit": 120,
+		"questions": [
+			{
+				"question": "Which is the largest ocean on Earth?",
+				"options": [
+					"Atlantic Ocean",
+					"Indian Ocean",
+					"Arctic Ocean",
+					"Pacific Ocean"
+				],
+				"correctAnswer": "Pacific Ocean",
+				"explanation": "The Pacific Ocean is the largest and deepest ocean on Earth, covering more than 30% of the Earth's surface."
+			},
+			{
+				"question": "Which country is known as the Land of the Rising Sun?",
+				"options": ["China", "South Korea", "Japan", "Thailand"],
+				"correctAnswer": "Japan",
+				"explanation": "Japan is known as the Land of the Rising Sun because from China, Japan appears to be in the direction where the Sun rises."
+			},
+			{
+				"question": "Which is the longest river in the world?",
+				"options": ["Amazon", "Nile", "Yangtze", "Mississippi"],
+				"correctAnswer": "Nile",
+				"explanation": "The Nile River is the longest river in the world, stretching about 6,650 kilometers."
+			},
+			{
+				"question": "Which desert is the largest in the world?",
+				"options": ["Gobi", "Kalahari", "Sahara", "Antarctic"],
+				"correctAnswer": "Antarctic",
+				"explanation": "The Antarctic Desert is the largest desert in the world, covering the entire continent of Antarctica."
+			},
+			{
+				"question": "Which is the smallest country in the world by land area?",
+				"options": ["Monaco", "Vatican City", "San Marino", "Liechtenstein"],
+				"correctAnswer": "Vatican City",
+				"explanation": "Vatican City is the smallest country in the world, with a total area of approximately 0.44 square kilometers."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Famous Scientists",
+		"description": "Test your knowledge about famous scientists throughout history",
+		"category": "Science",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "Who developed the theory of relativity?",
+				"options": [
+					"Isaac Newton",
+					"Albert Einstein",
+					"Niels Bohr",
+					"Galileo Galilei"
+				],
+				"correctAnswer": "Albert Einstein",
+				"explanation": "Albert Einstein developed the theory of relativity, which fundamentally changed our understanding of space, time, and gravity."
+			},
+			{
+				"question": "Who is known for the discovery of penicillin?",
+				"options": [
+					"Alexander Fleming",
+					"Marie Curie",
+					"Louis Pasteur",
+					"Joseph Lister"
+				],
+				"correctAnswer": "Alexander Fleming",
+				"explanation": "Alexander Fleming discovered penicillin in 1928, which became the first widely used antibiotic."
+			},
+			{
+				"question": "Who proposed the heliocentric model of the solar system?",
+				"options": ["Ptolemy", "Copernicus", "Kepler", "Galileo"],
+				"correctAnswer": "Copernicus",
+				"explanation": "Nicolaus Copernicus proposed the heliocentric model, placing the Sun at the center of the solar system rather than Earth."
+			},
+			{
+				"question": "Who discovered the structure of DNA?",
+				"options": [
+					"Watson and Crick",
+					"Franklin and Wilkins",
+					"Darwin and Mendel",
+					"Pasteur and Koch"
+				],
+				"correctAnswer": "Watson and Crick",
+				"explanation": "James Watson and Francis Crick, with crucial data from Rosalind Franklin, determined the double helix structure of DNA in 1953."
+			},
+			{
+				"question": "Who developed the periodic table of elements?",
+				"options": [
+					"Dmitri Mendeleev",
+					"Antoine Lavoisier",
+					"John Dalton",
+					"Ernest Rutherford"
+				],
+				"correctAnswer": "Dmitri Mendeleev",
+				"explanation": "Dmitri Mendeleev created the first widely recognized periodic table in 1869, organizing elements by atomic weight and chemical properties."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Ancient History",
+		"description": "Test your knowledge of ancient civilizations and history",
+		"category": "History",
+		"difficulty": "hard",
+		"timeLimit": 120,
+		"questions": [
+			{
+				"question": "Which ancient civilization built the Machu Picchu?",
+				"options": ["Aztecs", "Mayans", "Incas", "Olmecs"],
+				"correctAnswer": "Incas",
+				"explanation": "Machu Picchu was built by the Incas in the 15th century and is located in present-day Peru."
+			},
+			{
+				"question": "Who was the first Emperor of unified China?",
+				"options": [
+					"Kublai Khan",
+					"Qin Shi Huang",
+					"Emperor Wu of Han",
+					"Hongwu Emperor"
+				],
+				"correctAnswer": "Qin Shi Huang",
+				"explanation": "Qin Shi Huang (259 BC – 210 BC) unified China in 221 BC and became the first emperor of the Qin dynasty."
+			},
+			{
+				"question": "Which ancient wonder was located in Alexandria?",
+				"options": [
+					"Hanging Gardens",
+					"Lighthouse (Pharos)",
+					"Temple of Artemis",
+					"Colossus"
+				],
+				"correctAnswer": "Lighthouse (Pharos)",
+				"explanation": "The Lighthouse of Alexandria (Pharos) was one of the Seven Wonders of the Ancient World, built in the 3rd century BC."
+			},
+			{
+				"question": "Who wrote 'The Republic'?",
+				"options": ["Socrates", "Aristotle", "Plato", "Herodotus"],
+				"correctAnswer": "Plato",
+				"explanation": "The Republic was written by the Greek philosopher Plato around 375 BC, and explores justice, government, and society."
+			},
+			{
+				"question": "Which empire was ruled by Hammurabi and his famous code of laws?",
+				"options": ["Persian", "Assyrian", "Babylonian", "Sumerian"],
+				"correctAnswer": "Babylonian",
+				"explanation": "Hammurabi was the sixth king of the First Babylonian dynasty, ruling from around 1792 to 1750 BC."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Music Theory Basics",
+		"description": "Test your knowledge of fundamental music theory concepts",
+		"category": "Music",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "How many lines are in a standard musical staff?",
+				"options": ["4", "5", "6", "7"],
+				"correctAnswer": "5",
+				"explanation": "A standard musical staff consists of five horizontal lines and four spaces, each representing a different musical pitch."
+			},
+			{
+				"question": "What does the Italian term 'forte' mean in musical notation?",
+				"options": ["Fast", "Slow", "Loud", "Soft"],
+				"correctAnswer": "Loud",
+				"explanation": "Forte (f) is a dynamic marking indicating that the music should be played loudly."
+			},
+			{
+				"question": "Which of these is not one of the three basic elements of music?",
+				"options": ["Rhythm", "Melody", "Harmony", "Frequency"],
+				"correctAnswer": "Frequency",
+				"explanation": "Rhythm, melody, and harmony are considered the three basic elements of music. Frequency is a physics term related to pitch."
+			},
+			{
+				"question": "How many semitones make up an octave?",
+				"options": ["8", "10", "12", "14"],
+				"correctAnswer": "12",
+				"explanation": "An octave consists of 12 semitones (half steps) in Western music theory."
+			},
+			{
+				"question": "Which clef is typically used for lower-pitched instruments?",
+				"options": ["Treble clef", "Alto clef", "Bass clef", "Tenor clef"],
+				"correctAnswer": "Bass clef",
+				"explanation": "The bass clef is used for lower-pitched instruments like bass guitar, cello, trombone, and the left hand in piano music."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Film Directors and Their Works",
+		"description": "Test your knowledge about famous film directors and their notable works",
+		"category": "Film",
+		"difficulty": "hard",
+		"timeLimit": 100,
+		"questions": [
+			{
+				"question": "Who directed 'Pulp Fiction'?",
+				"options": [
+					"Martin Scorsese",
+					"Quentin Tarantino",
+					"Steven Spielberg",
+					"Francis Ford Coppola"
+				],
+				"correctAnswer": "Quentin Tarantino",
+				"explanation": "Pulp Fiction (1994) was directed by Quentin Tarantino and is considered one of his masterpieces."
+			},
+			{
+				"question": "Which director is known for the 'Three Colors' trilogy?",
+				"options": [
+					"Federico Fellini",
+					"Andrei Tarkovsky",
+					"Krzysztof Kieślowski",
+					"Ingmar Bergman"
+				],
+				"correctAnswer": "Krzysztof Kieślowski",
+				"explanation": "The Three Colors trilogy (Blue, White, Red) was directed by Polish filmmaker Krzysztof Kieślowski in the early 1990s."
+			},
+			{
+				"question": "Who directed 'The Godfather'?",
+				"options": [
+					"Martin Scorsese",
+					"Francis Ford Coppola",
+					"Steven Spielberg",
+					"Alfred Hitchcock"
+				],
+				"correctAnswer": "Francis Ford Coppola",
+				"explanation": "The Godfather (1972) was directed by Francis Ford Coppola and is widely regarded as one of the greatest films ever made."
+			},
+			{
+				"question": "Which filmmaker directed 'Seven Samurai'?",
+				"options": [
+					"Yasujirō Ozu",
+					"Akira Kurosawa",
+					"Hayao Miyazaki",
+					"Kenji Mizoguchi"
+				],
+				"correctAnswer": "Akira Kurosawa",
+				"explanation": "Seven Samurai (1954) was directed by Akira Kurosawa and is considered one of the most influential films in cinema history."
+			},
+			{
+				"question": "Who directed '2001: A Space Odyssey'?",
+				"options": [
+					"Stanley Kubrick",
+					"George Lucas",
+					"Ridley Scott",
+					"James Cameron"
+				],
+				"correctAnswer": "Stanley Kubrick",
+				"explanation": "2001: A Space Odyssey (1968) was directed by Stanley Kubrick and is renowned for its groundbreaking visual effects and philosophical themes."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "World Cuisines",
+		"description": "Test your knowledge about foods and culinary traditions from around the world",
+		"category": "Food",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "Which country is the origin of sushi?",
+				"options": ["China", "Korea", "Japan", "Thailand"],
+				"correctAnswer": "Japan",
+				"explanation": "Sushi originated in Japan, where it has been prepared since the 8th century."
+			},
+			{
+				"question": "Which cuisine is known for dishes like paella and gazpacho?",
+				"options": ["Italian", "Spanish", "Greek", "French"],
+				"correctAnswer": "Spanish",
+				"explanation": "Paella (a rice dish) and gazpacho (cold soup) are traditional Spanish dishes."
+			},
+			{
+				"question": "Which country is the birthplace of the kebab?",
+				"options": ["Turkey", "Greece", "Lebanon", "Iran"],
+				"correctAnswer": "Turkey",
+				"explanation": "The kebab originated in Turkey, though variations exist throughout the Middle East and Mediterranean."
+			},
+			{
+				"question": "What is the main ingredient in traditional Italian risotto?",
+				"options": ["Pasta", "Arborio rice", "Potatoes", "Couscous"],
+				"correctAnswer": "Arborio rice",
+				"explanation": "Risotto is a northern Italian rice dish made with Arborio rice, a short-grain rice that becomes creamy when cooked."
+			},
+			{
+				"question": "Which country is known for inventing the croissant?",
+				"options": ["France", "Austria", "Belgium", "Switzerland"],
+				"correctAnswer": "Austria",
+				"explanation": "Though associated with France, the croissant was actually invented in Austria as the 'kipferl' before being introduced to France."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Introduction to Python",
+		"description": "Test your knowledge of Python programming basics",
+		"category": "Programming",
+		"difficulty": "easy",
+		"timeLimit": 60,
+		"questions": [
+			{
+				"question": "What symbol is used for comments in Python?",
+				"options": ["//", "/*", "#", "--"],
+				"correctAnswer": "#",
+				"explanation": "In Python, the hashtag (#) symbol is used to start a comment line."
+			},
+			{
+				"question": "Which of these is not a Python data type?",
+				"options": ["List", "Dictionary", "Tuple", "Array"],
+				"correctAnswer": "Array",
+				"explanation": "While arrays exist in Python through the NumPy library, they are not a built-in data type. Lists are Python's native sequence type."
+			},
+			{
+				"question": "What does the len() function do in Python?",
+				"options": [
+					"Returns the largest item in an iterable",
+					"Returns the length of an object",
+					"Checks if all items in an iterable are True",
+					"Returns the smallest item in an iterable"
+				],
+				"correctAnswer": "Returns the length of an object",
+				"explanation": "The len() function returns the number of items in an object like a string, list, or tuple."
+			},
+			{
+				"question": "How do you create a function in Python?",
+				"options": [
+					"function myFunction():",
+					"def myFunction():",
+					"create myFunction():",
+					"func myFunction():"
+				],
+				"correctAnswer": "def myFunction():",
+				"explanation": "Functions in Python are defined using the 'def' keyword followed by the function name and parentheses."
+			},
+			{
+				"question": "Which operator is used for exponentiation in Python?",
+				"options": ["^", "**", "^^", "//"],
+				"correctAnswer": "**",
+				"explanation": "The double asterisk (**) is used for exponentiation in Python. For example, 2**3 equals 8."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Marine Biology",
+		"description": "Test your knowledge about ocean life and marine ecosystems",
+		"category": "Science",
+		"difficulty": "hard",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "What is the largest animal on Earth?",
+				"options": [
+					"Great White Shark",
+					"Blue Whale",
+					"Giant Squid",
+					"Colossal Squid"
+				],
+				"correctAnswer": "Blue Whale",
+				"explanation": "The Blue Whale is the largest animal known to have ever existed, reaching lengths of up to 30 meters and weights up to 173 tons."
+			},
+			{
+				"question": "Which ocean zone receives enough sunlight for photosynthesis?",
+				"options": [
+					"Abyssal zone",
+					"Hadal zone",
+					"Euphotic zone",
+					"Bathyal zone"
+				],
+				"correctAnswer": "Euphotic zone",
+				"explanation": "The euphotic zone, also known as the sunlight zone, is the upper layer of the ocean that receives enough sunlight for photosynthesis to occur."
+			},
+			{
+				"question": "What do marine biologists call a group of jellyfish?",
+				"options": ["A bloom", "A school", "A pod", "A smack"],
+				"correctAnswer": "A bloom",
+				"explanation": "A group of jellyfish is called a bloom, swarm, or smack, with 'bloom' being the most scientifically used term."
+			},
+			{
+				"question": "Which of these is not a type of marine mammal?",
+				"options": ["Dolphin", "Whale", "Seal", "Shark"],
+				"correctAnswer": "Shark",
+				"explanation": "Sharks are fish, not mammals. They have gills instead of lungs and lay eggs rather than giving birth to live young (with some exceptions)."
+			},
+			{
+				"question": "What percentage of Earth's oxygen is produced by phytoplankton in the oceans?",
+				"options": ["About 10%", "About 30%", "About 50%", "About 70%"],
+				"correctAnswer": "About 50%",
+				"explanation": "Marine phytoplankton produce approximately 50% of the world's oxygen through photosynthesis."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Sports History",
+		"description": "Test your knowledge about the history of various sports and athletic achievements",
+		"category": "Sports",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "In which year were the first modern Olympic Games held?",
+				"options": ["1886", "1896", "1900", "1904"],
+				"correctAnswer": "1896",
+				"explanation": "The first modern Olympic Games were held in Athens, Greece, in 1896."
+			},
+			{
+				"question": "Which country won the first FIFA World Cup in 1930?",
+				"options": ["Brazil", "Italy", "Uruguay", "Argentina"],
+				"correctAnswer": "Uruguay",
+				"explanation": "Uruguay won the inaugural FIFA World Cup in 1930, defeating Argentina 4-2 in the final."
+			},
+			{
+				"question": "Who is the only boxer to finish his career as an undefeated world heavyweight champion?",
+				"options": [
+					"Muhammad Ali",
+					"Mike Tyson",
+					"Rocky Marciano",
+					"Joe Louis"
+				],
+				"correctAnswer": "Rocky Marciano",
+				"explanation": "Rocky Marciano retired in 1956 with a perfect record of 49-0, the only heavyweight champion to finish his career undefeated."
+			},
+			{
+				"question": "Which tennis player has won the most Grand Slam singles titles?",
+				"options": [
+					"Roger Federer",
+					"Rafael Nadal",
+					"Serena Williams",
+					"Novak Djokovic"
+				],
+				"correctAnswer": "Novak Djokovic",
+				"explanation": "As of 2023, Novak Djokovic holds the record for most Grand Slam singles titles in men's tennis with 24 titles."
+			},
+			{
+				"question": "In which year did women first compete in the modern Olympic Games?",
+				"options": ["1896", "1900", "1920", "1928"],
+				"correctAnswer": "1900",
+				"explanation": "Women first competed in the 1900 Olympic Games in Paris, participating in tennis, sailing, croquet, equestrian, and golf."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Advanced Calculus",
+		"description": "Test your knowledge of advanced calculus concepts",
+		"category": "Mathematics",
+		"difficulty": "hard",
+		"timeLimit": 120,
+		"questions": [
+			{
+				"question": "What is the derivative of e^x?",
+				"options": ["x*e^(x-1)", "e^x", "ln(x)", "1/x"],
+				"correctAnswer": "e^x",
+				"explanation": "The function e^x is its own derivative, making it unique among elementary functions."
+			},
+			{
+				"question": "Which theorem states that if f has a local extremum at c, and f is differentiable at c, then f'(c) = 0?",
+				"options": [
+					"Mean Value Theorem",
+					"Intermediate Value Theorem",
+					"Fermat's Theorem",
+					"Rolle's Theorem"
+				],
+				"correctAnswer": "Fermat's Theorem",
+				"explanation": "Fermat's Theorem (or Fermat's stationary point theorem) states that if f has a local extremum at c, and f is differentiable at c, then f'(c) = 0."
+			},
+			{
+				"question": "What is the integral of 1/x?",
+				"options": ["ln|x| + C", "e^x + C", "x^2/2 + C", "1/x^2 + C"],
+				"correctAnswer": "ln|x| + C",
+				"explanation": "The integral of 1/x is ln|x| + C, where C is the constant of integration. The absolute value ensures it works for negative x values."
+			},
+			{
+				"question": "What is the Taylor series expansion of sin(x) around x = 0?",
+				"options": [
+					"x - x^3/3! + x^5/5! - ...",
+					"1 - x^2/2! + x^4/4! - ...",
+					"x + x^2/2! + x^3/3! + ...",
+					"1 + x + x^2/2! + x^3/3! + ..."
+				],
+				"correctAnswer": "x - x^3/3! + x^5/5! - ...",
+				"explanation": "The Taylor series for sin(x) at x = 0 is x - x^3/3! + x^5/5! - ... or more formally, sum from n=0 to infinity of (-1)^n * x^(2n+1) / (2n+1)!"
+			},
+			{
+				"question": "Which of the following is the definition of the Riemann integral?",
+				"options": [
+					"The area under a curve",
+					"The limit of a sum of products",
+					"The antiderivative of a function",
+					"The rate of change of a function"
+				],
+				"correctAnswer": "The limit of a sum of products",
+				"explanation": "The Riemann integral is defined as the limit of a sum of products of the form f(x_i) * delta_x as the partition becomes finer (max delta_x approaches 0)."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	}
+]
