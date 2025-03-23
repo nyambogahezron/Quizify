@@ -258,11 +258,21 @@ export const LoginUser = AsyncHandler(async (req: Request, res: Response) => {
 		isValid: true,
 	};
 
+	const useInfo = {
+		id: user._id,
+		name: user.name,
+		email: user.email,
+		username: user.username,
+		level: user.level,
+		avatar: user.avatar,
+		points: user.points,
+	};
+
 	await Token.create(userToken);
 
 	attachCookieToResponse({ res, user: tokenObj, token: refreshToken });
 
-	res.status(StatusCodes.OK).json({ user: tokenObj });
+	res.status(StatusCodes.OK).json({ user: useInfo, token: refreshToken });
 });
 
 /**

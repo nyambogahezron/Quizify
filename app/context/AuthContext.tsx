@@ -12,11 +12,11 @@ import { Alert } from 'react-native';
 export interface User {
 	id: number;
 	username: string;
-	displayName: string | null;
+	name: string;
 	email: string | null;
-	profileTitle: string | null;
-	score: number;
-	rank: number;
+	points: number;
+	level: number;
+	avatar: string;
 }
 
 interface LoginCredentials {
@@ -45,8 +45,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Define the base API URL
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://gb5zk1b0-5000.uks1.devtunnels.ms/api/v1';
 
+const USER_DATA_KEY = 'user_data';
 // Auth Provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);
@@ -57,14 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		const loadUser = async () => {
 			try {
-				const token = await AsyncStorage.getItem('auth_token');
-
-				if (token) {
-					// TODO:validate the token with the server
-					const userData = await AsyncStorage.getItem('user_data');
-					if (userData) {
-						setUser(JSON.parse(userData));
-					}
+				const userData = await AsyncStorage.getItem(USER_DATA_KEY);
+				if (userData) {
+					setUser(JSON.parse(userData));
 				}
 			} catch (e) {
 				console.error('Failed to load user', e);
@@ -97,8 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			const userData = await response.json();
 
 			// Save user data to secure storage
-			await AsyncStorage.setItem('auth_token', 'demo-token'); // In a real app, this would be a real token
-			await AsyncStorage.setItem('user_data', JSON.stringify(userData));
+			await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
 
 			setUser(userData);
 		} catch (e: any) {
@@ -131,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 			// Save user data to secure storage
 			await AsyncStorage.setItem('auth_token', 'demo-token'); // In a real app, this would be a real token
-			await AsyncStorage.setItem('user_data', JSON.stringify(userData));
+			await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
 
 			setUser(userData);
 		} catch (e: any) {
@@ -147,24 +142,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		setIsLoading(true);
 
 		try {
-			// Here we would normally call the logout API endpoint
-			await fetch(`${API_URL}/logout`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			});
-
-			// Remove user data from secure storage
-			await AsyncStorage.removeItem('auth_token');
-			await AsyncStorage.removeItem('user_data');
+			await AsyncStorage.removeItem(USER_DATA_KEY);
 
 			setUser(null);
 		} catch (e) {
 			console.error('Logout error', e);
-			// Still clear data on client side even if API call fails
-			await AsyncStorage.removeItem('auth_token');
-			await AsyncStorage.removeItem('user_data');
 			setUser(null);
 		} finally {
 			setIsLoading(false);
@@ -192,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 			// Save user data to secure storage
 			await AsyncStorage.setItem('auth_token', 'demo-token');
-			await AsyncStorage.setItem('user_data', JSON.stringify(userData));
+			await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
 
 			setUser(userData);
 		} catch (e: any) {
@@ -202,15 +184,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			const demoUser: User = {
 				id: 999,
 				username: 'demo',
-				displayName: 'Demo User',
+				name: 'Demo User',
 				email: 'demo@quizmaster.com',
-				profileTitle: 'Quiz Enthusiast (Demo)',
-				score: 500,
-				rank: 42,
+				points: 500,
+				level: 42,
+				avatar: '👤',
 			};
 
 			await AsyncStorage.setItem('auth_token', 'demo-token');
-			await AsyncStorage.setItem('user_data', JSON.stringify(demoUser));
+			await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(demoUser));
 
 			setUser(demoUser);
 		} finally {

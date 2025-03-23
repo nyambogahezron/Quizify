@@ -16,17 +16,12 @@ import { RootStackParamList } from '.';
 import Colors from 'constants/Colors';
 import GameCard from 'components/GameCard';
 import DailyTask from 'components/DailyTask';
+import { useAuth } from 'context/AuthContext';
 
 export default function HomeScreen() {
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-	const user = {
-		avatar: '👤',
-		name: 'John Doe',
-		level: 1,
-		points: 100,
-	};
+	const { user } = useAuth();
 
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
@@ -42,18 +37,20 @@ export default function HomeScreen() {
 							style={styles.profile}
 						>
 							<View style={styles.avatar}>
-								<Text style={{ fontSize: 20 }}>{user?.avatar}</Text>
+								<Text style={{ fontSize: 20 }}>
+									{user?.avatar || user?.name.charAt(0).toUpperCase()}
+								</Text>
 							</View>
 							<View>
 								<Text style={styles.username}>{user?.name}</Text>
 								<Text style={styles.level}>{`Level : ${
-									user?.level ?? ''
+									user?.level ?? '0'
 								}`}</Text>
 							</View>
 						</TouchableOpacity>
 						<View style={styles.coins}>
 							<Ionicons name='flash' size={20} color={Colors.red1} />
-							<Text style={styles.coinsText}>{user?.points}</Text>
+							<Text style={styles.coinsText}>{user?.points || 0}</Text>
 						</View>
 					</View>
 

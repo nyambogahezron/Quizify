@@ -19,6 +19,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@/constants/Colors';
 import { StatusBar } from 'expo-status-bar';
 
+const USER_DATA_KEY = 'user_data';
+
 export default function LoginScreen({ navigation }: { navigation: any }) {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -44,17 +46,20 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 			);
 
 			const data = await response.json();
-			console.log(data);
+
+			if (data && data.user) {
+				await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
+
+				navigation.navigate('MainTabs');
+			}
 
 			if (!response.ok) {
 				setIsLoading(false);
 				throw new Error(data.message || 'Login failed');
 			}
 
-			await AsyncStorage.setItem('token', data.token);
 			toast.success('Login successful');
 			setIsLoading(false);
-			navigation.navigate('Home');
 		} catch (error) {
 			setIsLoading(false);
 			console.log(error);
@@ -72,7 +77,7 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 				return;
 			}
 			const message = error instanceof Error ? error.message : 'Login failed';
-			Alert.alert('Authentication Error', message);
+			Alert.alert('Authentication Error', message); //TODO: remove this error message in production
 		} finally {
 			setIsLoading(false);
 		}
@@ -127,7 +132,7 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 								style={styles.forgotPassword}
 							>
 								<Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-							</TouchableOpacity>{' '}
+							</TouchableOpacity>
 							<TouchableOpacity
 								style={styles.loginButton}
 								onPress={handleLogin}
