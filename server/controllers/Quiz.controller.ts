@@ -4,314 +4,356 @@ import mongoose from 'mongoose';
 
 import Quiz from '../models/Quiz.model';
 import QuizAttempt from '../models/QuizAttempt.model';
+import AsyncHandler from '../middleware/AsyncHandler';
+import { BadRequestError, NotFoundError, UnauthorizedError } from '../errors';
 
 class QuizController {
-	// Get all quizzes with optional filtering
-	static async getAllQuizzes(req: Request, res: Response) {
-		try {
-			const { category, difficulty, search, limit = 10, page = 1 } = req.query;
+	/*
+	 * @desc Get all quizzes with optional filtering
+	 * @route GET /api/v1/quizzes
+	 * @access Public
+	 */
+	static getAllQuizzes = AsyncHandler(async (req: Request, res: Response) => {
+		const { category, difficulty, search, limit = 10, page = 1 } = req.query;
 
-			const queryObject: any = { isPublic: true };
+		const queryObject: any = { isPublic: true };
 
-			if (category) {
-				queryObject.category = category;
-			}
-
-			if (difficulty) {
-				queryObject.difficulty = difficulty;
-			}
-
-			if (search) {
-				queryObject.title = { $regex: search, $options: 'i' };
-			}
-
-			const skip = (Number(page) - 1) * Number(limit);
-
-			const quizzes = await Quiz.find(queryObject)
-				.select('-questions.correctAnswer') // Don't send correct answers to client
-				.limit(Number(limit))
-				.skip(skip)
-				.sort({ createdAt: -1 });
-
-			const totalQuizzes = await Quiz.countDocuments(queryObject);
-
-			return res.status(StatusCodes.OK).json({
-				quizzes,
-				totalQuizzes,
-				currentPage: Number(page),
-				totalPages: Math.ceil(totalQuizzes / Number(limit)),
-			});
-		} catch (error) {
-			console.error('Error getting quizzes:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to fetch quizzes',
-			});
+		if (category) {
+			queryObject.category = category;
 		}
-	}
 
-	// Get available categories
-	static async getCategories(req: Request, res: Response) {
-		try {
-			const categories = await Quiz.distinct('category');
-
-			return res.status(StatusCodes.OK).json({ categories });
-		} catch (error) {
-			console.error('Error getting categories:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to fetch categories',
-			});
+		if (difficulty) {
+			queryObject.difficulty = difficulty;
 		}
-	}
 
-	// Get single quiz by ID
-	static async getQuiz(req: Request, res: Response) {
-		try {
-			const { id } = req.params;
-
-			if (!mongoose.Types.ObjectId.isValid(id)) {
-				return res.status(StatusCodes.BAD_REQUEST).json({
-					message: 'Invalid quiz ID',
-				});
-			}
-
-			const quiz = await Quiz.findById(id);
-
-			if (!quiz) {
-				return res.status(StatusCodes.NOT_FOUND).json({
-					message: 'Quiz not found',
-				});
-			}
-			// If requesting user is not the creator, hide correct answers
-			if (quiz.createdBy.toString() !== req.currentUser?.userId.toString()) {
-				quiz.questions.forEach((q) => {
-					q.correctAnswer = '';
-				});
-			}
-
-			return res.status(StatusCodes.OK).json({ quiz });
-		} catch (error) {
-			console.error('Error getting quiz:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to fetch quiz',
-			});
+		if (search) {
+			queryObject.title = { $regex: search, $options: 'i' };
 		}
-	}
 
-	// Create a new quiz
-	static async createQuiz(req: Request, res: Response) {
-		try {
-			const {
-				title,
-				description,
-				category,
-				difficulty,
-				questions,
-				timeLimit,
-				isPublic,
-			} = req.body;
+		const skip = (Number(page) - 1) * Number(limit);
 
-			if (!title || !description || !category || questions.length === 0) {
-				return res.status(StatusCodes.BAD_REQUEST).json({
-					message: 'Please provide all required fields',
-				});
-			}
+		const quizzes = await Quiz.find(queryObject)
+			.select('-questions.correctAnswer')
+			.limit(Number(limit))
+			.skip(skip)
+			.sort({ createdAt: -1 });
 
-			const newQuiz = new Quiz({
-				title,
-				description,
-				category,
-				difficulty: difficulty || 'medium',
-				timeLimit: timeLimit || 60,
-				questions,
-				createdBy: req.currentUser?.userId,
-				isPublic: isPublic !== undefined ? isPublic : true,
-			});
-
-			await newQuiz.save();
-
-			return res.status(StatusCodes.CREATED).json({
-				message: 'Quiz created successfully',
-				quiz: newQuiz,
-			});
-		} catch (error) {
-			console.error('Error creating quiz:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to create quiz',
-				error: error instanceof Error ? error.message : String(error),
-			});
+		if (quizzes.length === 0) {
+			throw new NotFoundError('No quizzes found for the given criteria');
 		}
-	}
 
-	// Update a quiz
-	static async updateQuiz(req: Request, res: Response) {
-		try {
-			const { id } = req.params;
-			const {
-				title,
-				description,
-				category,
-				difficulty,
-				questions,
-				timeLimit,
-				isPublic,
-			} = req.body;
+		const totalQuizzes = await Quiz.countDocuments(queryObject);
 
-			if (!mongoose.Types.ObjectId.isValid(id)) {
-				return res.status(StatusCodes.BAD_REQUEST).json({
-					message: 'Invalid quiz ID',
-				});
-			}
+		res.status(StatusCodes.OK).json({
+			quizzes,
+			totalQuizzes,
+			currentPage: Number(page),
+			totalPages: Math.ceil(totalQuizzes / Number(limit)),
+		});
+	});
 
-			const quiz = await Quiz.findById(id);
+	/*
+	 * @desc Get available categories
+	 * @route GET /api/v1/quizzes/categories
+	 * @access Public
+	 */
+	static getCategories = AsyncHandler(async (req: Request, res: Response) => {
+		const quizzes = await Quiz.find();
 
-			if (!quiz) {
-				return res.status(StatusCodes.NOT_FOUND).json({
-					message: 'Quiz not found',
-				});
-			}
-			// Check if user is the creator
-			if (quiz.createdBy.toString() !== req.currentUser?.userId.toString()) {
-				return res.status(StatusCodes.UNAUTHORIZED).json({
-					message: 'Not authorized to update this quiz',
-				});
-			}
+		const categories = quizzes.map((category) => ({
+			name: category.category,
+			icon: category.icon,
+			quizzesCount: quizzes.filter(
+				(quiz) => quiz.category === category.category
+			).length,
+		}));
 
-			const updatedQuiz = await Quiz.findByIdAndUpdate(
-				id,
-				{
-					title,
-					description,
-					category,
-					difficulty,
-					questions,
-					timeLimit,
-					isPublic,
-				},
-				{ new: true, runValidators: true }
-			);
+		res.status(StatusCodes.OK).json({ categories: categories });
+	});
 
-			return res.status(StatusCodes.OK).json({
-				message: 'Quiz updated successfully',
-				quiz: updatedQuiz,
-			});
-		} catch (error) {
-			console.error('Error updating quiz:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to update quiz',
-				error: error instanceof Error ? error.message : String(error),
-			});
-		}
-	}
-
-	// Delete a quiz
-	static async deleteQuiz(req: Request, res: Response) {
-		try {
-			const { id } = req.params;
-
-			if (!mongoose.Types.ObjectId.isValid(id)) {
-				return res.status(StatusCodes.BAD_REQUEST).json({
-					message: 'Invalid quiz ID',
-				});
-			}
-
-			const quiz = await Quiz.findById(id);
-
-			if (!quiz) {
-				return res.status(StatusCodes.NOT_FOUND).json({
-					message: 'Quiz not found',
-				});
-			}
-			// Check if user is the creator
-			if (quiz.createdBy.toString() !== req.currentUser?.userId.toString()) {
-				return res.status(StatusCodes.UNAUTHORIZED).json({
-					message: 'Not authorized to delete this quiz',
-				});
-			}
-
-			await Quiz.findByIdAndDelete(id);
-
-			return res.status(StatusCodes.OK).json({
-				message: 'Quiz deleted successfully',
-			});
-		} catch (error) {
-			console.error('Error deleting quiz:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to delete quiz',
-			});
-		}
-	}
-
-	// Get quizzes created by the user
-	static async getUserCreatedQuizzes(req: Request, res: Response) {
-		try {
+	/*
+	 * @desc Get quiz by category
+	 * @route GET /api/v1/quizzes/categories/:category
+	 * @access Public
+	 */
+	static getQuizByCategory = AsyncHandler(
+		async (req: Request, res: Response) => {
+			const { category } = req.params;
 			const quizzes = await Quiz.find({
-				createdBy: req.currentUser?.userId,
-			}).sort({
-				createdAt: -1,
-			});
+				category,
+				isPublic: true,
+			}).select('-questions.correctAnswer');
 
-			return res.status(StatusCodes.OK).json({ quizzes });
-		} catch (error) {
-			console.error('Error getting user quizzes:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to fetch user quizzes',
+			if (quizzes.length === 0) {
+				throw new NotFoundError(`No quizzes found '${category}' category`);
+			}
+
+			res.status(StatusCodes.OK).json({ quizzes });
+		}
+	);
+
+	/*
+	 * @desc Get quizzes by difficulty
+	 * @route GET /api/v1/quizzes/difficulty/:difficulty
+	 * @access Public
+	 */
+	static getQuizByDifficulty = AsyncHandler(
+		async (req: Request, res: Response) => {
+			const { difficulty } = req.params;
+			const quizzes = await Quiz.find({
+				difficulty,
+				isPublic: true,
+			}).select('-questions.correctAnswer');
+			if (quizzes.length === 0) {
+				throw new NotFoundError(
+					`No quizzes found for this difficulty level : ${difficulty}`
+				);
+			}
+			res.status(StatusCodes.OK).json({ quizzes });
+		}
+	);
+
+	/*
+	 * @desc Get single quiz by ID
+	 * @route GET /api/v1/quizzes/:id
+	 * @access Public
+	 */
+	static getQuiz = AsyncHandler(async (req: Request, res: Response) => {
+		const { id } = req.params;
+
+		const quiz = await Quiz.findById(id);
+
+		if (!quiz) {
+			throw new NotFoundError('Quiz not found');
+		}
+		// If requesting user is not the creator, hide correct answers
+		if (quiz.createdBy.toString() !== req.currentUser?.userId.toString()) {
+			quiz.questions.forEach((q) => {
+				q.correctAnswer = '';
 			});
 		}
-	}
 
-	// Get quiz attempts by the user
-	static async getUserQuizAttempts(req: Request, res: Response) {
-		try {
+		res.status(StatusCodes.OK).json({ quiz });
+	});
+
+	/*
+	 * @desc Create a new quiz
+	 * @route POST /api/v1/quizzes
+	 * @access Private/Admin
+	 */
+	static createQuiz = AsyncHandler(async (req: Request, res: Response) => {
+		// Verify admin status
+		if (!req.user?.isAdmin) {
+			throw new UnauthorizedError('Only admins can create quizzes');
+		}
+
+		const {
+			title,
+			description,
+			category,
+			icon,
+			difficulty,
+			questions,
+			timeLimit,
+			isPublic,
+		} = req.body;
+
+		// Validate required fields
+		if (
+			!title ||
+			!description ||
+			!category ||
+			!questions ||
+			questions.length === 0
+		) {
+			throw new BadRequestError('Please provide all required fields');
+		}
+
+		// Validate questions format
+		questions.forEach((q: any, index: number) => {
+			if (
+				!q.question ||
+				!q.options ||
+				!q.correctAnswer ||
+				!Array.isArray(q.options)
+			) {
+				throw new BadRequestError(`Invalid question format at index ${index}`);
+			}
+			if (!q.options.includes(q.correctAnswer)) {
+				throw new BadRequestError(
+					`Correct answer must be one of the options at question ${index + 1}`
+				);
+			}
+		});
+
+		const newQuiz = new Quiz({
+			title,
+			description,
+			category,
+			icon: icon,
+			difficulty: difficulty,
+			timeLimit: timeLimit,
+			questions,
+			createdBy: req.user.userId,
+			isPublic: isPublic,
+		});
+
+		await newQuiz.save();
+
+		res.status(StatusCodes.CREATED).json({
+			message: 'Quiz created successfully',
+			quiz: newQuiz,
+		});
+	});
+
+	/*
+	 * @desc Update a quiz
+	 * @route PATCH /api/v1/quizzes/:id
+	 * @access Private/Admin
+	 */
+	static updateQuiz = AsyncHandler(async (req: Request, res: Response) => {
+		const { id } = req.params;
+		const {
+			title,
+			description,
+			category,
+			difficulty,
+			questions,
+			timeLimit,
+			isPublic,
+		} = req.body;
+
+		const quiz = await Quiz.findById(id);
+
+		if (!quiz) {
+			throw new NotFoundError('Quiz not found');
+		}
+
+		if (!req.user?.isAdmin) {
+			throw new UnauthorizedError('Not authorized to update this quiz');
+		}
+
+		quiz.title = title || quiz.title;
+		quiz.description = description || quiz.description;
+		quiz.category = category || quiz.category;
+		quiz.difficulty = difficulty || quiz.difficulty;
+		quiz.questions = questions || quiz.questions;
+		quiz.timeLimit = timeLimit || quiz.timeLimit;
+		quiz.isPublic = isPublic || quiz.isPublic;
+
+		await quiz.save();
+
+		res.status(StatusCodes.OK).json({
+			message: 'Quiz updated successfully',
+			quiz: quiz,
+		});
+	});
+
+	/*
+	 * @desc Delete a quiz
+	 * @route DELETE /api/v1/quizzes/:id
+	 * @access Private/Admin
+	 */
+	static deleteQuiz = AsyncHandler(async (req: Request, res: Response) => {
+		const { id } = req.params;
+
+		const quiz = await Quiz.findById(id);
+
+		if (!quiz) {
+			throw new NotFoundError('Quiz not found');
+		}
+
+		if (!req.user?.isAdmin) {
+			throw new UnauthorizedError('Not authorized to delete this quiz');
+		}
+
+		await Quiz.findByIdAndDelete(id);
+
+		res.status(StatusCodes.OK).json({
+			message: 'Quiz deleted successfully',
+		});
+	});
+
+	/*
+	 * @desc Get quiz attempts by the user
+	 * @route GET /api/v1/quizzes/user/attempts
+	 * @access Private/
+	 */
+	static getUserQuizAttempts = AsyncHandler(
+		async (req: Request, res: Response) => {
 			const attempts = await QuizAttempt.find({ user: req.currentUser?.userId })
-				.populate('quiz', 'title category difficulty')
+				.populate({
+					path: 'quiz',
+					select: 'title category difficulty questions',
+				})
 				.sort({ completedAt: -1 });
 
-			return res.status(StatusCodes.OK).json({ attempts });
-		} catch (error) {
-			console.error('Error getting user quiz attempts:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to fetch user quiz attempts',
-			});
+			if (!attempts) {
+				throw new NotFoundError('No quiz attempts found for this user');
+			}
+
+			// Transform the attempts to include full question details
+			const formattedAttempts = attempts.map((attempt) => ({
+				...attempt.toObject(),
+				questions: (attempt.quiz as any).questions.map(
+					(question: any, index: number) => ({
+						question: question.question,
+						options: question.options,
+						correctAnswer: question.correctAnswer,
+						userAnswer: attempt.answers[index].selectedAnswer,
+						isCorrect:
+							attempt.answers[index].selectedAnswer === question.correctAnswer,
+					})
+				),
+			}));
+
+			res.status(StatusCodes.OK).json({ attempts: formattedAttempts });
 		}
-	}
+	);
 
-	// Get all attempts for a specific quiz (only for quiz creator)
-	static async getQuizAttempts(req: Request, res: Response) {
-		try {
-			const { quizId } = req.params;
+	/*
+	 * @desc Get all attempts for a specific quiz (only for quiz creator)
+	 * @route GET /api/v1/quizzes/attempts/:quizId
+	 * @access Private
+	 */
+	static getQuizAttempts = AsyncHandler(async (req: Request, res: Response) => {
+		const { quizId } = req.params;
 
-			if (!mongoose.Types.ObjectId.isValid(quizId)) {
-				return res.status(StatusCodes.BAD_REQUEST).json({
-					message: 'Invalid quiz ID',
-				});
-			}
-
-			const quiz = await Quiz.findById(quizId);
-
-			if (!quiz) {
-				return res.status(StatusCodes.NOT_FOUND).json({
-					message: 'Quiz not found',
-				});
-			}
-			// Check if user is the creator
-			if (quiz.createdBy.toString() !== req.currentUser?.userId.toString()) {
-				return res.status(StatusCodes.UNAUTHORIZED).json({
-					message: 'Not authorized to view these attempts',
-				});
-			}
-
-			const attempts = await QuizAttempt.find({ quiz: quizId })
-				.populate('user', 'username email')
-				.sort({ completedAt: -1 });
-
-			return res.status(StatusCodes.OK).json({ attempts });
-		} catch (error) {
-			console.error('Error getting quiz attempts:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to fetch quiz attempts',
-			});
+		if (!mongoose.Types.ObjectId.isValid(quizId)) {
+			throw new BadRequestError('Invalid quiz ID');
 		}
-	}
+
+		const quiz = await Quiz.findById(quizId);
+
+		if (!quiz) {
+			throw new NotFoundError('Quiz not found');
+		}
+		// Check if user is the creator
+		if (quiz.createdBy.toString() !== req.currentUser?.userId.toString()) {
+			throw new UnauthorizedError('Not authorized to view these attempts');
+		}
+
+		const attempts = await QuizAttempt.find({ quiz: quizId })
+			.populate('user', 'username email')
+			.sort({ completedAt: -1 });
+
+		// Transform the attempts to include full question details
+		const formattedAttempts = attempts.map((attempt) => ({
+			user: attempt.user,
+			completedAt: attempt.completedAt,
+			score: attempt.score,
+			questions: quiz.questions.map((question, index) => ({
+				question: question.question,
+				options: question.options,
+				correctAnswer: question.correctAnswer,
+				userAnswer: attempt.answers[index].selectedAnswer,
+				isCorrect:
+					attempt.answers[index].selectedAnswer === question.correctAnswer,
+			})),
+		}));
+
+		res.status(StatusCodes.OK).json({ attempts: formattedAttempts });
+	});
 }
 
 export default QuizController;

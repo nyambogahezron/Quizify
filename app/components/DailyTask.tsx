@@ -1,24 +1,50 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import React from 'react';
 import Colors from 'constants/Colors';
 
-export default function DailyTask() {
+interface DailyTaskProps {
+	task: {
+		id: string;
+		title: string;
+		description: string;
+		points: number;
+		isCompleted: boolean;
+		type: 'quiz' | 'practice' | 'streak' | 'auto_generated';
+		questions?: string[];
+	};
+	onPress: () => void;
+}
+
+export default function DailyTask({ task, onPress }: DailyTaskProps) {
 	return (
-		<View style={styles.dailyTask}>
+		<TouchableOpacity style={styles.dailyTask} onPress={onPress}>
 			<View style={styles.taskIcon}>
 				<Text style={styles.taskIconText}>⚓️</Text>
 			</View>
 			<View style={styles.taskInfo}>
 				<View style={styles.taskHeader}>
-					<Text style={styles.taskTitle}>Daily Task</Text>
-					<Text style={styles.taskQuestions}>14 Questions</Text>
+					<Text style={styles.taskTitle}>{task?.title}</Text>
+					<Text style={styles.taskQuestions}>{task?.points} points</Text>
 				</View>
+				<Text style={styles.taskDescription}>{task?.description}</Text>
+				{task?.type === 'auto_generated' && task?.questions && (
+					<Text style={styles.questionCount}>
+						{task.questions.length} questions to complete
+					</Text>
+				)}
 				<View style={styles.progressBar}>
-					<View style={styles.progress} />
+					<View
+						style={[
+							styles.progress,
+							{ width: task?.isCompleted ? '100%' : '0%' },
+						]}
+					/>
 				</View>
-				<Text style={styles.progressText}>Progress 9/14</Text>
+				<Text style={styles.progressText}>
+					{task?.isCompleted ? 'Completed' : 'Not completed'}
+				</Text>
 			</View>
-		</View>
+		</TouchableOpacity>
 	);
 }
 
@@ -53,13 +79,23 @@ const styles = StyleSheet.create({
 		marginBottom: 8,
 	},
 	taskTitle: {
-		color: 'white',
+		color: Colors.text,
 		fontSize: 16,
-		fontWeight: '600',
+		fontFamily: 'Rb-bold',
 	},
 	taskQuestions: {
-		color: Colors.textLight,
+		color: Colors.text2,
 		fontSize: 14,
+	},
+	taskDescription: {
+		color: Colors.text2,
+		fontSize: 14,
+		marginBottom: 8,
+	},
+	questionCount: {
+		color: Colors.text2,
+		fontSize: 12,
+		marginBottom: 8,
 	},
 	progressBar: {
 		height: 4,
@@ -68,13 +104,12 @@ const styles = StyleSheet.create({
 		marginBottom: 4,
 	},
 	progress: {
-		width: '65%',
 		height: '100%',
 		backgroundColor: Colors.yellow,
 		borderRadius: 2,
 	},
 	progressText: {
-		color: Colors.textLight,
+		color: Colors.text2,
 		fontSize: 12,
 	},
 });

@@ -3,6 +3,8 @@ import { StatusCodes } from 'http-status-codes';
 import mongoose from 'mongoose';
 
 import { Achievement, UserAchievement } from '../models/Achievement.model';
+import AsyncHandler from '../middleware/AsyncHandler';
+import { UnauthorizedError } from '../errors';
 
 // Define interfaces for the document types
 interface AchievementDocument extends mongoose.Document {
@@ -24,30 +26,31 @@ interface UserAchievementDocument extends mongoose.Document {
 }
 
 class AchievementController {
-	// Get all available achievements
-	static async getAllAchievements(req: Request, res: Response) {
-		try {
+	/*
+	@desc Get all available achievements
+	@route GET /api/v1/achievements
+	@access Public
+	*/
+	static getAllAchievements = AsyncHandler(
+		async (req: Request, res: Response) => {
 			const achievements = (await Achievement.find().sort({
 				'criteria.type': 1,
 				'criteria.value': 1,
 			})) as AchievementDocument[];
 
-			return res.status(StatusCodes.OK).json({ achievements });
-		} catch (error) {
-			console.error('Error getting achievements:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to fetch achievements',
-			});
+			res.status(StatusCodes.OK).json({ achievements });
 		}
-	}
+	);
 
-	// Get achievements unlocked by the authenticated user
-	static async getUserAchievements(req: Request, res: Response) {
-		try {
-			if (!req.currentUser?.userId) {
-				return res.status(StatusCodes.UNAUTHORIZED).json({
-					message: 'Unauthorized',
-				});
+	/*
+	@desc Get achievements unlocked by the authenticated user
+	@route GET /api/v1/achievements/user
+	@access Private
+	*/
+	static getUserAchievements = AsyncHandler(
+		async (req: Request, res: Response) => {
+			if (!req.user) {
+				throw new UnauthorizedError('Unauthorized');
 			}
 
 			// Get all achievements
@@ -56,7 +59,7 @@ class AchievementController {
 
 			// Get user unlocked achievements
 			const userAchievements = (await UserAchievement.find({
-				user: req.currentUser.userId,
+				user: req.user.userId,
 			}).populate('achievement')) as unknown as UserAchievementDocument[];
 
 			// Create a map of unlocked achievement IDs for quick lookup
@@ -87,7 +90,7 @@ class AchievementController {
 			const unlockedCount = userAchievements.length;
 			const progressPercentage = (unlockedCount / totalAchievements) * 100;
 
-			return res.status(StatusCodes.OK).json({
+			res.status(StatusCodes.OK).json({
 				achievements,
 				stats: {
 					total: totalAchievements,
@@ -96,13 +99,8 @@ class AchievementController {
 					progressPercentage: Math.round(progressPercentage),
 				},
 			});
-		} catch (error) {
-			console.error('Error getting user achievements:', error);
-			return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-				message: 'Failed to fetch user achievements',
-			});
 		}
-	}
+	);
 }
 
 export default AchievementController;

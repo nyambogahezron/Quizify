@@ -40,6 +40,7 @@ export const RegisterUser = AsyncHandler(
 			username,
 			password,
 			verificationToken,
+			isFirstLogin: true,
 		});
 
 		await SendEmail({
@@ -228,6 +229,7 @@ export const LoginUser = AsyncHandler(async (req: Request, res: Response) => {
 		name: user.name,
 		email: user.email,
 		username: user.username,
+		isAdmin: user.isAdmin,
 	};
 	let refreshToken = '';
 
@@ -271,6 +273,12 @@ export const LoginUser = AsyncHandler(async (req: Request, res: Response) => {
 	await Token.create(userToken);
 
 	attachCookieToResponse({ res, user: tokenObj, token: refreshToken });
+
+	if (user.isFirstLogin) {
+		user.points += 100;
+		user.isFirstLogin = false;
+		await user.save();
+	}
 
 	res.status(StatusCodes.OK).json({ user: useInfo, token: refreshToken });
 });

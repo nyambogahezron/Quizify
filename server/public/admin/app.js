@@ -76,24 +76,31 @@ function createLoginModal() {
 			loginError.classList.remove('active');
 
 			try {
+				console.log('Attempting login...');
 				const response = await fetch('/api/v1/auth/login', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						'Cache-Control': 'no-cache, no-store, must-revalidate',
-						Pragma: 'no-cache',
-						Expires: '0',
 					},
 					body: JSON.stringify({ email, password }),
 					credentials: 'include',
 				});
 
+				console.log('Login response status:', response.status);
+
 				if (!response.ok) {
-					const data = await response.json();
-					throw new Error(data.message || 'Login failed');
+					const error = await response.json();
+					throw new Error(error.message || 'Login failed');
 				}
 
 				const data = await response.json();
+				console.log('Login successful!');
+				console.log('User data:', data);
+				console.log('Cookies after login:', document.cookie);
+
+				// Store information about successful login
+				localStorage.setItem('adminLoggedIn', 'true');
+				localStorage.setItem('adminLoginTime', new Date().getTime().toString());
 
 				// Check if user is admin
 				if (!data.user.isAdmin) {
@@ -102,9 +109,14 @@ function createLoginModal() {
 
 				// Hide login modal and show dashboard
 				hideLoginModal();
-				initializeApp();
+
+				// Wait a moment before initializing the app to ensure cookies are set
+				setTimeout(() => {
+					initializeApp();
+				}, 500);
 			} catch (error) {
 				// Show error message
+				console.error('Login error:', error);
 				loginError.textContent = error.message;
 				loginError.classList.add('active');
 				document.getElementById('loading-overlay').style.display = 'none';
@@ -158,14 +170,20 @@ const state = {
 async function checkAuthentication() {
 	try {
 		const response = await fetch(`${API_BASE_URL}/dashboard`, {
-			method: 'HEAD',
+			method: 'GET',
 			credentials: 'include',
 			headers: {
+				Accept: 'application/json',
 				'Cache-Control': 'no-cache, no-store, must-revalidate',
 				Pragma: 'no-cache',
 				Expires: '0',
 			},
 		});
+
+		console.log('Auth check status:', response.status);
+		console.log('Auth check headers:', [...response.headers.entries()]);
+		console.log('Cookies present:', document.cookie);
+
 		return response.ok;
 	} catch (error) {
 		console.error('Authentication check failed:', error);
@@ -476,6 +494,13 @@ function setupEventListeners() {
 				deleteQuiz(state.currentQuiz._id);
 			}
 		});
+
+	// Debug authentication button
+	document.getElementById('debug-auth-btn')?.addEventListener('click', () => {
+		testAuthentication().then((result) => {
+			alert(`Authentication test result: ${result ? 'Successful' : 'Failed'}`);
+		});
+	});
 }
 
 // Load dashboard data
@@ -541,15 +566,7 @@ function loadQuizzes() {
 		params.append('search', searchQuery);
 	}
 
-	fetch(`${API_BASE_URL}/quizzes?${params.toString()}`, {
-		credentials: 'include',
-	})
-		.then((response) => {
-			if (!response.ok) {
-				throw new Error('Failed to fetch quizzes');
-			}
-			return response.json();
-		})
+	apiRequest(`${API_BASE_URL}/quizzes?${params.toString()}`)
 		.then((data) => {
 			state.quizzes = data.quizzes;
 			state.totalPages = data.totalPages;
@@ -566,8 +583,7 @@ function loadQuizzes() {
 		})
 		.catch((error) => {
 			console.error('Error loading quizzes:', error);
-			tableBody.innerHTML =
-				'<tr><td colspan="6" class="text-center">Error loading quizzes. Please try again.</td></tr>';
+			tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Error loading quizzes: ${error.message}</td></tr>`;
 		});
 }
 
@@ -1255,3 +1271,122 @@ function backupDatabase() {
 function resetDatabase() {
 	alert('This feature will be implemented in a future update.');
 }
+
+// Add this function to test authentication status
+async function testAuthentication() {
+	try {
+		const response = await fetch(`${API_BASE_URL}/dashboard`, {
+			method: 'GET',
+			credentials: 'include',
+			headers: {
+				Accept: 'application/json',
+				'Cache-Control': 'no-cache',
+			},
+		});
+
+		console.log('Auth test status:', response.status);
+		const data = await response.json();
+		console.log('Auth test data:', data);
+
+		return response.ok;
+	} catch (error) {
+		console.error('Auth test failed:', error);
+		return false;
+	}
+}
+
+// Call this after successful login
+// testAuthentication().then(result => console.log('Authentication test result:', result));
+
+// Add this helper function for API requests
+async function apiRequest(endpoint, options = {}) {
+	const defaultOptions = {
+		credentials: 'include',
+		headers: {
+			Accept: 'application/json',
+			'Cache-Control': 'no-cache, no-store, must-revalidate',
+			Pragma: 'no-cache',
+			Expires: '0',
+		},
+	};
+
+	const mergedOptions = {
+		...defaultOptions,
+		...options,
+		headers: {
+			...defaultOptions.headers,
+			...(options.headers || {}),
+		},
+	};
+
+	console.log(
+		`Making ${mergedOptions.method || 'GET'} request to: ${endpoint}`
+	);
+
+	try {
+		const response = await fetch(endpoint, mergedOptions);
+		console.log(`Response status for ${endpoint}: ${response.status}`);
+
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error(`Error response from ${endpoint}:`, errorText);
+			throw new Error(
+				`Request failed: ${response.status} ${response.statusText}`
+			);
+		}
+
+		// Check if the response is JSON
+		const contentType = response.headers.get('content-type');
+		if (contentType && contentType.includes('application/json')) {
+			return await response.json();
+		}
+
+		return await response.text();
+	} catch (error) {
+		console.error(`API request to ${endpoint} failed:`, error);
+		throw error;
+	}
+}
+
+// Add this function to help diagnose authentication issues
+function diagnoseCookieIssues() {
+	console.log('Current cookies:', document.cookie);
+	console.log('Local storage:', localStorage);
+	console.log(
+		'Is same-site context:',
+		window.location.href.includes('localhost') ||
+			window.location.href.includes('127.0.0.1')
+	);
+
+	// Try to make a simple authenticated request
+	fetch(`${API_BASE_URL}/dashboard`, {
+		credentials: 'include',
+		headers: { Accept: 'application/json' },
+	})
+		.then((response) => {
+			console.log('Diagnostic request status:', response.status);
+			console.log('Diagnostic response headers:', [
+				...response.headers.entries(),
+			]);
+			return response.text();
+		})
+		.then((text) => {
+			console.log('Diagnostic response body:', text);
+		})
+		.catch((error) => {
+			console.error('Diagnostic request failed:', error);
+		});
+}
+
+// Call this after login
+// Add a button to your dashboard HTML:
+// <button id="diagnose-btn" class="btn btn-sm btn-outline">Diagnose Auth Issues</button>
+// Then add the event listener:
+document
+	.getElementById('diagnose-btn')
+	?.addEventListener('click', diagnoseCookieIssues);
+// <button id="diagnose-btn" class="btn btn-sm btn-outline">Diagnose Auth Issues</button>
+// Then add the event listener:
+document
+	.getElementById('diagnose-btn')
+	?.addEventListener('click', diagnoseCookieIssues);

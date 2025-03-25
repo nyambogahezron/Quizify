@@ -9,11 +9,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { achievements, recentActivity } from '../lib/data';
-import { useAuth } from '@/context/AuthContext';
 import Colors from '@/constants/Colors';
+import { useAuthStore } from '@/store/useStore';
 
 export default function ProfileScreen() {
-	const { user } = useAuth();
+	const { user, logout } = useAuthStore();
 	return (
 		<LinearGradient
 			colors={[Colors.background, Colors.background2]}

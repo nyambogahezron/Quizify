@@ -2,13 +2,26 @@ import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ContextProvider } from 'context/ConxtextProvider';
 import Navigation from './navigation';
+import { socketService } from './lib/socket';
+import { useAuthStore } from './store/useStore';
 
 SplashScreen.preventAutoHideAsync();
 
+export const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			staleTime: 1000 * 60 * 5, // 5 minutes
+			retry: 1,
+		},
+	},
+});
+
 export default function App() {
 	const [appIsReady, setAppIsReady] = React.useState(false);
+	const { isAuthenticated, initialize } = useAuthStore();
 
 	React.useEffect(() => {
 		async function prepare() {
@@ -18,6 +31,7 @@ export default function App() {
 					'Rb-regular': require('./assets/fonts/RobotoCondensed-Regular.ttf'),
 					'Rb-medium': require('./assets/fonts/RobotoCondensed-Medium.ttf'),
 				});
+				await initialize();
 			} catch (e) {
 				console.warn(e);
 			} finally {
@@ -26,7 +40,19 @@ export default function App() {
 			}
 		}
 		prepare();
-	}, []);
+	}, [initialize]);
+
+	React.useEffect(() => {
+		if (isAuthenticated) {
+			socketService.connect();
+		} else {
+			socketService.disconnect();
+		}
+
+		return () => {
+			socketService.disconnect();
+		};
+	}, [isAuthenticated]);
 
 	const onLayoutRootView = React.useCallback(() => {
 		if (appIsReady) {
@@ -39,10 +65,12 @@ export default function App() {
 	}
 
 	return (
-		<GestureHandlerRootView onLayout={onLayoutRootView}>
-			<ContextProvider>
-				<Navigation />
-			</ContextProvider>
-		</GestureHandlerRootView>
+		<QueryClientProvider client={queryClient}>
+			<GestureHandlerRootView onLayout={onLayoutRootView}>
+				<ContextProvider>
+					<Navigation />
+				</ContextProvider>
+			</GestureHandlerRootView>
+		</QueryClientProvider>
 	);
 }

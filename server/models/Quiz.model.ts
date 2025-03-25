@@ -12,6 +12,7 @@ interface IQuiz extends Document {
 	title: string;
 	description: string;
 	category: string;
+	icon: string;
 	difficulty: 'easy' | 'medium' | 'hard';
 	timeLimit: number; // in seconds
 	questions: IQuizQuestion[];
@@ -66,6 +67,10 @@ const QuizSchema = new Schema<IQuiz>(
 			type: String,
 			required: [true, 'Category is required'],
 			trim: true,
+		},
+		icon: {
+			type: String,
+			default: '📚',
 		},
 		difficulty: {
 			type: String,

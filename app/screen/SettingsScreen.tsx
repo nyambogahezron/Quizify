@@ -7,8 +7,6 @@ import {
 	Switch,
 	ScrollView,
 	TextInput,
-	Image,
-	LayoutAnimation,
 	Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +21,7 @@ import Animated, {
 	useAnimatedStyle,
 	useSharedValue,
 } from 'react-native-reanimated';
+import { useAuthStore } from '@/store/useStore';
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,7 +30,7 @@ export default function SettingsScreen() {
 	const [sound, setSound] = React.useState(true);
 	const [vibration, setVibration] = React.useState(true);
 	const [isFormVisible, setIsFormVisible] = React.useState(false);
-
+	const { logout } = useAuthStore();
 	// Form states
 	const [name, setName] = React.useState('');
 	const [email, setEmail] = React.useState('');
@@ -74,13 +73,6 @@ export default function SettingsScreen() {
 
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-	const handleLogout = () => {
-		// TODO: delete user local session
-		// TODO: delete session from database
-		// TODO: navigate to login screen
-		navigation.navigate('Login');
-	};
 
 	const renderSettingItem = (
 		icon: string,
@@ -197,7 +189,7 @@ export default function SettingsScreen() {
 						</TouchableOpacity>
 					</View>
 
-					<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+					<TouchableOpacity style={styles.logoutButton} onPress={logout}>
 						<Text style={styles.logoutText}>Log Out</Text>
 					</TouchableOpacity>
 				</ScrollView>

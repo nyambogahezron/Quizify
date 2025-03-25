@@ -1,49 +1,37 @@
-import express, {
-	Router,
-	Request,
-	Response,
-	NextFunction,
-	RequestHandler,
-} from 'express';
+import express, { Router } from 'express';
 import QuizController from '../controllers/Quiz.controller';
 import authenticateUser from '../middleware/Authenticate';
-
+import requireAdmin from '../middleware/AdminAuth';
 const router: Router = express.Router();
 
-// Helper to make controller methods work with Express
-const asyncHandler =
-	(fn: Function): RequestHandler =>
-	(req: Request, res: Response, next: NextFunction) => {
-		Promise.resolve(fn(req, res, next)).catch(next);
-	};
-
 // Public routes
-router.get('/', asyncHandler(QuizController.getAllQuizzes));
-router.get('/categories', asyncHandler(QuizController.getCategories));
-router.get('/:id', asyncHandler(QuizController.getQuiz));
+router.get('/', QuizController.getAllQuizzes);
+router.get('/categories', QuizController.getCategories);
+router.get('/:id', QuizController.getQuiz);
+router.get('/category/:category', QuizController.getQuizByCategory);
+router.get('/difficulty/:difficulty', QuizController.getQuizByDifficulty);
 
 // Protected routes
-router.post('/', authenticateUser, asyncHandler(QuizController.createQuiz));
-router.put('/:id', authenticateUser, asyncHandler(QuizController.updateQuiz));
-router.delete(
-	'/:id',
-	authenticateUser,
-	asyncHandler(QuizController.deleteQuiz)
-);
-router.get(
-	'/user/created',
-	authenticateUser,
-	asyncHandler(QuizController.getUserCreatedQuizzes)
-);
+
 router.get(
 	'/user/attempts',
 	authenticateUser,
-	asyncHandler(QuizController.getUserQuizAttempts)
+	QuizController.getUserQuizAttempts
 );
 router.get(
 	'/attempts/:quizId',
 	authenticateUser,
-	asyncHandler(QuizController.getQuizAttempts)
+	QuizController.getQuizAttempts
 );
+
+// Admin routes
+router
+	.route('/')
+	.post(authenticateUser, requireAdmin, QuizController.createQuiz);
+
+router
+	.route('/:id')
+	.patch(authenticateUser, requireAdmin, QuizController.updateQuiz)
+	.delete(authenticateUser, requireAdmin, QuizController.deleteQuiz);
 
 export default router;

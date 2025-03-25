@@ -3,6 +3,7 @@
 		"title": "Introduction to JavaScript",
 		"description": "Test your knowledge of JavaScript basics",
 		"category": "Programming",
+		"icon": "📚",
 		"difficulty": "easy",
 		"timeLimit": 60,
 		"questions": [
@@ -49,6 +50,7 @@
 		"title": "World Geography",
 		"description": "Test your knowledge of world geography",
 		"category": "Geography",
+		"icon": "🌍",
 		"difficulty": "medium",
 		"timeLimit": 120,
 		"questions": [
@@ -95,6 +97,7 @@
 		"title": "Famous Scientists",
 		"description": "Test your knowledge about famous scientists throughout history",
 		"category": "Science",
+		"icon": "🔬",
 		"difficulty": "medium",
 		"timeLimit": 90,
 		"questions": [
@@ -156,6 +159,7 @@
 		"title": "Ancient History",
 		"description": "Test your knowledge of ancient civilizations and history",
 		"category": "History",
+		"icon": "📜",
 		"difficulty": "hard",
 		"timeLimit": 120,
 		"questions": [
@@ -207,6 +211,7 @@
 		"title": "Music Theory Basics",
 		"description": "Test your knowledge of fundamental music theory concepts",
 		"category": "Music",
+		"icon": "🎵",
 		"difficulty": "medium",
 		"timeLimit": 90,
 		"questions": [
@@ -248,6 +253,7 @@
 		"title": "Film Directors and Their Works",
 		"description": "Test your knowledge about famous film directors and their notable works",
 		"category": "Film",
+		"icon": "🎬",
 		"difficulty": "hard",
 		"timeLimit": 100,
 		"questions": [
@@ -314,6 +320,7 @@
 		"title": "World Cuisines",
 		"description": "Test your knowledge about foods and culinary traditions from around the world",
 		"category": "Food",
+		"icon": "🍽️",
 		"difficulty": "medium",
 		"timeLimit": 90,
 		"questions": [
@@ -355,6 +362,7 @@
 		"title": "Introduction to Python",
 		"description": "Test your knowledge of Python programming basics",
 		"category": "Programming",
+		"icon": "🐍",
 		"difficulty": "easy",
 		"timeLimit": 60,
 		"questions": [
@@ -406,6 +414,7 @@
 		"title": "Marine Biology",
 		"description": "Test your knowledge about ocean life and marine ecosystems",
 		"category": "Science",
+		"icon": "🌊",
 		"difficulty": "hard",
 		"timeLimit": 90,
 		"questions": [
@@ -457,6 +466,7 @@
 		"title": "Sports History",
 		"description": "Test your knowledge about the history of various sports and athletic achievements",
 		"category": "Sports",
+		"icon": "⚽",
 		"difficulty": "medium",
 		"timeLimit": 90,
 		"questions": [
@@ -508,6 +518,7 @@
 		"title": "Advanced Calculus",
 		"description": "Test your knowledge of advanced calculus concepts",
 		"category": "Mathematics",
+		"icon": "📐",
 		"difficulty": "hard",
 		"timeLimit": 120,
 		"questions": [
@@ -555,6 +566,660 @@
 				],
 				"correctAnswer": "The limit of a sum of products",
 				"explanation": "The Riemann integral is defined as the limit of a sum of products of the form f(x_i) * delta_x as the partition becomes finer (max delta_x approaches 0)."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Literature Classics",
+		"description": "Test your knowledge of classic literature and famous authors",
+		"category": "Literature",
+		"icon": "📚",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "Who wrote '1984'?",
+				"options": [
+					"George Orwell",
+					"Aldous Huxley",
+					"Ray Bradbury",
+					"Ernest Hemingway"
+				],
+				"correctAnswer": "George Orwell",
+				"explanation": "'1984' was written by George Orwell and published in 1949, depicting a dystopian future society."
+			},
+			{
+				"question": "Which Shakespeare play features the character Ophelia?",
+				"options": ["Macbeth", "Hamlet", "King Lear", "Othello"],
+				"correctAnswer": "Hamlet",
+				"explanation": "Ophelia is a character in Shakespeare's 'Hamlet', where she is Polonius's daughter and Hamlet's love interest."
+			},
+			{
+				"question": "Who wrote 'Pride and Prejudice'?",
+				"options": [
+					"Jane Austen",
+					"Charlotte Brontë",
+					"Emily Brontë",
+					"Virginia Woolf"
+				],
+				"correctAnswer": "Jane Austen",
+				"explanation": "'Pride and Prejudice' was written by Jane Austen and published in 1813."
+			},
+			{
+				"question": "What is the name of the main character in 'The Catcher in the Rye'?",
+				"options": [
+					"Holden Caulfield",
+					"Jay Gatsby",
+					"Atticus Finch",
+					"Winston Smith"
+				],
+				"correctAnswer": "Holden Caulfield",
+				"explanation": "Holden Caulfield is the teenage protagonist and narrator of J.D. Salinger's 'The Catcher in the Rye'."
+			},
+			{
+				"question": "Which novel begins with the line 'Call me Ishmael'?",
+				"options": [
+					"Moby Dick",
+					"The Great Gatsby",
+					"The Old Man and the Sea",
+					"Robinson Crusoe"
+				],
+				"correctAnswer": "Moby Dick",
+				"explanation": "'Moby Dick' by Herman Melville begins with this famous opening line."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Computer Networks",
+		"description": "Test your knowledge of computer networking concepts",
+		"category": "Programming",
+		"icon": "🌐",
+		"difficulty": "hard",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "Which protocol is used for secure web browsing?",
+				"options": ["HTTP", "HTTPS", "FTP", "SMTP"],
+				"correctAnswer": "HTTPS",
+				"explanation": "HTTPS (Hypertext Transfer Protocol Secure) is used for secure communication over computer networks."
+			},
+			{
+				"question": "What is the purpose of DNS?",
+				"options": [
+					"To assign IP addresses",
+					"To convert domain names to IP addresses",
+					"To encrypt data",
+					"To compress data"
+				],
+				"correctAnswer": "To convert domain names to IP addresses",
+				"explanation": "DNS (Domain Name System) translates human-readable domain names into IP addresses."
+			},
+			{
+				"question": "Which layer of the OSI model handles routing?",
+				"options": [
+					"Transport Layer",
+					"Network Layer",
+					"Data Link Layer",
+					"Physical Layer"
+				],
+				"correctAnswer": "Network Layer",
+				"explanation": "The Network Layer (Layer 3) of the OSI model handles routing between different networks."
+			},
+			{
+				"question": "What is the default port number for HTTP?",
+				"options": ["80", "443", "21", "25"],
+				"correctAnswer": "80",
+				"explanation": "Port 80 is the default port for HTTP traffic on the web."
+			},
+			{
+				"question": "Which of these is not a valid IP address?",
+				"options": ["192.168.1.1", "256.1.2.3", "10.0.0.1", "172.16.254.1"],
+				"correctAnswer": "256.1.2.3",
+				"explanation": "IP address octets cannot exceed 255, making 256.1.2.3 invalid."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Human Biology",
+		"description": "Test your knowledge of human anatomy and physiology",
+		"category": "Science",
+		"icon": "🧬",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "Which organ is responsible for producing insulin?",
+				"options": ["Liver", "Pancreas", "Kidney", "Gallbladder"],
+				"correctAnswer": "Pancreas",
+				"explanation": "The pancreas produces insulin in its beta cells, which regulates blood sugar levels."
+			},
+			{
+				"question": "How many chambers are there in the human heart?",
+				"options": ["2", "3", "4", "6"],
+				"correctAnswer": "4",
+				"explanation": "The human heart has four chambers: two atria and two ventricles."
+			},
+			{
+				"question": "What is the largest organ in the human body?",
+				"options": ["Heart", "Liver", "Skin", "Brain"],
+				"correctAnswer": "Skin",
+				"explanation": "The skin is the largest organ in the human body, covering about 20 square feet in adults."
+			},
+			{
+				"question": "Which blood type is known as the universal donor?",
+				"options": ["A+", "B-", "AB+", "O-"],
+				"correctAnswer": "O-",
+				"explanation": "O negative blood can be given to patients of all blood types, making it the universal donor."
+			},
+			{
+				"question": "How many pairs of chromosomes do humans normally have?",
+				"options": ["21", "22", "23", "24"],
+				"correctAnswer": "23",
+				"explanation": "Humans typically have 23 pairs of chromosomes, for a total of 46 chromosomes."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "World Languages",
+		"description": "Test your knowledge of languages and linguistics",
+		"category": "Languages",
+		"icon": "🗣️",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "Which is the most spoken language in the world by native speakers?",
+				"options": ["English", "Spanish", "Mandarin Chinese", "Hindi"],
+				"correctAnswer": "Mandarin Chinese",
+				"explanation": "Mandarin Chinese has the most native speakers, with over 900 million people."
+			},
+			{
+				"question": "Which language family does Japanese belong to?",
+				"options": ["Sino-Tibetan", "Japonic", "Austronesian", "Indo-European"],
+				"correctAnswer": "Japonic",
+				"explanation": "Japanese belongs to the Japonic language family, which includes Japanese and the Ryukyuan languages."
+			},
+			{
+				"question": "What is the official language of Brazil?",
+				"options": ["Spanish", "Portuguese", "French", "English"],
+				"correctAnswer": "Portuguese",
+				"explanation": "Portuguese is the official language of Brazil, brought by Portuguese colonizers."
+			},
+			{
+				"question": "Which alphabet has 14 basic vowels?",
+				"options": ["Korean", "Russian", "Arabic", "Greek"],
+				"correctAnswer": "Korean",
+				"explanation": "The Korean alphabet (Hangul) has 14 basic vowels and 10 basic consonants."
+			},
+			{
+				"question": "What is the term for a word that sounds the same as another but has different meaning and spelling?",
+				"options": ["Synonym", "Homophone", "Antonym", "Homograph"],
+				"correctAnswer": "Homophone",
+				"explanation": "Homophones are words that sound alike but have different meanings and spellings (e.g., 'there' and 'their')."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Economics Fundamentals",
+		"description": "Test your knowledge of basic economic concepts",
+		"category": "Economics",
+		"icon": "💹",
+		"difficulty": "hard",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "What is the law of supply and demand?",
+				"options": [
+					"Prices rise when supply exceeds demand",
+					"Prices fall when demand exceeds supply",
+					"Prices adjust to balance supply and demand",
+					"Prices remain constant regardless of supply and demand"
+				],
+				"correctAnswer": "Prices adjust to balance supply and demand",
+				"explanation": "The law of supply and demand states that prices will adjust to bring supply and demand into balance in a market economy."
+			},
+			{
+				"question": "What is GDP?",
+				"options": [
+					"Global Development Progress",
+					"Gross Domestic Product",
+					"General Domestic Progress",
+					"Global Domestic Production"
+				],
+				"correctAnswer": "Gross Domestic Product",
+				"explanation": "GDP measures the total monetary value of all finished goods and services produced within a country's borders in a specific time period."
+			},
+			{
+				"question": "What is inflation?",
+				"options": [
+					"Decrease in prices over time",
+					"Increase in prices over time",
+					"Increase in employment",
+					"Decrease in employment"
+				],
+				"correctAnswer": "Increase in prices over time",
+				"explanation": "Inflation is the rate at which the general level of prices for goods and services is rising over time."
+			},
+			{
+				"question": "What is a monopoly?",
+				"options": [
+					"Many sellers of a product",
+					"Two sellers of a product",
+					"One seller of a product",
+					"No sellers of a product"
+				],
+				"correctAnswer": "One seller of a product",
+				"explanation": "A monopoly exists when a specific person or enterprise is the only supplier of a particular good or service."
+			},
+			{
+				"question": "What is opportunity cost?",
+				"options": [
+					"The monetary cost of an opportunity",
+					"The cost of starting a business",
+					"The value of the next best alternative foregone",
+					"The cost of labor in production"
+				],
+				"correctAnswer": "The value of the next best alternative foregone",
+				"explanation": "Opportunity cost is the value of the next best alternative that must be given up when making a choice."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Psychology Basics",
+		"description": "Test your knowledge of psychological concepts and theories",
+		"category": "Psychology",
+		"icon": "🧠",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "Who is considered the father of psychoanalysis?",
+				"options": [
+					"Carl Jung",
+					"Sigmund Freud",
+					"B.F. Skinner",
+					"Ivan Pavlov"
+				],
+				"correctAnswer": "Sigmund Freud",
+				"explanation": "Sigmund Freud developed psychoanalysis and influenced many aspects of modern psychology."
+			},
+			{
+				"question": "What is classical conditioning?",
+				"options": [
+					"Learning through rewards",
+					"Learning through observation",
+					"Learning through association",
+					"Learning through punishment"
+				],
+				"correctAnswer": "Learning through association",
+				"explanation": "Classical conditioning is a learning process where a neutral stimulus becomes associated with a meaningful stimulus."
+			},
+			{
+				"question": "Which part of the brain is primarily responsible for memory?",
+				"options": ["Cerebellum", "Hippocampus", "Amygdala", "Medulla"],
+				"correctAnswer": "Hippocampus",
+				"explanation": "The hippocampus plays a major role in learning and memory, particularly the formation of new memories."
+			},
+			{
+				"question": "What is cognitive dissonance?",
+				"options": [
+					"Memory loss",
+					"Mental conflict between beliefs and actions",
+					"Fear of open spaces",
+					"Sleep disorder"
+				],
+				"correctAnswer": "Mental conflict between beliefs and actions",
+				"explanation": "Cognitive dissonance is the mental discomfort that results from holding contradictory beliefs or ideas."
+			},
+			{
+				"question": "What is the Hawthorne Effect?",
+				"options": [
+					"Fear of heights",
+					"Changes in behavior when being observed",
+					"Memory improvement technique",
+					"Social anxiety disorder"
+				],
+				"correctAnswer": "Changes in behavior when being observed",
+				"explanation": "The Hawthorne Effect describes how people modify their behavior when they know they're being observed."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Environmental Science",
+		"description": "Test your knowledge of environmental systems and conservation",
+		"category": "Science",
+		"icon": "🌿",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "What is the greenhouse effect?",
+				"options": [
+					"Plants growing in greenhouses",
+					"Trapping of heat by atmospheric gases",
+					"Effect of green light on plants",
+					"Temperature in tropical regions"
+				],
+				"correctAnswer": "Trapping of heat by atmospheric gases",
+				"explanation": "The greenhouse effect is the warming of Earth's surface due to atmospheric gases trapping heat from the sun."
+			},
+			{
+				"question": "Which gas is responsible for the largest percentage of the greenhouse effect?",
+				"options": ["Carbon dioxide", "Methane", "Water vapor", "Ozone"],
+				"correctAnswer": "Water vapor",
+				"explanation": "Water vapor accounts for about 60-70% of the natural greenhouse effect, though CO2 is the main human-influenced greenhouse gas."
+			},
+			{
+				"question": "What is biodiversity?",
+				"options": [
+					"Study of human life",
+					"Variety of life in an ecosystem",
+					"Different types of soil",
+					"Chemical processes in nature"
+				],
+				"correctAnswer": "Variety of life in an ecosystem",
+				"explanation": "Biodiversity refers to the variety of living species within a given area, including plants, animals, and microorganisms."
+			},
+			{
+				"question": "What is the primary cause of ocean acidification?",
+				"options": [
+					"Industrial waste",
+					"Absorption of CO2",
+					"Plastic pollution",
+					"Oil spills"
+				],
+				"correctAnswer": "Absorption of CO2",
+				"explanation": "Ocean acidification occurs when seawater absorbs carbon dioxide from the atmosphere, making the water more acidic."
+			},
+			{
+				"question": "What is an ecosystem service?",
+				"options": [
+					"Animal maintenance in zoos",
+					"Benefits humans get from nature",
+					"Environmental cleanup",
+					"Park ranger duties"
+				],
+				"correctAnswer": "Benefits humans get from nature",
+				"explanation": "Ecosystem services are the direct and indirect benefits that people obtain from natural ecosystems."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Architecture Through History",
+		"description": "Test your knowledge of architectural styles and famous buildings",
+		"category": "Architecture",
+		"icon": "🏛️",
+		"difficulty": "hard",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "Which architectural style is characterized by pointed arches and flying buttresses?",
+				"options": ["Baroque", "Gothic", "Renaissance", "Modernist"],
+				"correctAnswer": "Gothic",
+				"explanation": "Gothic architecture, popular in medieval Europe, is known for its pointed arches, flying buttresses, and tall spires."
+			},
+			{
+				"question": "Who designed the Falling Water house?",
+				"options": [
+					"Frank Lloyd Wright",
+					"Le Corbusier",
+					"Frank Gehry",
+					"Mies van der Rohe"
+				],
+				"correctAnswer": "Frank Lloyd Wright",
+				"explanation": "Fallingwater was designed by Frank Lloyd Wright in 1935 and is famous for its integration with the natural waterfall."
+			},
+			{
+				"question": "Which ancient civilization built the Parthenon?",
+				"options": ["Romans", "Greeks", "Egyptians", "Persians"],
+				"correctAnswer": "Greeks",
+				"explanation": "The Parthenon was built in the 5th century BCE by the ancient Greeks as a temple to Athena."
+			},
+			{
+				"question": "What is the primary characteristic of Brutalist architecture?",
+				"options": [
+					"Use of exposed concrete",
+					"Ornate decoration",
+					"Glass facades",
+					"Wooden structures"
+				],
+				"correctAnswer": "Use of exposed concrete",
+				"explanation": "Brutalist architecture is characterized by the use of exposed, raw concrete and bold geometric shapes."
+			},
+			{
+				"question": "Who designed the Sydney Opera House?",
+				"options": ["Jørn Utzon", "Zaha Hadid", "Norman Foster", "Renzo Piano"],
+				"correctAnswer": "Jørn Utzon",
+				"explanation": "The Sydney Opera House was designed by Danish architect Jørn Utzon and completed in 1973."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Philosophy 101",
+		"description": "Test your knowledge of philosophical concepts and thinkers",
+		"category": "Philosophy",
+		"icon": "🤔",
+		"difficulty": "hard",
+		"timeLimit": 120,
+		"questions": [
+			{
+				"question": "Who wrote 'Meditations on First Philosophy'?",
+				"options": [
+					"René Descartes",
+					"Immanuel Kant",
+					"John Locke",
+					"Friedrich Nietzsche"
+				],
+				"correctAnswer": "René Descartes",
+				"explanation": "René Descartes wrote 'Meditations on First Philosophy' in 1641, introducing his famous 'I think, therefore I am'."
+			},
+			{
+				"question": "What is epistemology?",
+				"options": [
+					"Study of being",
+					"Study of knowledge",
+					"Study of ethics",
+					"Study of logic"
+				],
+				"correctAnswer": "Study of knowledge",
+				"explanation": "Epistemology is the branch of philosophy concerned with the theory of knowledge."
+			},
+			{
+				"question": "Which philosopher wrote 'The Republic'?",
+				"options": ["Aristotle", "Plato", "Socrates", "Epicurus"],
+				"correctAnswer": "Plato",
+				"explanation": "Plato wrote 'The Republic', which discusses justice, the nature of the just state, and the just man."
+			},
+			{
+				"question": "What is existentialism primarily concerned with?",
+				"options": [
+					"Logic and reason",
+					"Individual existence and freedom",
+					"Political systems",
+					"Scientific truth"
+				],
+				"correctAnswer": "Individual existence and freedom",
+				"explanation": "Existentialism focuses on the human condition and emphasizes individual existence, freedom, and choice."
+			},
+			{
+				"question": "Who wrote 'Thus Spoke Zarathustra'?",
+				"options": [
+					"Friedrich Nietzsche",
+					"Jean-Paul Sartre",
+					"Albert Camus",
+					"Søren Kierkegaard"
+				],
+				"correctAnswer": "Friedrich Nietzsche",
+				"explanation": "'Thus Spoke Zarathustra' was written by Friedrich Nietzsche and introduces the concept of the Übermensch."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Space Exploration",
+		"description": "Test your knowledge of space missions and astronomical discoveries",
+		"category": "Science",
+		"icon": "🚀",
+		"difficulty": "hard",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "Who was the first human to walk on the Moon?",
+				"options": [
+					"Buzz Aldrin",
+					"Neil Armstrong",
+					"Yuri Gagarin",
+					"John Glenn"
+				],
+				"correctAnswer": "Neil Armstrong",
+				"explanation": "Neil Armstrong was the first person to walk on the Moon during the Apollo 11 mission in 1969."
+			},
+			{
+				"question": "Which space probe has traveled the farthest from Earth?",
+				"options": ["Voyager 1", "Pioneer 10", "New Horizons", "Cassini"],
+				"correctAnswer": "Voyager 1",
+				"explanation": "Voyager 1, launched in 1977, is the farthest human-made object from Earth, having entered interstellar space."
+			},
+			{
+				"question": "What was the first artificial satellite to orbit Earth?",
+				"options": ["Explorer 1", "Vanguard 1", "Sputnik 1", "Telstar 1"],
+				"correctAnswer": "Sputnik 1",
+				"explanation": "Sputnik 1, launched by the Soviet Union in 1957, was the first artificial satellite to orbit Earth."
+			},
+			{
+				"question": "Which planet has the most moons in our solar system?",
+				"options": ["Saturn", "Jupiter", "Uranus", "Neptune"],
+				"correctAnswer": "Jupiter",
+				"explanation": "Jupiter has the most moons, with over 80 confirmed natural satellites."
+			},
+			{
+				"question": "What is the name of SpaceX's first reusable rocket?",
+				"options": ["Falcon 1", "Falcon 9", "Dragon", "Starship"],
+				"correctAnswer": "Falcon 9",
+				"explanation": "The Falcon 9 was SpaceX's first reusable rocket, revolutionizing space launch technology."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "World Religions",
+		"description": "Test your knowledge of major world religions and their practices",
+		"category": "Religion",
+		"icon": "🕊️",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "What are the Five Pillars of Islam?",
+				"options": [
+					"Prayer, Charity, Fasting, Pilgrimage, Declaration of Faith",
+					"Meditation, Yoga, Fasting, Charity, Prayer",
+					"Baptism, Communion, Confirmation, Marriage, Last Rites",
+					"Study, Prayer, Meditation, Service, Devotion"
+				],
+				"correctAnswer": "Prayer, Charity, Fasting, Pilgrimage, Declaration of Faith",
+				"explanation": "The Five Pillars of Islam are Shahada (Declaration of Faith), Salah (Prayer), Zakat (Charity), Sawm (Fasting), and Hajj (Pilgrimage)."
+			},
+			{
+				"question": "Which religion believes in reincarnation?",
+				"options": ["Christianity", "Islam", "Hinduism", "Judaism"],
+				"correctAnswer": "Hinduism",
+				"explanation": "Hinduism believes in the cycle of rebirth (samsara) and reincarnation based on karma."
+			},
+			{
+				"question": "Who is considered the founder of Buddhism?",
+				"options": ["Mahavira", "Siddhartha Gautama", "Confucius", "Laozi"],
+				"correctAnswer": "Siddhartha Gautama",
+				"explanation": "Siddhartha Gautama, known as the Buddha, founded Buddhism in ancient India."
+			},
+			{
+				"question": "What is the holy book of Judaism?",
+				"options": ["Bible", "Quran", "Torah", "Vedas"],
+				"correctAnswer": "Torah",
+				"explanation": "The Torah is the central and most important text of Judaism."
+			},
+			{
+				"question": "Which day is the Christian Sabbath?",
+				"options": ["Friday", "Saturday", "Sunday", "Monday"],
+				"correctAnswer": "Sunday",
+				"explanation": "Most Christians observe Sunday as their Sabbath, though some denominations observe Saturday."
+			}
+		],
+		"isPublic": true,
+		"createdBy": "admin"
+	},
+	{
+		"title": "Physical Fitness",
+		"description": "Test your knowledge of exercise science and fitness principles",
+		"category": "Health",
+		"icon": "💪",
+		"difficulty": "medium",
+		"timeLimit": 90,
+		"questions": [
+			{
+				"question": "What is the recommended minimum amount of weekly cardiovascular exercise for adults?",
+				"options": ["30 minutes", "75 minutes", "150 minutes", "200 minutes"],
+				"correctAnswer": "150 minutes",
+				"explanation": "The WHO recommends at least 150 minutes of moderate-intensity aerobic activity throughout the week for adults."
+			},
+			{
+				"question": "Which type of muscle fiber is primarily used in endurance activities?",
+				"options": ["Type I", "Type IIa", "Type IIb", "Type III"],
+				"correctAnswer": "Type I",
+				"explanation": "Type I (slow-twitch) muscle fibers are resistant to fatigue and used primarily in endurance activities."
+			},
+			{
+				"question": "What is HIIT?",
+				"options": [
+					"Heavy Impact Interval Training",
+					"High Intensity Interval Training",
+					"High Impact Isolation Training",
+					"Heavy Intensity Isolation Training"
+				],
+				"correctAnswer": "High Intensity Interval Training",
+				"explanation": "HIIT alternates between intense bursts of activity and fixed periods of less-intense activity or rest."
+			},
+			{
+				"question": "What is the primary function of protein in the body?",
+				"options": [
+					"Energy storage",
+					"Tissue repair and growth",
+					"Temperature regulation",
+					"Hormone production only"
+				],
+				"correctAnswer": "Tissue repair and growth",
+				"explanation": "Protein is essential for building and repairing tissues, including muscles, bones, and skin."
+			},
+			{
+				"question": "What is BMI?",
+				"options": [
+					"Body Mass Index",
+					"Body Measurement Indicator",
+					"Basic Metabolic Index",
+					"Body Motion Index"
+				],
+				"correctAnswer": "Body Mass Index",
+				"explanation": "BMI is a measure that uses your height and weight to work out if your weight is healthy."
 			}
 		],
 		"isPublic": true,

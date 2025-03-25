@@ -13,6 +13,7 @@ import LoginScreen from './Login';
 import RegisterScreen from './Register';
 import ResetPasswordScreen from './ResetPassword';
 import ForgotPasswordScreen from './ForgotPassword';
+import DailyTasksScreen from './DailyTasks';
 
 const SCREENS = {
 	HomeScreen,
@@ -30,6 +31,7 @@ const SCREENS = {
 	RegisterScreen,
 	ResetPasswordScreen,
 	ForgotPasswordScreen,
+	DailyTasksScreen,
 };
 
 export default SCREENS;
@@ -45,9 +47,17 @@ export type RootStackParamList = {
 	CreateAccount: undefined;
 	WordGame: undefined;
 	OnBoard: undefined;
-	QuizList: undefined;
+	QuizList: { categories: Category[] };
 	Login: undefined;
 	Register: undefined;
 	ResetPassword: undefined;
 	ForgotPassword: undefined;
+	DailyTasks: undefined;
 };
+
+interface Category {
+	id: string;
+	name: string;
+	icon: string;
+	quizzesCount: number;
+}

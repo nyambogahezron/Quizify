@@ -5,23 +5,54 @@ import {
 	StyleSheet,
 	TouchableOpacity,
 	ScrollView,
+	ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { quizCategories, moreGames } from '../lib/data';
 import { RootStackParamList } from '.';
 import Colors from 'constants/Colors';
 import GameCard from 'components/GameCard';
 import DailyTask from 'components/DailyTask';
-import { useAuth } from 'context/AuthContext';
+import { useAuthStore } from '../store/useStore';
+import { useDailyTasks, useCategories } from '../services/api';
+import { moreGames } from '@/lib/data';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
+interface Category {
+	id: string;
+	name: string;
+	icon: string;
+	quizzesCount: number;
+}
 
 export default function HomeScreen() {
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-	const { user } = useAuth();
+	const { user } = useAuthStore();
+
+	const { data: dailyTasks, isLoading: isLoadingTasks } = useDailyTasks();
+	const { data: categories, isLoading: isLoadingCategories } = useCategories();
+
+	console.log(dailyTasks);
+	if (isLoadingTasks || isLoadingCategories) {
+		return (
+			<View style={styles.loadingContainer}>
+				<ActivityIndicator size='large' color={Colors.white} />
+			</View>
+		);
+	}
+
+	const CategoryLoadingSkeleton = () => {
+		return (
+			<View style={styles.categoryCard}>
+				{Array.from({ length: 10 }).map((_, index) => (
+					<View key={index} style={styles.categoryCardSkeleton} />
+				))}
+			</View>
+		);
+	};
 
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
@@ -37,7 +68,7 @@ export default function HomeScreen() {
 							style={styles.profile}
 						>
 							<View style={styles.avatar}>
-								<Text style={{ fontSize: 20 }}>
+								<Text style={{ fontSize: 20, color: 'white' }}>
 									{user?.avatar || user?.name.charAt(0).toUpperCase()}
 								</Text>
 							</View>
@@ -54,40 +85,64 @@ export default function HomeScreen() {
 						</View>
 					</View>
 
-					{/* Daily Task */}
-					<DailyTask />
+					{/* Daily Tasks */}
+					<DailyTask
+						task={dailyTasks?.[0]}
+						onPress={() => navigation.navigate('DailyTasks')}
+					/>
 
 					{/* Quiz Categories */}
+
 					<View style={[styles.section, { padding: 3 }]}>
 						<View style={styles.sectionHeader}>
-							<Text style={styles.sectionTitle}>Quiz</Text>
-							<TouchableOpacity onPress={() => navigation.navigate('QuizList')}>
+							<Text style={styles.sectionTitle}>Quiz Categories</Text>
+							<TouchableOpacity
+								onPress={() =>
+									navigation.navigate('QuizList', {
+										categories: categories,
+									})
+								}
+							>
 								<Text style={styles.viewAll}>View All</Text>
 							</TouchableOpacity>
 						</View>
 						<ScrollView horizontal showsHorizontalScrollIndicator={false}>
-							<View style={styles.categories}>
-								{quizCategories.slice(0, 10).map((category) => (
-									<TouchableOpacity
-										key={category.id}
-										style={styles.categoryCard}
-										onPress={() =>
-											navigation.navigate('Quiz', { category: category.name })
-										}
-									>
-										<Text style={styles.categoryIcon}>{category.icon}</Text>
-										<Text style={styles.categoryName}>{category.name}</Text>
-									</TouchableOpacity>
-								))}
-							</View>
+							{isLoadingCategories ? (
+								<CategoryLoadingSkeleton />
+							) : (
+								<View style={styles.categories}>
+									{categories
+										.slice(0, 10)
+										.map((category: Category, index: number) => (
+											<TouchableOpacity
+												key={index}
+												style={styles.categoryCard}
+												onPress={() =>
+													navigation.navigate('Quiz', {
+														category: category.name,
+													})
+												}
+											>
+												<Text style={styles.categoryIcon}>{category.icon}</Text>
+												<Text style={styles.categoryName}>{category.name}</Text>
+											</TouchableOpacity>
+										))}
+								</View>
+							)}
 						</ScrollView>
 					</View>
 
 					{/* More Games */}
-					<View style={[styles.section, { marginBottom: 80 }]}>
+					<View style={[styles.section, { marginBottom: 80, marginTop: 20 }]}>
 						<View style={styles.sectionHeader}>
 							<Text style={styles.sectionTitle}>More Games</Text>
-							<TouchableOpacity onPress={() => navigation.navigate('QuizList')}>
+							<TouchableOpacity
+								onPress={() =>
+									navigation.navigate('QuizList', {
+										categories: categories,
+									})
+								}
+							>
 								<Text style={styles.viewAll}>View All</Text>
 							</TouchableOpacity>
 						</View>
@@ -108,32 +163,35 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+	loadingContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: Colors.background,
+	},
 	header: {
+		padding: 20,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		padding: 20,
 	},
 	profile: {
 		flexDirection: 'row',
 		alignItems: 'center',
 	},
 	avatar: {
-		alignItems: 'center',
+		width: 50,
+		height: 50,
+		borderRadius: 25,
+		backgroundColor: Colors.primary,
 		justifyContent: 'center',
-		textAlign: 'center',
-		width: 40,
-		height: 40,
-		borderRadius: 20,
-		marginRight: 12,
-		borderWidth: 1,
-		borderColor: Colors.grayLight,
-		boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+		alignItems: 'center',
+		marginRight: 10,
 	},
 	username: {
-		color: 'white',
-		fontSize: 16,
-		fontWeight: '600',
+		fontSize: 18,
+		fontFamily: 'Rb-bold',
+		color: Colors.text,
 	},
 	level: {
 		color: Colors.textLight,
@@ -152,9 +210,14 @@ const styles = StyleSheet.create({
 		marginLeft: 4,
 		fontWeight: '600',
 	},
-
 	section: {
-		marginBottom: 20,
+		padding: 2,
+	},
+	sectionTitle: {
+		fontSize: 20,
+		fontFamily: 'Rb-bold',
+		color: Colors.text,
+		marginBottom: 15,
 	},
 	sectionHeader: {
 		flexDirection: 'row',
@@ -164,31 +227,43 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 		marginTop: 10,
 	},
-	sectionTitle: {
-		color: 'white',
-		fontSize: 18,
-		fontWeight: '600',
-	},
+
 	viewAll: {
 		color: Colors.textLight,
 		fontSize: 14,
+	},
+	tasksContainer: {
+		marginBottom: 20,
+	},
+	categoriesContainer: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'space-between',
 	},
 	categories: {
 		flexDirection: 'row',
 		paddingHorizontal: 16,
 	},
 	categoryCard: {
-		width: 80,
-		height: 80,
-		backgroundColor: Colors.grayLight,
+		width: 120,
+		height: 120,
+		overflow: 'hidden',
+		backgroundColor: Colors.background2,
 		borderRadius: 16,
 		marginHorizontal: 4,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	categoryIcon: {
-		fontSize: 24,
-		marginBottom: 4,
+		fontSize: 34,
+		marginBottom: 8,
+		color: Colors.text,
+		fontFamily: 'Rb-bold',
+		backgroundColor: Colors.grayLight,
+		padding: 15,
+		borderRadius: 50,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	categoryName: {
 		color: 'white',
@@ -196,5 +271,11 @@ const styles = StyleSheet.create({
 	},
 	moreGames: {
 		paddingHorizontal: 10,
+	},
+	categoryCardSkeleton: {
+		width: 120,
+		height: 120,
+		backgroundColor: Colors.grayLight,
+		borderRadius: 16,
 	},
 });

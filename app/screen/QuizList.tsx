@@ -7,24 +7,33 @@ import {
 	Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { quizCategories } from '../lib/data';
 import { RootStackParamList } from '.';
 import Colors from 'constants/Colors';
 import GameCard from 'components/GameCard';
 
+interface Category {
+	id: string;
+	name: string;
+	icon: string;
+	quizzesCount: number;
+}
+
 const width = Dimensions.get('window').width;
 
 export default function QuizList() {
+	const route = useRoute();
+
+	const { categories } = route.params as { categories: Category[] };
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const animations = useRef(
-		quizCategories.map(() => new Animated.Value(100))
+		categories.map(() => new Animated.Value(100))
 	).current;
 
 	useEffect(() => {
-		const animationsArray = quizCategories.map((_, index) =>
+		const animationsArray = categories.map((_: unknown, index: number) =>
 			Animated.timing(animations[index], {
 				toValue: 0,
 				duration: 500 + index * 100,
@@ -46,7 +55,7 @@ export default function QuizList() {
 				}}
 			>
 				<View style={styles.section}>
-					{quizCategories.map((game, index) => (
+					{categories.map((game: Category, index: number) => (
 						<Animated.View
 							key={game.id}
 							style={[

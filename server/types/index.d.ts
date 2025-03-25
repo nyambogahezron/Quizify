@@ -6,6 +6,7 @@ export type UserProps = {
 	name: string;
 	email: string;
 	username: string;
+	isAdmin: boolean;
 };
 
 export type attachCookieProps = {

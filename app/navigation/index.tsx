@@ -3,23 +3,23 @@ import { NavigationContainer } from '@react-navigation/native';
 import { BottomTabNavigation } from 'components/navigation/BottomTab';
 import SCREENS, { RootStackParamList } from 'screen';
 import Colors from 'constants/Colors';
-import { useAuth } from '@/context/AuthContext';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useAuthStore } from '@/store/useStore';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function Navigation() {
-	const { user } = useAuth();
+	const { isAuthenticated } = useAuthStore();
 	const isFirstTime = false;
 
 	return (
 		<NavigationContainer>
-			{user ? (
+			{isAuthenticated ? (
 				<Stack.Navigator
 					screenOptions={{
 						headerShown: false,
 					}}
-					initialRouteName={user ? 'Home' : 'OnBoard'}
+					initialRouteName='MainTabs'
 				>
 					<Stack.Screen
 						name='MainTabs'
@@ -83,10 +83,10 @@ export default function Navigation() {
 							headerTintColor: Colors.white,
 						}}
 					/>
+
 					<Stack.Screen
-						name='ForgotPassword'
-						component={SCREENS.ForgotPasswordScreen}
-						options={{ headerShown: false }}
+						name='DailyTasks'
+						component={SCREENS.DailyTasksScreen}
 					/>
 				</Stack.Navigator>
 			) : (
@@ -103,6 +103,11 @@ export default function Navigation() {
 							<Stack.Screen
 								name='Register'
 								component={SCREENS.RegisterScreen}
+								options={{ headerShown: false }}
+							/>
+							<Stack.Screen
+								name='ForgotPassword'
+								component={SCREENS.ForgotPasswordScreen}
 								options={{ headerShown: false }}
 							/>
 							<Stack.Screen
