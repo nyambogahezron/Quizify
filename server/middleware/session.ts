@@ -1,4 +1,5 @@
-import jwt from 'jsonwebtoken';
+import { verifyJWT } from '../utils/JWT';
+import { UnauthorizedError } from '../errors';
 
 interface Session {
 	userId: string;
@@ -8,33 +9,36 @@ interface Session {
 export async function getSession(cookie: string): Promise<Session | null> {
 	try {
 		if (!cookie) {
-			console.log('No cookie provided');
 			return null;
 		}
 
-		// Parse cookies
-		const cookies = cookie.split(';').reduce((acc, curr) => {
-			const [name, value] = curr.trim().split('=');
-			acc[name] = value;
-			return acc;
-		}, {} as Record<string, string>);
+		// URL decode the cookie
+		const decodedCookie = decodeURIComponent(cookie);
 
-		console.log('Parsed cookies:', Object.keys(cookies));
+		// Remove the session prefix if it exists (s:)
+		const cleanToken = decodedCookie.replace(/^s:/, '');
 
-		const token = cookies['accessToken'];
-		if (!token) {
-			console.log('No accessToken found in cookies');
+		// Remove the session signature (everything after the last dot)
+		const tokenParts = cleanToken.split('.');
+		if (tokenParts.length > 3) {
+			tokenParts.splice(3); // Keep only the standard JWT parts
+		}
+		const jwtToken = tokenParts.join('.');
+
+		const payload = verifyJWT(jwtToken);
+
+		if (typeof payload === 'string') {
+			throw new UnauthorizedError('Authentication Invalid');
+		}
+
+		if (!payload.payload?.userId) {
 			return null;
 		}
 
-		// URL decode the token before verification
-		const decodedToken = decodeURIComponent(token);
-		const session = jwt.verify(
-			decodedToken,
-			process.env.JWT_SECRET!
-		) as Session;
-		console.log('Successfully decoded session for user:', session.userId);
-		return session;
+		return {
+			userId: payload.payload.userId,
+			...payload.payload,
+		};
 	} catch (error) {
 		console.error('Error decoding session:', error);
 		return null;

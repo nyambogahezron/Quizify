@@ -1,6 +1,5 @@
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import { getSession } from '../middleware/session';
 
 // Models
 import Quiz from '../models/Quiz.model';
@@ -8,6 +7,7 @@ import QuizAttempt from '../models/QuizAttempt.model';
 import { Leaderboard, GlobalLeaderboard } from '../models/Leaderboard.model';
 import { Achievement, UserAchievement } from '../models/Achievement.model';
 import { DailyTask, UserDailyTask } from '../models/DailyTask.model';
+import authenticateSocket from './AuthenticateSocket';
 
 interface UserSocket extends Socket {
 	userId?: string;
@@ -25,33 +25,6 @@ const activeQuizSessions: Map<
 	}
 > = new Map();
 
-// Middleware to authenticate socket connections
-const authenticateSocket = async (
-	socket: UserSocket,
-	next: (err?: Error) => void
-) => {
-	try {
-		console.log('Socket authentication attempt');
-		console.log('Headers:', socket.handshake.headers);
-		console.log('Cookies:', socket.handshake.headers.cookie);
-
-		// Get the session from the cookie
-		const session = await getSession(socket.handshake.headers.cookie || '');
-
-		if (!session || !session.userId) {
-			console.log('No valid session found');
-			return next(new Error('Authentication error: No valid session'));
-		}
-
-		console.log('Socket authenticated for user:', session.userId);
-		socket.userId = session.userId;
-		next();
-	} catch (error) {
-		console.error('Socket authentication error:', error);
-		next(new Error('Authentication error: Invalid session'));
-	}
-};
-
 const initSocketHandlers = (
 	io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
 ) => {
@@ -59,11 +32,8 @@ const initSocketHandlers = (
 	io.use(authenticateSocket);
 
 	io.on('connection', (socket: UserSocket) => {
-		console.log(`User connected: ${socket.userId}`);
-
 		// Handle test connection
 		socket.on('test_connection', () => {
-			console.log(`Test connection received from user ${socket.userId}`);
 			socket.emit('test_connection_response', {
 				status: 'success',
 				message: 'Connection test successful',

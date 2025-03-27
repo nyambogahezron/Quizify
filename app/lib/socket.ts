@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
 const SOCKET_URL =
-	process.env.EXPO_PUBLIC_SOCKET_URL || 'http://localhost:5000';
+	process.env.EXPO_PUBLIC_SOCKET_URL || 'http://127.0.0.1:5000';
 
 class SocketService {
 	private socket: Socket | null = null;
@@ -79,6 +79,10 @@ class SocketService {
 				this.socket.on('disconnect', (reason) => {
 					console.log('Socket disconnected:', reason);
 					this.isConnecting = false;
+				});
+
+				this.socket.on('data', (data) => {
+					console.log('Data:', data);
 				});
 
 				this.socket.on('error', (error) => {
