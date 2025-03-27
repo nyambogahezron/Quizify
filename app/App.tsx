@@ -7,6 +7,8 @@ import { ContextProvider } from 'context/ConxtextProvider';
 import Navigation from './navigation';
 import { socketService } from './lib/socket';
 import { useAuthStore } from './store/useStore';
+import { StatusBar } from 'react-native';
+import Colors from './constants/Colors';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -66,6 +68,7 @@ export default function App() {
 
 	return (
 		<QueryClientProvider client={queryClient}>
+			<StatusBar barStyle='light-content' backgroundColor={Colors.background} />
 			<GestureHandlerRootView onLayout={onLayoutRootView}>
 				<ContextProvider>
 					<Navigation />

@@ -39,7 +39,7 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 	};
 
 	return (
-		<BlurView intensity={90} style={styles.wrapper}>
+		<BlurView intensity={10} style={styles.wrapper}>
 			{/* Wrap with BlurView */}
 			{state.routes.map((route: any, index: number) => {
 				const { options } = descriptors[route.key];
@@ -81,20 +81,23 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 						onPress={onPress}
 						onLongPress={onLongPress}
 						style={{ flex: 1 }}
-						android_ripple={{ color: Colors.yellow, radius: 50 }} // Change ripple color and radius
+						android_ripple={{ color: Colors.yellow, radius: 0 }} // Change ripple color and radius
 					>
 						<View style={styles.tabs}>
 							{icons[route.name](
 								isFocused
-									? { size: 24, color: Colors.yellow, focused: true }
+									? { size: 24, color: Colors.blue, focused: true }
 									: { size: 24, color: Colors.white, focused: false }
 							)}
 							<Text
-								style={{
-									color: isFocused ? Colors.yellow : Colors.white,
-									fontSize: 12,
-									marginTop: 3,
-								}}
+								style={[
+									{
+										color: isFocused ? Colors.dark : Colors.white,
+										fontSize: 12,
+										marginTop: 3,
+									},
+									isFocused && styles.textFocused,
+								]}
 							>
 								{label}
 							</Text>
@@ -135,8 +138,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		backgroundColor: 'rgba(76, 29, 149, 0.9)',
-		borderRadius: 20,
+		backgroundColor: '#385952',
+		borderRadius: 25,
 		marginBottom: 15,
 		width: '94%',
 		marginHorizontal: 'auto',
@@ -148,5 +151,9 @@ const styles = StyleSheet.create({
 		height: 60,
 		width: '100%',
 		borderRadius: 25,
+	},
+	textFocused: {
+		color: Colors.blue,
+		fontWeight: 'bold',
 	},
 });

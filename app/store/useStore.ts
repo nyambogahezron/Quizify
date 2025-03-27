@@ -25,6 +25,7 @@ interface AuthState {
 	isAuthenticated: boolean;
 	setUser: (user: User | null) => void;
 	setToken: (token: string) => void;
+	setIsAuthenticated: (isAuthenticated: boolean) => void;
 	logout: () => Promise<void>;
 	initialize: () => Promise<void>;
 }
@@ -66,6 +67,9 @@ export const useAuthStore = create<AuthState>((set) => ({
 			useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 		navigation.navigate('Login');
 	},
+
+	setIsAuthenticated: (isAuthenticated: boolean) =>
+		set({ isAuthenticated: isAuthenticated }),
 	initialize: async () => {
 		try {
 			const userData = await AsyncStorage.getItem(USER_DATA_KEY);

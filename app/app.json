@@ -7,11 +7,6 @@
 		"icon": "./assets/icon.png",
 		"userInterfaceStyle": "light",
 		"newArchEnabled": true,
-		"splash": {
-			"image": "./assets/splash-icon.png",
-			"resizeMode": "contain",
-			"backgroundColor": "#8B5CF6"
-		},
 		"ios": {
 			"supportsTablet": true
 		},
@@ -49,7 +44,7 @@
 			[
 				"expo-splash-screen",
 				{
-					"backgroundColor": "#8B5CF6",
+					"backgroundColor": "#385952",
 					"image": "./assets/splash-icon.png",
 					"imageWidth": 200,
 					"resizeMode": "contain"

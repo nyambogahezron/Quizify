@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://gb5zk1b0-5000.uks1.devtunnels.ms/api/v1';
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export async function fetchApi(path: string, options: RequestInit = {}) {
 	const token = await AsyncStorage.getItem('token');
@@ -13,6 +13,7 @@ export async function fetchApi(path: string, options: RequestInit = {}) {
 	const response = await fetch(`${BASE_URL}/${path}`, {
 		...options,
 		headers,
+		credentials: 'include',
 	});
 
 	if (!response.ok) {

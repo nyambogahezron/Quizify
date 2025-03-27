@@ -5,6 +5,7 @@ import {
 	StyleSheet,
 	TouchableOpacity,
 	ActivityIndicator,
+	ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,22 +13,26 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../lib/types';
-import { useQuizById, useSubmitQuiz } from '../services/api';
+import { useQuizByCategory, useSubmitQuiz } from '../services/api';
 import { socketService } from '../lib/socket';
 import { useQuizStore } from '../store/useStore';
 import Colors from 'constants/Colors';
+import { BlurView } from 'expo-blur';
+import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 
 interface Question {
 	id: string;
 	question: string;
 	options: string[];
 	correctAnswer: number;
+	points: number;
 }
 
 interface Quiz {
-	id: string;
+	_id: string;
 	title: string;
 	questions: Question[];
+	timeLimit: number;
 }
 
 type Props = {
@@ -35,34 +40,132 @@ type Props = {
 	route: RouteProp<RootStackParamList, 'Quiz'>;
 };
 
-const TIMER_SECONDS = 60;
-
 export default function QuizScreen({ navigation, route }: Props) {
-	const { quizId } = route.params;
+	const { category } = route.params;
 	const [currentQuestion, setCurrentQuestion] = useState(0);
 	const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
 	const [score, setScore] = useState(0);
-	const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
+	const [totalTimeLeft, setTotalTimeLeft] = useState(0);
 	const [answers, setAnswers] = useState<Record<string, string>>({});
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isStarted, setIsStarted] = useState(false);
+	const [showQuestionNav, setShowQuestionNav] = useState(false);
+	const [isConnected, setIsConnected] = useState(false);
 
-	const { data: quiz, isLoading } = useQuizById(quizId);
+	const { data: quizData, isLoading } = useQuizByCategory(category);
 	const { mutate: submitQuiz } = useSubmitQuiz();
 	const { setCurrentQuiz, addToHistory } = useQuizStore();
 
+	// Get the first quiz from the array for now
+	const quiz = quizData?.quizzes?.[0];
+
+	// Calculate total time limit in seconds
+	const totalTimeLimit = quiz ? quiz.questions.length * quiz.timeLimit : 0;
+
+	// Initialize socket connection
 	useEffect(() => {
-		if (quiz) {
+		let mounted = true;
+
+		const initSocket = async () => {
+			try {
+				await socketService.connect();
+				if (!mounted) return;
+
+				const socket = socketService.getSocket();
+				if (socket) {
+					socket.on('connect', () => {
+						if (!mounted) return;
+						console.log('Socket connected in QuizScreen');
+						setIsConnected(true);
+						socketService.testConnection();
+					});
+
+					socket.on('disconnect', () => {
+						if (!mounted) return;
+						console.log('Socket disconnected in QuizScreen');
+						setIsConnected(false);
+					});
+
+					socket.on('test_connection_response', (data) => {
+						if (!mounted) return;
+						console.log('Test connection response in QuizScreen:', data);
+					});
+
+					socket.on('error', (error) => {
+						if (!mounted) return;
+						console.error('Socket error in QuizScreen:', error);
+						setIsConnected(false);
+					});
+				}
+			} catch (error) {
+				if (!mounted) return;
+				console.error('Error initializing socket:', error);
+				setIsConnected(false);
+			}
+		};
+
+		initSocket();
+
+		return () => {
+			mounted = false;
+			const socket = socketService.getSocket();
+			if (socket) {
+				socket.off('connect');
+				socket.off('disconnect');
+				socket.off('test_connection_response');
+				socket.off('error');
+			}
+		};
+	}, []);
+
+	useEffect(() => {
+		if (quiz?._id && isConnected) {
 			setCurrentQuiz(quiz);
-			socketService.joinQuiz(quizId);
+			socketService.joinQuiz(quiz._id);
 		}
 
 		return () => {
-			socketService.leaveQuiz(quizId);
+			if (quiz?._id) {
+				socketService.leaveQuiz(quiz._id);
+			}
 		};
-	}, [quiz, quizId]);
+	}, [quiz, isConnected]);
 
 	useEffect(() => {
+		const socket = socketService.getSocket();
+		if (!socket) return;
+
+		socket.on('quiz:question', (data) => {
+			setTotalTimeLeft(totalTimeLimit);
+			setCurrentQuestion(data.questionNumber - 1);
+			setSelectedAnswer(null);
+		});
+
+		socket.on('quiz:completed', (data) => {
+			addToHistory(data);
+			navigation.navigate('Result', {
+				score: data.score,
+				totalQuestions: data.totalQuestions,
+				quizId: quiz?._id || '',
+			});
+		});
+
+		socket.on('error', (error) => {
+			console.error('Socket error:', error);
+		});
+
+		return () => {
+			socket.off('quiz:question');
+			socket.off('quiz:completed');
+			socket.off('error');
+		};
+	}, [quiz, navigation, totalTimeLimit]);
+
+	useEffect(() => {
+		if (!isStarted) return;
+
 		const timer = setInterval(() => {
-			setTimeLeft((prev) => {
+			setTotalTimeLeft((prev) => {
 				if (prev <= 1) {
 					clearInterval(timer);
 					handleTimeUp();
@@ -73,49 +176,52 @@ export default function QuizScreen({ navigation, route }: Props) {
 		}, 1000);
 
 		return () => clearInterval(timer);
-	}, [currentQuestion]);
+	}, [isStarted]);
+
+	const handleStart = () => {
+		setIsStarted(true);
+		setTotalTimeLeft(totalTimeLimit);
+		socketService.getSocket()?.emit('quiz:start', quiz?._id);
+	};
 
 	const handleTimeUp = () => {
-		if (quiz && currentQuestion < quiz.questions.length - 1) {
-			setCurrentQuestion(currentQuestion + 1);
-			setSelectedAnswer(null);
-			setTimeLeft(TIMER_SECONDS);
-		} else {
-			handleQuizComplete();
-		}
+		handleQuizComplete();
 	};
 
 	const handleAnswer = (selectedIndex: number) => {
-		if (!quiz) return;
+		if (!quiz?._id || !quiz?.questions || isSubmitting) return;
 
 		setSelectedAnswer(selectedIndex);
-		const currentQuestionId = quiz.questions[currentQuestion].id;
+		setIsSubmitting(true);
+
+		const currentQuestionData = quiz.questions[currentQuestion];
+		const timeSpent = quiz.timeLimit - (totalTimeLeft % quiz.timeLimit);
+
 		setAnswers((prev) => ({
 			...prev,
-			[currentQuestionId]: selectedIndex.toString(),
+			[currentQuestionData.id]: selectedIndex.toString(),
 		}));
 
-		setTimeout(() => {
-			if (selectedIndex === quiz.questions[currentQuestion].correctAnswer) {
-				setScore(score + 1);
-			}
+		socketService.getSocket()?.emit('quiz:submit-answer', {
+			quizId: quiz._id,
+			questionId: currentQuestionData.id,
+			answer: selectedIndex,
+			timeSpent,
+		});
 
-			if (currentQuestion < quiz.questions.length - 1) {
-				setCurrentQuestion(currentQuestion + 1);
-				setSelectedAnswer(null);
-				setTimeLeft(TIMER_SECONDS);
-			} else {
-				handleQuizComplete();
-			}
-		}, 1000);
+		if (selectedIndex === currentQuestionData.correctAnswer) {
+			setScore(score + currentQuestionData.points);
+		}
+
+		setIsSubmitting(false);
 	};
 
 	const handleQuizComplete = () => {
-		if (!quiz) return;
+		if (!quiz?._id) return;
 
 		submitQuiz(
 			{
-				quizId,
+				quizId: quiz._id,
 				answers,
 			},
 			{
@@ -124,16 +230,37 @@ export default function QuizScreen({ navigation, route }: Props) {
 					navigation.navigate('Result', {
 						score,
 						totalQuestions: quiz.questions.length,
-						quizId,
+						quizId: quiz._id,
 					});
 				},
 			}
 		);
 	};
 
-	if (isLoading || !quiz) {
+	const navigateToQuestion = (index: number) => {
+		setCurrentQuestion(index);
+		setSelectedAnswer(null);
+		setShowQuestionNav(false);
+	};
+
+	const formatTime = (seconds: number) => {
+		const minutes = Math.floor(seconds / 60);
+		const remainingSeconds = seconds % 60;
+		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+	};
+
+	if (isLoading || !quiz?.questions) {
 		return (
 			<View style={styles.loadingContainer}>
+				<ActivityIndicator size='large' color={Colors.primary} />
+			</View>
+		);
+	}
+
+	if (!isConnected) {
+		return (
+			<View style={styles.loadingContainer}>
+				<Text style={styles.errorText}>Connecting to server...</Text>
 				<ActivityIndicator size='large' color={Colors.primary} />
 			</View>
 		);
@@ -174,7 +301,7 @@ export default function QuizScreen({ navigation, route }: Props) {
 					</View>
 					<View style={styles.timerContainer}>
 						<Ionicons name='time-outline' size={20} color={Colors.text} />
-						<Text style={styles.timerText}>{timeLeft}s</Text>
+						<Text style={styles.timerText}>{formatTime(totalTimeLeft)}</Text>
 					</View>
 				</View>
 
@@ -198,7 +325,7 @@ export default function QuizScreen({ navigation, route }: Props) {
 									styles.correctOption,
 							]}
 							onPress={() => handleAnswer(index)}
-							disabled={selectedAnswer !== null}
+							disabled={selectedAnswer !== null || isSubmitting || !isStarted}
 						>
 							<Text
 								style={[
@@ -214,6 +341,68 @@ export default function QuizScreen({ navigation, route }: Props) {
 						</TouchableOpacity>
 					))}
 				</View>
+
+				{/* Start Button or Blur Overlay */}
+				{!isStarted && (
+					<BlurView intensity={10} style={styles.blurOverlay}>
+						{/* close btn */}
+						<TouchableOpacity
+							style={styles.closeButton}
+							onPress={() => navigation.goBack()}
+						>
+							<Ionicons name='close' size={24} color={Colors.text} />
+						</TouchableOpacity>
+						<View style={styles.startContainer}>
+							<Text style={styles.startTitle}>{quiz.title}</Text>
+							<Text style={styles.startDescription}>
+								{quiz.questions.length} questions • {formatTime(totalTimeLimit)}{' '}
+								Total Time
+							</Text>
+							<TouchableOpacity
+								style={styles.startButton}
+								onPress={handleStart}
+							>
+								<Text style={styles.startButtonText}>Start Quiz</Text>
+							</TouchableOpacity>
+						</View>
+					</BlurView>
+				)}
+
+				{/* Question Navigation Box */}
+				{isStarted && (
+					<Animated.View
+						style={styles.questionNavContainer}
+						entering={FadeInUp}
+						exiting={FadeOutDown}
+					>
+						<ScrollView>
+							<View style={styles.questionGrid}>
+								{quiz.questions.map((_: Question, index: number) => (
+									<TouchableOpacity
+										key={index}
+										style={[
+											styles.questionNavItem,
+											currentQuestion === index && styles.questionNavItemActive,
+											answers[quiz.questions[index].id] !== undefined &&
+												styles.questionNavItemAnswered,
+										]}
+										onPress={() => navigateToQuestion(index)}
+									>
+										<Text
+											style={[
+												styles.questionNavText,
+												currentQuestion === index &&
+													styles.questionNavTextActive,
+											]}
+										>
+											{index + 1}
+										</Text>
+									</TouchableOpacity>
+								))}
+							</View>
+						</ScrollView>
+					</Animated.View>
+				)}
 			</LinearGradient>
 		</SafeAreaView>
 	);
@@ -273,6 +462,52 @@ const styles = StyleSheet.create({
 		marginLeft: 4,
 		fontSize: 14,
 	},
+
+	questionNavContainer: {
+		position: 'absolute',
+		bottom: 10,
+		right: 20,
+		backgroundColor: Colors.background,
+		borderRadius: 12,
+		padding: 12,
+		zIndex: 1000,
+		maxHeight: 300,
+		width: '90%',
+		shadowColor: '#000',
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 3.84,
+		elevation: 5,
+	},
+	questionGrid: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: 8,
+	},
+	questionNavItem: {
+		width: 40,
+		height: 40,
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: Colors.grayLight,
+		borderRadius: 8,
+	},
+	questionNavItemActive: {
+		backgroundColor: Colors.primary,
+	},
+	questionNavItemAnswered: {
+		backgroundColor: Colors.success,
+	},
+	questionNavText: {
+		color: Colors.text,
+		fontSize: 16,
+	},
+	questionNavTextActive: {
+		color: Colors.textLight,
+	},
 	questionContainer: {
 		padding: 20,
 	},
@@ -308,5 +543,52 @@ const styles = StyleSheet.create({
 	},
 	correctOptionText: {
 		color: Colors.background,
+	},
+	blurOverlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: Colors.background,
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 20,
+		borderRadius: 12,
+	},
+	startContainer: {
+		alignItems: 'center',
+		padding: 20,
+	},
+	startTitle: {
+		color: Colors.text,
+		fontSize: 28,
+		fontFamily: 'Rb-bold',
+		marginBottom: 10,
+	},
+	startDescription: {
+		color: Colors.text,
+		fontSize: 16,
+		marginBottom: 30,
+	},
+	startButton: {
+		backgroundColor: Colors.primary,
+		paddingHorizontal: 40,
+		paddingVertical: 15,
+		borderRadius: 10,
+	},
+	startButtonText: {
+		color: Colors.textLight,
+		fontSize: 18,
+		fontFamily: 'Rb-bold',
+	},
+	closeButton: {
+		position: 'absolute',
+		top: 20,
+		right: 20,
+		backgroundColor: Colors.grayLight,
+		padding: 10,
+		borderRadius: 10,
+	},
+	errorText: {
+		color: Colors.red1,
+		fontSize: 16,
+		marginBottom: 20,
 	},
 });

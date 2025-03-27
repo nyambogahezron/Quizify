@@ -19,6 +19,7 @@ import { useAuthStore } from '../store/useStore';
 import { useDailyTasks, useCategories } from '../services/api';
 import { moreGames } from '@/lib/data';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { socketService } from '@/lib/socket';
 
 interface Category {
 	id: string;
@@ -35,7 +36,9 @@ export default function HomeScreen() {
 	const { data: dailyTasks, isLoading: isLoadingTasks } = useDailyTasks();
 	const { data: categories, isLoading: isLoadingCategories } = useCategories();
 
-	console.log(dailyTasks);
+	//test connection
+	socketService.testConnection();
+
 	if (isLoadingTasks || isLoadingCategories) {
 		return (
 			<View style={styles.loadingContainer}>
@@ -69,7 +72,7 @@ export default function HomeScreen() {
 						>
 							<View style={styles.avatar}>
 								<Text style={{ fontSize: 20, color: 'white' }}>
-									{user?.avatar || user?.name.charAt(0).toUpperCase()}
+									{user?.avatar || user?.name?.charAt(0).toUpperCase()}
 								</Text>
 							</View>
 							<View>
@@ -92,14 +95,13 @@ export default function HomeScreen() {
 					/>
 
 					{/* Quiz Categories */}
-
 					<View style={[styles.section, { padding: 3 }]}>
 						<View style={styles.sectionHeader}>
 							<Text style={styles.sectionTitle}>Quiz Categories</Text>
 							<TouchableOpacity
 								onPress={() =>
 									navigation.navigate('QuizList', {
-										categories: categories,
+										categories: categories || [],
 									})
 								}
 							>
@@ -111,7 +113,7 @@ export default function HomeScreen() {
 								<CategoryLoadingSkeleton />
 							) : (
 								<View style={styles.categories}>
-									{categories
+									{(categories || [])
 										.slice(0, 10)
 										.map((category: Category, index: number) => (
 											<TouchableOpacity
@@ -139,7 +141,7 @@ export default function HomeScreen() {
 							<TouchableOpacity
 								onPress={() =>
 									navigation.navigate('QuizList', {
-										categories: categories,
+										categories: categories || [],
 									})
 								}
 							>

@@ -10,13 +10,32 @@ import { Server } from 'socket.io';
 import path from 'path';
 
 const app: Express = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-	cors: {
-		origin: process.env.CLIENT_URL,
-		methods: ['GET', 'POST'],
-		credentials: true,
-	},
+const server = createServer(app);
+
+// Define CORS options once
+const corsOptions = {
+	origin: [
+		'http://localhost:3000',
+		'http://172.18.0.49:8081',
+		'exp://172.18.0.49:8081',
+	],
+	credentials: true,
+	optionsSuccessStatus: 200,
+	allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+// Apply CORS to Express
+app.use(cors(corsOptions));
+
+// Create Socket.IO server with same CORS options
+const io = new Server(server, {
+	cors: corsOptions,
+	path: '/socket.io/',
+	transports: ['websocket'], // Try websocket first
+	pingTimeout: 10000,
+	pingInterval: 5000,
+	connectTimeout: 10000,
+	allowEIO3: true,
 });
 
 //routes
@@ -78,22 +97,30 @@ app.get('/', (req: Request, res: Response) => {
 app.use(ErrorHandlerMiddleware as unknown as express.ErrorRequestHandler);
 app.use(NotFoundHandler);
 
-const corsOptions = {
-	origin: process.env.CLIENT_URL,
-	optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
-
 // Initialize socket handlers
 initSocketHandlers(io);
 
+// Add error handling for socket.io server
+io.engine.on('connection_error', (err) => {
+	console.error('Socket.IO connection error:', err);
+});
+
+// Debug socket.io server events
+io.engine.on('connection', (socket) => {
+	console.log('New socket connection:', socket.id);
+});
+
+io.engine.on('disconnect', (socket) => {
+	console.log('Socket disconnected:', socket.id);
+});
+
 async function StartApp() {
-	const port = process.env.PORT || 3000;
+	const port = process.env.PORT || 5000;
 
 	try {
 		await ConnectDB(process.env.MONGO_URI);
 
-		httpServer.listen(port, () => {
+		server.listen(port, () => {
 			console.log(`[server]: Server is running at http://localhost:${port}`);
 			console.log(`[socket.io]: Socket.IO server is running`);
 		});

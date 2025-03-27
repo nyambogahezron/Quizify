@@ -50,6 +50,16 @@ export const useQuizById = (quizId: string) => {
 	});
 };
 
+export const useQuizByCategory = (category: string) => {
+	return useQuery({
+		queryKey: ['quiz', category],
+		queryFn: async () => {
+			const response = await api.get(`/quizzes/category/${category}`);
+			return response.data;
+		},
+	});
+};
+
 export const useSubmitQuiz = () => {
 	const queryClient = useQueryClient();
 

@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import jwt from 'jsonwebtoken';
+import { getSession } from '../middleware/session';
 
 // Models
 import Quiz from '../models/Quiz.model';
@@ -26,24 +26,29 @@ const activeQuizSessions: Map<
 > = new Map();
 
 // Middleware to authenticate socket connections
-const authenticateSocket = (
+const authenticateSocket = async (
 	socket: UserSocket,
 	next: (err?: Error) => void
 ) => {
-	const token = socket.handshake.auth.token;
-
-	if (!token) {
-		return next(new Error('Authentication error: Token required'));
-	}
-
 	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET || '') as {
-			userId: string;
-		};
-		socket.userId = decoded.userId;
+		console.log('Socket authentication attempt');
+		console.log('Headers:', socket.handshake.headers);
+		console.log('Cookies:', socket.handshake.headers.cookie);
+
+		// Get the session from the cookie
+		const session = await getSession(socket.handshake.headers.cookie || '');
+
+		if (!session || !session.userId) {
+			console.log('No valid session found');
+			return next(new Error('Authentication error: No valid session'));
+		}
+
+		console.log('Socket authenticated for user:', session.userId);
+		socket.userId = session.userId;
 		next();
 	} catch (error) {
-		next(new Error('Authentication error: Invalid token'));
+		console.error('Socket authentication error:', error);
+		next(new Error('Authentication error: Invalid session'));
 	}
 };
 
@@ -56,6 +61,17 @@ const initSocketHandlers = (
 	io.on('connection', (socket: UserSocket) => {
 		console.log(`User connected: ${socket.userId}`);
 
+		// Handle test connection
+		socket.on('test_connection', () => {
+			console.log(`Test connection received from user ${socket.userId}`);
+			socket.emit('test_connection_response', {
+				status: 'success',
+				message: 'Connection test successful',
+				userId: socket.userId,
+				timestamp: new Date().toISOString(),
+			});
+		});
+
 		// Join user-specific room for targeted events
 		if (socket.userId) {
 			socket.join(`user:${socket.userId}`);
@@ -64,6 +80,9 @@ const initSocketHandlers = (
 		// Handle quiz start
 		socket.on('quiz:start', async (quizId: string) => {
 			try {
+				console.log(
+					`Quiz start requested by user ${socket.userId} for quiz ${quizId}`
+				);
 				if (!socket.userId) {
 					socket.emit('error', { message: 'Authentication required' });
 					return;
@@ -71,6 +90,7 @@ const initSocketHandlers = (
 
 				const quiz = await Quiz.findById(quizId);
 				if (!quiz) {
+					console.log(`Quiz ${quizId} not found`);
 					socket.emit('error', { message: 'Quiz not found' });
 					return;
 				}
@@ -87,6 +107,10 @@ const initSocketHandlers = (
 				});
 				await quizAttempt.save();
 
+				console.log(
+					`Created quiz attempt ${quizAttempt.id} for user ${socket.userId}`
+				);
+
 				// Store session info
 				const sessionId = `${socket.userId}:${quizId}`;
 				activeQuizSessions.set(sessionId, {
@@ -99,6 +123,7 @@ const initSocketHandlers = (
 
 				// Join quiz room
 				socket.join(`quiz:${quizId}`);
+				console.log(`User ${socket.userId} joined quiz room ${quizId}`);
 
 				// Send first question
 				socket.emit('quiz:question', {
@@ -107,6 +132,7 @@ const initSocketHandlers = (
 					totalQuestions: quiz.questions.length,
 					timeLimit: quiz.timeLimit,
 				});
+				console.log(`Sent first question to user ${socket.userId}`);
 			} catch (error) {
 				console.error('Error starting quiz:', error);
 				socket.emit('error', { message: 'Failed to start quiz' });
@@ -118,6 +144,9 @@ const initSocketHandlers = (
 			'quiz:submit-answer',
 			async ({ quizId, questionId, answer, timeSpent }) => {
 				try {
+					console.log(
+						`Answer submitted by user ${socket.userId} for quiz ${quizId}, question ${questionId}`
+					);
 					if (!socket.userId) {
 						socket.emit('error', { message: 'Authentication required' });
 						return;
@@ -127,12 +156,16 @@ const initSocketHandlers = (
 					const session = activeQuizSessions.get(sessionId);
 
 					if (!session) {
+						console.log(
+							`No active session found for user ${socket.userId} and quiz ${quizId}`
+						);
 						socket.emit('error', { message: 'No active quiz session found' });
 						return;
 					}
 
 					const quiz = await Quiz.findById(quizId);
 					if (!quiz) {
+						console.log(`Quiz ${quizId} not found`);
 						socket.emit('error', { message: 'Quiz not found' });
 						return;
 					}
@@ -141,12 +174,18 @@ const initSocketHandlers = (
 						(q: any) => q._id.toString() === questionId
 					);
 					if (!question) {
+						console.log(`Question ${questionId} not found in quiz ${quizId}`);
 						socket.emit('error', { message: 'Question not found' });
 						return;
 					}
 
 					// Check if answer is correct
 					const isCorrect = question.correctAnswer === answer;
+					console.log(
+						`Answer for question ${questionId} is ${
+							isCorrect ? 'correct' : 'incorrect'
+						}`
+					);
 
 					// Update attempt
 					await QuizAttempt.findByIdAndUpdate(session.attemptId, {
@@ -181,7 +220,11 @@ const initSocketHandlers = (
 							totalQuestions: quiz.questions.length,
 							timeLimit: quiz.timeLimit,
 						});
+						console.log(
+							`Sent question ${nextQuestionIndex + 1} to user ${socket.userId}`
+						);
 					} else {
+						console.log(`Quiz completed for user ${socket.userId}`);
 						// Quiz completed
 						const attempt = await QuizAttempt.findByIdAndUpdate(
 							session.attemptId,

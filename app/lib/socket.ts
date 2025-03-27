@@ -1,37 +1,119 @@
 import { io, Socket } from 'socket.io-client';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'ws://localhost:3000';
+const SOCKET_URL =
+	process.env.EXPO_PUBLIC_SOCKET_URL || 'http://localhost:5000';
 
 class SocketService {
 	private socket: Socket | null = null;
+	private isConnecting = false;
+	private connectionAttempts = 0;
+	private maxConnectionAttempts = 5;
+	private reconnectTimer: NodeJS.Timeout | null = null;
 
 	async connect() {
-		if (this.socket) return;
+		if (this.socket?.connected || this.isConnecting) return;
 
-		const token = await AsyncStorage.getItem('token');
-		if (!token) return;
+		try {
+			this.isConnecting = true;
+			this.connectionAttempts++;
+			console.log(
+				`Attempting to connect to socket server at: ${SOCKET_URL} (Attempt ${this.connectionAttempts}/${this.maxConnectionAttempts})`
+			);
 
-		this.socket = io(SOCKET_URL, {
-			auth: { token },
-			transports: ['websocket'],
-			autoConnect: true,
-		});
+			this.socket = io(SOCKET_URL, {
+				transports: ['websocket'],
+				autoConnect: true,
+				withCredentials: true,
+				reconnection: false,
+				timeout: 10000,
+				forceNew: true,
+				path: '/socket.io/',
+				extraHeaders: {
+					'Access-Control-Allow-Origin': '*',
+				},
+			});
 
-		this.socket.on('connect', () => {
-			console.log('Socket connected');
-		});
+			return new Promise<void>((resolve, reject) => {
+				if (!this.socket) {
+					reject(new Error('Socket initialization failed'));
+					return;
+				}
 
-		this.socket.on('disconnect', () => {
-			console.log('Socket disconnected');
-		});
+				const timeoutId = setTimeout(() => {
+					this.isConnecting = false;
+					reject(new Error('Connection timeout'));
+				}, 10000);
 
-		this.socket.on('error', (error) => {
-			console.error('Socket error:', error);
-		});
+				this.socket.on('connect', () => {
+					clearTimeout(timeoutId);
+					console.log('Socket connected successfully');
+					this.isConnecting = false;
+					this.connectionAttempts = 0;
+					this.testConnection();
+					resolve();
+				});
+
+				this.socket.on('connect_error', (error) => {
+					clearTimeout(timeoutId);
+					console.error('Socket connection error:', error.message);
+					console.error('Error details:', error);
+					this.isConnecting = false;
+
+					if (this.connectionAttempts >= this.maxConnectionAttempts) {
+						reject(
+							new Error(
+								`Failed to connect after ${this.maxConnectionAttempts} attempts`
+							)
+						);
+					} else {
+						if (this.reconnectTimer) {
+							clearTimeout(this.reconnectTimer);
+						}
+						this.reconnectTimer = setTimeout(() => {
+							this.connect();
+						}, 2000);
+						reject(error);
+					}
+				});
+
+				this.socket.on('disconnect', (reason) => {
+					console.log('Socket disconnected:', reason);
+					this.isConnecting = false;
+				});
+
+				this.socket.on('error', (error) => {
+					console.error('Socket error:', error);
+					this.isConnecting = false;
+				});
+
+				this.socket.on('test_connection_response', (data) => {
+					console.log('Test connection response:', data);
+				});
+
+				this.socket.on('reconnect_attempt', (attemptNumber) => {
+					console.log('Reconnection attempt:', attemptNumber);
+				});
+
+				this.socket.on('reconnect_error', (error) => {
+					console.error('Reconnection error:', error);
+				});
+
+				this.socket.on('reconnect_failed', () => {
+					console.log('Reconnection failed');
+				});
+			});
+		} catch (error) {
+			this.isConnecting = false;
+			console.error('Error connecting to socket:', error);
+			throw error;
+		}
 	}
 
 	disconnect() {
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer);
+			this.reconnectTimer = null;
+		}
 		if (this.socket) {
 			this.socket.disconnect();
 			this.socket = null;
@@ -42,22 +124,65 @@ class SocketService {
 		return this.socket;
 	}
 
+	testConnection() {
+		if (!this.socket?.connected) {
+			console.log('Socket not connected, attempting to connect...');
+			this.connect();
+			return;
+		}
+		console.log('Testing connection...');
+		this.socket.emit('test_connection');
+	}
+
 	// Quiz related events
 	joinQuiz(quizId: string) {
-		this.socket?.emit('join_quiz', { quizId });
+		if (!this.socket?.connected) {
+			console.log('Socket not connected, attempting to connect...');
+			this.connect();
+			return;
+		}
+		console.log('Joining quiz:', quizId);
+		this.socket.emit('quiz:start', quizId);
 	}
 
 	leaveQuiz(quizId: string) {
-		this.socket?.emit('leave_quiz', { quizId });
+		if (!this.socket?.connected) {
+			console.log('Socket not connected, attempting to connect...');
+			this.connect();
+			return;
+		}
+		console.log('Leaving quiz:', quizId);
+		this.socket.emit('leave_quiz', { quizId });
 	}
 
-	submitAnswer(quizId: string, questionId: string, answer: string) {
-		this.socket?.emit('submit_answer', { quizId, questionId, answer });
+	submitAnswer(
+		quizId: string,
+		questionId: string,
+		answer: number,
+		timeSpent: number
+	) {
+		if (!this.socket?.connected) {
+			console.log('Socket not connected, attempting to connect...');
+			this.connect();
+			return;
+		}
+		console.log('Submitting answer:', {
+			quizId,
+			questionId,
+			answer,
+			timeSpent,
+		});
+		this.socket.emit('quiz:submit-answer', {
+			quizId,
+			questionId,
+			answer,
+			timeSpent,
+		});
 	}
 
 	// Leaderboard events
 	onLeaderboardUpdate(callback: (data: any) => void) {
-		this.socket?.on('leaderboard_update', callback);
+		this.socket?.on('leaderboard:updated', callback);
 	}
 
 	// Achievement events

@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
 	View,
 	Text,
 	StyleSheet,
 	TouchableOpacity,
-	TextInput,
 	KeyboardAvoidingView,
 	Platform,
 	Alert,
-	ActivityIndicator,
+	Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -17,7 +16,13 @@ import { Toaster, toast } from 'sonner-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@/constants/Colors';
-import { StatusBar } from 'expo-status-bar';
+
+import {
+	CustomTextInput,
+	CustomPasswordInput,
+} from '@/components/CustomTextInput';
+import CustomButton from '@/components/CustomButton';
+import { useAuthStore } from '@/store/useStore';
 
 const USER_DATA_KEY = 'user_data';
 
@@ -25,6 +30,20 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
+	const { setIsAuthenticated, setUser } = useAuthStore();
+
+	const slideAnim = useRef(new Animated.Value(50)).current;
+
+	// Start animations on mount
+	React.useEffect(() => {
+		Animated.parallel([
+			Animated.timing(slideAnim, {
+				toValue: 0,
+				duration: 500,
+				useNativeDriver: true,
+			}),
+		]).start();
+	}, []);
 
 	const handleLogin = async () => {
 		if (!email || !password) {
@@ -35,13 +54,14 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 		try {
 			setIsLoading(true);
 			const response = await fetch(
-				'https://gb5zk1b0-5000.uks1.devtunnels.ms/api/v1/auth/login',
+				`${process.env.EXPO_PUBLIC_API_URL}/auth/login`,
 				{
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({ email, password }),
+					credentials: 'include',
 				}
 			);
 
@@ -49,6 +69,8 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 
 			if (data && data.user) {
 				await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
+				setUser(data.user);
+				setIsAuthenticated(true);
 
 				navigation.navigate('MainTabs');
 			}
@@ -86,95 +108,90 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 	return (
 		<SafeAreaProvider>
 			<SafeAreaView style={[styles.container, isLoading && { opacity: 0.9 }]}>
-				<StatusBar style='light' backgroundColor={Colors.background} />
 				<Toaster />
-				<LinearGradient
-					colors={[Colors.background, Colors.background2]}
-					style={styles.gradient}
+				<Animated.View
+					style={[{ transform: [{ translateY: slideAnim }] }, { flex: 1 }]}
 				>
-					<KeyboardAvoidingView
-						behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-						style={styles.content}
+					<LinearGradient
+						colors={[Colors.background, Colors.background2]}
+						style={{ flex: 1 }}
 					>
-						<View style={styles.header}>
-							<Text style={styles.title}>Welcome Back!</Text>
-							<Text style={styles.subtitle}>
-								Login to continue your journey
-							</Text>
-						</View>
+						<KeyboardAvoidingView
+							behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+							style={styles.content}
+						>
+							<View style={styles.header}>
+								<Text style={styles.title}>Welcome Back!</Text>
+								<Text style={styles.subtitle}>
+									Login to continue your journey
+								</Text>
+							</View>
 
-						<View style={styles.form}>
-							<View style={styles.inputContainer}>
-								<MaterialCommunityIcons name='email' size={24} color='white' />
-								<TextInput
-									style={styles.input}
+							<View style={styles.form}>
+								<CustomTextInput
 									placeholder='Email'
-									placeholderTextColor='#A0A0A0'
 									value={email}
 									onChangeText={setEmail}
-									autoCapitalize='none'
-									keyboardType='email-address'
+									icon='mail-outline'
 								/>
-							</View>
-							<View style={styles.inputContainer}>
-								<MaterialCommunityIcons name='lock' size={24} color='white' />
-								<TextInput
-									style={styles.input}
+
+								<CustomPasswordInput
 									placeholder='Password'
-									placeholderTextColor='#A0A0A0'
 									value={password}
 									onChangeText={setPassword}
-									secureTextEntry
+									password={password}
+									setPassword={setPassword}
 								/>
 							</View>
+
 							<TouchableOpacity
 								onPress={() => navigation.navigate('ForgotPassword')}
 								style={styles.forgotPassword}
 							>
 								<Text style={styles.forgotPasswordText}>Forgot Password?</Text>
 							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.loginButton}
+
+							<CustomButton
+								customStyle={{ marginTop: 20 }}
+								label='Login'
 								onPress={handleLogin}
 								disabled={isLoading}
-							>
-								{isLoading ? (
-									<ActivityIndicator size='small' color={Colors.background} />
-								) : (
-									<Text style={styles.loginButtonText}>Login</Text>
-								)}
-							</TouchableOpacity>
+								isLoading={isLoading}
+							/>
+
 							<View style={styles.signupContainer}>
-								<Text style={styles.signupText}>Don't have an account?</Text>
-								<TouchableOpacity
-									style={styles.signupButton}
-									onPress={() => navigation.navigate('Register')}
-								>
-									<Text style={styles.signupButtonText}>Signup</Text>
-								</TouchableOpacity>
-							</View>
-							<View style={styles.socialLogin}>
-								<Text style={styles.socialText}>Or login with</Text>
-								<View style={styles.socialButtons}>
-									<TouchableOpacity style={styles.socialButton}>
-										<MaterialCommunityIcons
-											name='google'
-											size={24}
-											color='white'
-										/>
-									</TouchableOpacity>
-									<TouchableOpacity style={styles.socialButton}>
-										<MaterialCommunityIcons
-											name='facebook'
-											size={24}
-											color='white'
-										/>
+								<View style={styles.signupContainer}>
+									<Text style={styles.signupText}>Don't have an account?</Text>
+									<TouchableOpacity
+										style={styles.signupButton}
+										onPress={() => navigation.navigate('Register')}
+									>
+										<Text style={styles.signupButtonText}>Signup</Text>
 									</TouchableOpacity>
 								</View>
+								<View style={styles.socialLogin}>
+									<Text style={styles.socialText}>Or login with</Text>
+									<View style={styles.socialButtons}>
+										<TouchableOpacity style={styles.socialButton}>
+											<MaterialCommunityIcons
+												name='google'
+												size={24}
+												color='white'
+											/>
+										</TouchableOpacity>
+										<TouchableOpacity style={styles.socialButton}>
+											<MaterialCommunityIcons
+												name='facebook'
+												size={24}
+												color='white'
+											/>
+										</TouchableOpacity>
+									</View>
+								</View>
 							</View>
-						</View>
-					</KeyboardAvoidingView>
-				</LinearGradient>
+						</KeyboardAvoidingView>
+					</LinearGradient>
+				</Animated.View>
 			</SafeAreaView>
 		</SafeAreaProvider>
 	);
@@ -183,9 +200,7 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-	},
-	gradient: {
-		flex: 1,
+		backgroundColor: Colors.background,
 	},
 	content: {
 		flex: 1,
@@ -208,21 +223,9 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 	},
 	form: {
-		gap: 20,
-	},
-	inputContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		backgroundColor: 'rgba(255, 255, 255, 0.1)',
-		borderRadius: 10,
-		padding: 15,
 		gap: 10,
 	},
-	input: {
-		flex: 1,
-		color: 'white',
-		fontSize: 16,
-	},
+
 	forgotPassword: {
 		alignSelf: 'flex-end',
 	},
