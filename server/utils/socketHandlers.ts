@@ -8,6 +8,7 @@ import { Leaderboard, GlobalLeaderboard } from '../models/Leaderboard.model';
 import { Achievement, UserAchievement } from '../models/Achievement.model';
 import { DailyTask, UserDailyTask } from '../models/DailyTask.model';
 import authenticateSocket from './AuthenticateSocket';
+import User from '../models/User.model';
 
 interface UserSocket extends Socket {
 	userId?: string;
@@ -97,7 +98,10 @@ const initSocketHandlers = (
 
 				// Send first question
 				socket.emit('quiz:question', {
-					question: quiz.questions[0],
+					question: {
+						...quiz.questions[0].toObject(),
+						_id: 0, // Use index instead of MongoDB _id
+					},
 					questionNumber: 1,
 					totalQuestions: quiz.questions.length,
 					timeLimit: quiz.timeLimit,
@@ -140,37 +144,74 @@ const initSocketHandlers = (
 						return;
 					}
 
-					const question = quiz.questions.find(
-						(q: any) => q._id.toString() === questionId
-					);
-					if (!question) {
-						console.log(`Question ${questionId} not found in quiz ${quizId}`);
+					// Use question index instead of MongoDB _id
+					const questionIndex = parseInt(questionId);
+					if (
+						isNaN(questionIndex) ||
+						questionIndex < 0 ||
+						questionIndex >= quiz.questions.length
+					) {
+						console.log(
+							`Invalid question index ${questionId} for quiz ${quizId}`
+						);
 						socket.emit('error', { message: 'Question not found' });
 						return;
 					}
 
-					// Check if answer is correct
-					const isCorrect = question.correctAnswer === answer;
+					const question = quiz.questions[questionIndex];
+					if (!question) {
+						console.log(
+							`Question at index ${questionId} not found in quiz ${quizId}`
+						);
+						socket.emit('error', { message: 'Question not found' });
+						return;
+					}
+
+					// Get the selected answer text from the options array
+					const selectedAnswerText = question.options[answer];
+					if (!selectedAnswerText) {
+						console.log(
+							`Invalid answer index ${answer} for question ${questionId}`
+						);
+						socket.emit('error', { message: 'Invalid answer' });
+						return;
+					}
+
+					// Check if answer is correct by comparing the actual text
+					const isCorrect = selectedAnswerText === question.correctAnswer;
+					const points = isCorrect ? 10 : 0; // Set fixed 10 points for correct answers
 					console.log(
 						`Answer for question ${questionId} is ${
 							isCorrect ? 'correct' : 'incorrect'
 						}`
 					);
 
+					// Send immediate feedback to the client
+					socket.emit('quiz:answer-feedback', {
+						isCorrect,
+						correctAnswer: question.options.indexOf(question.correctAnswer), // Send the index of correct answer
+						points,
+					});
+
 					// Update attempt
 					await QuizAttempt.findByIdAndUpdate(session.attemptId, {
 						$push: {
 							answers: {
-								questionId,
-								selectedAnswer: answer,
+								questionId: question._id, // Store the actual MongoDB _id
+								selectedAnswer: selectedAnswerText, // Store the actual answer text
 								isCorrect,
 								timeSpent,
 							},
 						},
 						$inc: {
-							score: isCorrect ? question.points : 0,
+							score: points,
 							timeSpent: timeSpent,
 						},
+					});
+
+					// Update user's total points
+					await User.findByIdAndUpdate(socket.userId, {
+						$inc: { points: points },
 					});
 
 					// Move to next question or end quiz
@@ -185,7 +226,10 @@ const initSocketHandlers = (
 
 						// Send next question
 						socket.emit('quiz:question', {
-							question: quiz.questions[nextQuestionIndex],
+							question: {
+								...quiz.questions[nextQuestionIndex].toObject(),
+								_id: nextQuestionIndex, // Use index instead of MongoDB _id
+							},
 							questionNumber: nextQuestionIndex + 1,
 							totalQuestions: quiz.questions.length,
 							timeLimit: quiz.timeLimit,

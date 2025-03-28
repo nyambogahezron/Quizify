@@ -28,6 +28,7 @@ interface AuthState {
 	setIsAuthenticated: (isAuthenticated: boolean) => void;
 	logout: () => Promise<void>;
 	initialize: () => Promise<void>;
+	updatePoints: (points: number) => void;
 }
 
 interface QuizState {
@@ -55,6 +56,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 	isAuthenticated: false,
 	setUser: (user) => set({ user, isAuthenticated: !!user }),
 	setToken: (token) => set({ token }),
+	updatePoints: (points) =>
+		set((state) => ({
+			user: state.user
+				? { ...state.user, points: (state.user.points || 0) + points }
+				: null,
+		})),
 	logout: async () => {
 		await AsyncStorage.removeItem(USER_DATA_KEY);
 		await AsyncStorage.removeItem('token');

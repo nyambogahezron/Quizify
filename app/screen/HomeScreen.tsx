@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
 	View,
 	Text,
@@ -38,6 +38,26 @@ export default function HomeScreen() {
 
 	//test connection
 	socketService.testConnection();
+
+	// Listen for points updates
+	useEffect(() => {
+		const socket = socketService.getSocket();
+		if (socket) {
+			socket.on('quiz:answer-feedback', (data) => {
+				if (data.points > 0) {
+					// Update user points in the store
+					useAuthStore.getState().updatePoints(data.points);
+				}
+			});
+		}
+
+		return () => {
+			const socket = socketService.getSocket();
+			if (socket) {
+				socket.off('quiz:answer-feedback');
+			}
+		};
+	}, []);
 
 	if (isLoadingTasks || isLoadingCategories) {
 		return (

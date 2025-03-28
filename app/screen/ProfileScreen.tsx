@@ -1,19 +1,105 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	View,
 	Text,
 	StyleSheet,
 	ScrollView,
 	TouchableOpacity,
+	ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { achievements, recentActivity } from '../lib/data';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useStore';
+import { socketService } from '@/lib/socket';
+import { useQuery } from '@tanstack/react-query';
+import { fetchApi } from '@/services/Api';
+import { queryClient } from '@/App';
+
+interface Achievement {
+	_id: string;
+	title: string;
+	description: string;
+	icon: string;
+	criteria: {
+		type: string;
+		value: number;
+	};
+	progress: number;
+}
+
+interface UserAchievement {
+	_id: string;
+	achievement: Achievement;
+	progress: number;
+	completed: boolean;
+	unlockedAt: string;
+}
+
+interface QuizAttempt {
+	_id: string;
+	quiz: {
+		title: string;
+	};
+	score: number;
+	totalPossibleScore: number;
+	completedAt: string;
+}
 
 export default function ProfileScreen() {
 	const { user, logout } = useAuthStore();
+	const [recentActivity, setRecentActivity] = useState<QuizAttempt[]>([]);
+
+	// Fetch user achievements
+	const { data: achievements, isLoading: isLoadingAchievements } = useQuery({
+		queryKey: ['achievements'],
+		queryFn: async () => {
+			const response = await fetchApi('/achievements');
+			return response.data.achievements;
+		},
+	});
+
+	// Fetch recent activity
+	const { data: activity, isLoading: isLoadingActivity } = useQuery({
+		queryKey: ['recent-activity'],
+		queryFn: async () => {
+			const response = await fetchApi('/quizzes/attempts');
+			return response.data.attempts;
+		},
+	});
+
+	useEffect(() => {
+		if (activity) {
+			setRecentActivity(activity.slice(0, 5)); // Show last 5 attempts
+		}
+	}, [activity]);
+
+	// Listen for achievement updates
+	useEffect(() => {
+		const socket = socketService.getSocket();
+		if (socket) {
+			socket.on('achievement:unlocked', () => {
+				// Refetch achievements when a new one is unlocked
+				queryClient.invalidateQueries({ queryKey: ['achievements'] });
+			});
+		}
+
+		return () => {
+			const socket = socketService.getSocket();
+			if (socket) {
+				socket.off('achievement:unlocked');
+			}
+		};
+	}, []);
+
+	if (isLoadingAchievements || isLoadingActivity) {
+		return (
+			<View style={styles.loadingContainer}>
+				<ActivityIndicator size='large' color={Colors.primary} />
+			</View>
+		);
+	}
+
 	return (
 		<LinearGradient
 			colors={[Colors.background, Colors.background2]}
@@ -36,15 +122,15 @@ export default function ProfileScreen() {
 						{/* Stats */}
 						<View style={styles.statsContainer}>
 							<View style={styles.statItem}>
-								<Text style={styles.statNumber}>156</Text>
+								<Text style={styles.statNumber}>{activity?.length || 0}</Text>
 								<Text style={styles.statLabel}>Quizzes</Text>
 							</View>
 							<View style={[styles.statItem, styles.statBorder]}>
-								<Text style={styles.statNumber}>432</Text>
+								<Text style={styles.statNumber}>#{user?.level || 'N/A'}</Text>
 								<Text style={styles.statLabel}>Rank</Text>
 							</View>
 							<View style={styles.statItem}>
-								<Text style={styles.statNumber}>1.2K</Text>
+								<Text style={styles.statNumber}>{user?.points || 0}</Text>
 								<Text style={styles.statLabel}>Points</Text>
 							</View>
 						</View>
@@ -55,8 +141,8 @@ export default function ProfileScreen() {
 						{/* Achievements */}
 						<View style={styles.section}>
 							<Text style={styles.sectionTitle}>Achievements</Text>
-							{achievements.map((achievement) => (
-								<View key={achievement.id} style={styles.achievementCard}>
+							{achievements?.map((achievement: Achievement) => (
+								<View key={achievement._id} style={styles.achievementCard}>
 									<View style={styles.achievementIcon}>
 										<Text style={styles.iconText}>{achievement.icon}</Text>
 									</View>
@@ -73,14 +159,17 @@ export default function ProfileScreen() {
 													styles.progress,
 													{
 														width: `${
-															(achievement.progress / achievement.total) * 100
+															(achievement.progress /
+																achievement.criteria.value) *
+															100
 														}%`,
 													},
 												]}
 											/>
 										</View>
 										<Text style={styles.progressText}>
-											{achievement.progress}/{achievement.total} Completed
+											{achievement.progress}/{achievement.criteria.value}{' '}
+											Completed
 										</Text>
 									</View>
 								</View>
@@ -90,24 +179,28 @@ export default function ProfileScreen() {
 						{/* Recent Activity */}
 						<View style={styles.section}>
 							<Text style={styles.sectionTitle}>Recent Activity</Text>
-							{recentActivity.map((activity) => (
-								<View key={activity.id} style={styles.activityCard}>
+							{recentActivity.map((attempt) => (
+								<View key={attempt._id} style={styles.activityCard}>
 									<View style={styles.activityIcon}>
-										<Text style={styles.iconText}>{activity.icon}</Text>
+										<Text style={styles.iconText}>📝</Text>
 									</View>
 									<View style={styles.activityInfo}>
-										<Text style={styles.activityTitle}>{activity.quiz}</Text>
+										<Text style={styles.activityTitle}>
+											{attempt.quiz.title}
+										</Text>
 										<Text style={styles.activityScore}>
-											Score: {activity.score}/{activity.total}
+											Score: {attempt.score}/{attempt.totalPossibleScore}
 										</Text>
 									</View>
-									<Text style={styles.activityDate}>{activity.date}</Text>
+									<Text style={styles.activityDate}>
+										{new Date(attempt.completedAt).toLocaleDateString()}
+									</Text>
 								</View>
 							))}
 						</View>
 
-						{/* Edit Profile Button */}
-						<TouchableOpacity style={styles.editButton}>
+						{/* Logout Button */}
+						<TouchableOpacity style={styles.editButton} onPress={logout}>
 							<Text style={styles.editButtonText}>Logout</Text>
 						</TouchableOpacity>
 					</View>
@@ -289,5 +382,10 @@ const styles = StyleSheet.create({
 		color: 'white',
 		fontSize: 16,
 		fontWeight: '600',
+	},
+	loadingContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 });

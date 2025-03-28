@@ -21,18 +21,11 @@ import { BlurView } from 'expo-blur';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 
 interface Question {
-	id: string;
+	_id: string;
 	question: string;
 	options: string[];
 	correctAnswer: number;
 	points: number;
-}
-
-interface Quiz {
-	_id: string;
-	title: string;
-	questions: Question[];
-	timeLimit: number;
 }
 
 type Props = {
@@ -51,6 +44,13 @@ export default function QuizScreen({ navigation, route }: Props) {
 	const [isStarted, setIsStarted] = useState(false);
 	const [showQuestionNav, setShowQuestionNav] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
+	const [currentQuestionData, setCurrentQuestionData] = useState<any>(null);
+	const [showFeedback, setShowFeedback] = useState(false);
+	const [feedbackData, setFeedbackData] = useState<{
+		isCorrect: boolean;
+		correctAnswer: number;
+		points: number;
+	} | null>(null);
 
 	const { data: quizData, isLoading } = useQuizByCategory(category);
 	const { mutate: submitQuiz } = useSubmitQuiz();
@@ -70,53 +70,58 @@ export default function QuizScreen({ navigation, route }: Props) {
 			try {
 				await socketService.connect();
 				if (!mounted) return;
-
-				const socket = socketService.getSocket();
-				if (socket) {
-					socket.on('connect', () => {
-						if (!mounted) return;
-						console.log('Socket connected in QuizScreen');
-						setIsConnected(true);
-						socketService.testConnection();
-					});
-
-					socket.on('disconnect', () => {
-						if (!mounted) return;
-						console.log('Socket disconnected in QuizScreen');
-						setIsConnected(false);
-					});
-
-					socket.on('test_connection_response', (data) => {
-						if (!mounted) return;
-						console.log('Test connection response in QuizScreen:', data);
-					});
-
-					socket.on('error', (error) => {
-						if (!mounted) return;
-						console.error('Socket error in QuizScreen:', error);
-						setIsConnected(false);
-					});
-				}
+				setIsConnected(true);
 			} catch (error) {
-				if (!mounted) return;
-				console.error('Error initializing socket:', error);
+				console.error('Error connecting to socket:', error);
 				setIsConnected(false);
 			}
 		};
 
 		initSocket();
 
+		// Set up socket event listeners
+		const socket = socketService.getSocket();
+		if (socket) {
+			socket.on('quiz:question', (data) => {
+				if (!mounted) return;
+				console.log('Received question:', data);
+				setCurrentQuestionData(data.question);
+				setCurrentQuestion(data.questionNumber - 1);
+				setSelectedAnswer(null);
+				setTotalTimeLeft(data.timeLimit);
+				setShowFeedback(false);
+				setFeedbackData(null);
+			});
+
+			socket.on('quiz:answer-feedback', (data) => {
+				if (!mounted) return;
+				console.log('Received feedback:', data);
+				setFeedbackData(data);
+				setShowFeedback(true);
+				setScore((prev) => prev + data.points);
+			});
+
+			socket.on('quiz:completed', (data) => {
+				if (!mounted) return;
+				console.log('Quiz completed:', data);
+				navigation.navigate('Result', {
+					score: data.score,
+					totalQuestions: data.totalQuestions,
+					quizId: quiz?._id || '',
+				});
+			});
+		}
+
 		return () => {
 			mounted = false;
 			const socket = socketService.getSocket();
 			if (socket) {
-				socket.off('connect');
-				socket.off('disconnect');
-				socket.off('test_connection_response');
-				socket.off('error');
+				socket.off('quiz:question');
+				socket.off('quiz:answer-feedback');
+				socket.off('quiz:completed');
 			}
 		};
-	}, []);
+	}, [navigation]);
 
 	useEffect(() => {
 		if (quiz?._id && isConnected) {
@@ -130,36 +135,6 @@ export default function QuizScreen({ navigation, route }: Props) {
 			}
 		};
 	}, [quiz, isConnected]);
-
-	useEffect(() => {
-		const socket = socketService.getSocket();
-		if (!socket) return;
-
-		socket.on('quiz:question', (data) => {
-			setTotalTimeLeft(totalTimeLimit);
-			setCurrentQuestion(data.questionNumber - 1);
-			setSelectedAnswer(null);
-		});
-
-		socket.on('quiz:completed', (data) => {
-			addToHistory(data);
-			navigation.navigate('Result', {
-				score: data.score,
-				totalQuestions: data.totalQuestions,
-				quizId: quiz?._id || '',
-			});
-		});
-
-		socket.on('error', (error) => {
-			console.error('Socket error:', error);
-		});
-
-		return () => {
-			socket.off('quiz:question');
-			socket.off('quiz:completed');
-			socket.off('error');
-		};
-	}, [quiz, navigation, totalTimeLimit]);
 
 	useEffect(() => {
 		if (!isStarted) return;
@@ -179,41 +154,54 @@ export default function QuizScreen({ navigation, route }: Props) {
 	}, [isStarted]);
 
 	const handleStart = () => {
+		if (!quiz?._id) return;
 		setIsStarted(true);
-		setTotalTimeLeft(totalTimeLimit);
-		socketService.getSocket()?.emit('quiz:start', quiz?._id);
+		setTotalTimeLeft(quiz.timeLimit);
+		socketService.joinQuiz(quiz._id);
 	};
+
+	const onClose = () => {};
 
 	const handleTimeUp = () => {
-		handleQuizComplete();
+		if (currentQuestion < quiz.questions.length - 1) {
+			// Move to next question if time runs out
+			setCurrentQuestion((prev) => prev + 1);
+			setSelectedAnswer(null);
+			setTotalTimeLeft(quiz.timeLimit); // Reset timer for next question
+		} else {
+			// Complete quiz if this was the last question
+			handleQuizComplete();
+		}
 	};
 
-	const handleAnswer = (selectedIndex: number) => {
-		if (!quiz?._id || !quiz?.questions || isSubmitting) return;
+	const handleAnswer = async (selectedIndex: number) => {
+		if (!quiz?._id || !currentQuestionData || isSubmitting) return;
 
 		setSelectedAnswer(selectedIndex);
 		setIsSubmitting(true);
 
-		const currentQuestionData = quiz.questions[currentQuestion];
 		const timeSpent = quiz.timeLimit - (totalTimeLeft % quiz.timeLimit);
 
+		// Submit answer through socket with the correct question ID from socket data
+		socketService.submitAnswer(
+			quiz._id,
+			currentQuestionData._id,
+			selectedIndex,
+			timeSpent
+		);
+
+		// Update answers for this specific question
 		setAnswers((prev) => ({
 			...prev,
-			[currentQuestionData.id]: selectedIndex.toString(),
+			[currentQuestionData._id]: selectedIndex.toString(),
 		}));
 
-		socketService.getSocket()?.emit('quiz:submit-answer', {
-			quizId: quiz._id,
-			questionId: currentQuestionData.id,
-			answer: selectedIndex,
-			timeSpent,
-		});
-
-		if (selectedIndex === currentQuestionData.correctAnswer) {
-			setScore(score + currentQuestionData.points);
-		}
+		// Wait for feedback before moving to next question
+		await new Promise((resolve) => setTimeout(resolve, 2000));
 
 		setIsSubmitting(false);
+		setShowFeedback(false);
+		setFeedbackData(null);
 	};
 
 	const handleQuizComplete = () => {
@@ -266,8 +254,6 @@ export default function QuizScreen({ navigation, route }: Props) {
 		);
 	}
 
-	const currentQuestionData = quiz.questions[currentQuestion];
-
 	return (
 		<SafeAreaView style={styles.container}>
 			<LinearGradient
@@ -308,20 +294,24 @@ export default function QuizScreen({ navigation, route }: Props) {
 				{/* Question */}
 				<View style={styles.questionContainer}>
 					<Text style={styles.questionText}>
-						{currentQuestionData.question}
+						{currentQuestionData?.question || ''}
 					</Text>
 				</View>
 
 				{/* Options */}
 				<View style={styles.optionsContainer}>
-					{currentQuestionData.options.map((option: string, index: number) => (
+					{currentQuestionData?.options.map((option: string, index: number) => (
 						<TouchableOpacity
 							key={index}
 							style={[
 								styles.optionButton,
 								selectedAnswer === index && styles.selectedOption,
-								selectedAnswer !== null &&
-									index === currentQuestionData.correctAnswer &&
+								showFeedback &&
+									index === selectedAnswer &&
+									!feedbackData?.isCorrect &&
+									styles.incorrectOption,
+								showFeedback &&
+									index === feedbackData?.correctAnswer &&
 									styles.correctOption,
 							]}
 							onPress={() => handleAnswer(index)}
@@ -331,8 +321,12 @@ export default function QuizScreen({ navigation, route }: Props) {
 								style={[
 									styles.optionText,
 									selectedAnswer === index && styles.selectedOptionText,
-									selectedAnswer !== null &&
-										index === currentQuestionData.correctAnswer &&
+									showFeedback &&
+										index === selectedAnswer &&
+										!feedbackData?.isCorrect &&
+										styles.incorrectOptionText,
+									showFeedback &&
+										index === feedbackData?.correctAnswer &&
 										styles.correctOptionText,
 								]}
 							>
@@ -341,6 +335,25 @@ export default function QuizScreen({ navigation, route }: Props) {
 						</TouchableOpacity>
 					))}
 				</View>
+
+				{/* Feedback Message */}
+				{showFeedback && feedbackData && (
+					<Animated.View
+						entering={FadeInUp}
+						style={[
+							styles.feedbackContainer,
+							feedbackData.isCorrect
+								? styles.feedbackCorrect
+								: styles.feedbackIncorrect,
+						]}
+					>
+						<Text style={styles.feedbackText}>
+							{feedbackData.isCorrect
+								? `Correct! +${feedbackData.points} points`
+								: 'Incorrect. The correct answer is highlighted in green.'}
+						</Text>
+					</Animated.View>
+				)}
 
 				{/* Start Button or Blur Overlay */}
 				{!isStarted && (
@@ -377,13 +390,13 @@ export default function QuizScreen({ navigation, route }: Props) {
 					>
 						<ScrollView>
 							<View style={styles.questionGrid}>
-								{quiz.questions.map((_: Question, index: number) => (
+								{quiz.questions.map((question: Question, index: number) => (
 									<TouchableOpacity
 										key={index}
 										style={[
 											styles.questionNavItem,
 											currentQuestion === index && styles.questionNavItemActive,
-											answers[quiz.questions[index].id] !== undefined &&
+											answers[question._id] !== undefined &&
 												styles.questionNavItemAnswered,
 										]}
 										onPress={() => navigateToQuestion(index)}
@@ -590,5 +603,29 @@ const styles = StyleSheet.create({
 		color: Colors.red1,
 		fontSize: 16,
 		marginBottom: 20,
+	},
+	incorrectOption: {
+		backgroundColor: Colors.red1,
+	},
+	incorrectOptionText: {
+		color: Colors.background,
+	},
+	feedbackContainer: {
+		margin: 20,
+		padding: 15,
+		borderRadius: 12,
+		alignItems: 'center',
+	},
+	feedbackCorrect: {
+		backgroundColor: Colors.success,
+	},
+	feedbackIncorrect: {
+		backgroundColor: Colors.red1,
+	},
+	feedbackText: {
+		color: Colors.background,
+		fontSize: 16,
+		fontFamily: 'Rb-medium',
+		textAlign: 'center',
 	},
 });
