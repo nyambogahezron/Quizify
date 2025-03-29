@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../lib/types';
-import { useDailyTasks, useCompleteDailyTask } from '../services/api';
+import { useDailyTasks, useCompleteDailyTask } from '../services/ApiQuery';
 import Colors from 'constants/Colors';
 
 type Props = {

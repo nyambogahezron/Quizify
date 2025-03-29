@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-	View,
-	Text,
-	StyleSheet,
-	TouchableOpacity,
-	ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,19 +16,19 @@ type Props = {
 export default function ResultScreen({ navigation, route }: Props) {
 	const { score, totalQuestions, coins } = route.params;
 
-	const percentage = Math.round((score / totalQuestions) * 100);
+	const percentage = Math.round((score / (totalQuestions * 10)) * 100);
 	const isPassed = percentage >= 70;
 
 	return (
 		<SafeAreaView style={styles.container}>
 			<LinearGradient
-				colors={[Colors.background, Colors.background2]}
+				colors={[Colors.background3, Colors.background2]}
 				style={styles.gradient}
 			>
 				<View style={styles.content}>
 					<View style={styles.resultCard}>
 						<View style={styles.scoreContainer}>
-							<Text style={styles.scoreText}>{score}</Text>
+							<Text style={styles.scoreText}>{score / 10}</Text>
 							<Text style={styles.totalText}>/{totalQuestions}</Text>
 						</View>
 						<Text style={styles.percentageText}>{percentage}%</Text>
@@ -85,19 +79,14 @@ const styles = StyleSheet.create({
 	gradient: {
 		flex: 1,
 	},
-	loadingContainer: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: Colors.background,
-	},
+
 	content: {
 		flex: 1,
 		padding: 20,
 		justifyContent: 'center',
 	},
 	resultCard: {
-		backgroundColor: Colors.grayLight,
+		backgroundColor: Colors.background3,
 		borderRadius: 20,
 		padding: 20,
 		alignItems: 'center',
@@ -131,7 +120,7 @@ const styles = StyleSheet.create({
 		color: Colors.text,
 	},
 	statsContainer: {
-		backgroundColor: Colors.grayLight,
+		backgroundColor: Colors.background3,
 		borderRadius: 20,
 		padding: 20,
 		marginBottom: 30,

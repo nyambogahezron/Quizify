@@ -1,98 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React, { useRef } from 'react';
 import {
 	View,
 	Text,
 	StyleSheet,
-	ScrollView,
 	TouchableOpacity,
 	ActivityIndicator,
+	Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
-import { useAuthStore } from '@/store/useStore';
-import { socketService } from '@/lib/socket';
-import { useQuery } from '@tanstack/react-query';
-import { fetchApi } from '@/services/Api';
-import { queryClient } from '@/App';
+import { useAchievementStore, useAuthStore } from '@/store/useStore';
+import { useAchievements } from '@/services/ApiQuery';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-interface Achievement {
-	_id: string;
-	title: string;
-	description: string;
-	icon: string;
-	criteria: {
-		type: string;
-		value: number;
-	};
-	progress: number;
-}
-
-interface UserAchievement {
-	_id: string;
-	achievement: Achievement;
-	progress: number;
-	completed: boolean;
-	unlockedAt: string;
-}
-
-interface QuizAttempt {
-	_id: string;
-	quiz: {
-		title: string;
-	};
-	score: number;
-	totalPossibleScore: number;
-	completedAt: string;
-}
+const HEADER_MAX_HEIGHT = 250;
+const HEADER_MIN_HEIGHT = 80;
 
 export default function ProfileScreen() {
 	const { user, logout } = useAuthStore();
-	const [recentActivity, setRecentActivity] = useState<QuizAttempt[]>([]);
+	const { userRankings } = useAchievementStore();
+	const scrollY = useRef(new Animated.Value(0)).current;
 
-	// Fetch user achievements
-	const { data: achievements, isLoading: isLoadingAchievements } = useQuery({
-		queryKey: ['achievements'],
-		queryFn: async () => {
-			const response = await fetchApi('/achievements');
-			return response.data.achievements;
-		},
+	const navigation = useNavigation();
+
+	const { data: achievements, isLoading: isLoadingAchievements } =
+		useAchievements();
+
+	const headerTranslateY = scrollY.interpolate({
+		inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+		outputRange: [0, -HEADER_MAX_HEIGHT + HEADER_MIN_HEIGHT],
+		extrapolate: 'clamp',
 	});
 
-	// Fetch recent activity
-	const { data: activity, isLoading: isLoadingActivity } = useQuery({
-		queryKey: ['recent-activity'],
-		queryFn: async () => {
-			const response = await fetchApi('/quizzes/attempts');
-			return response.data.attempts;
-		},
+	const headerOpacity = scrollY.interpolate({
+		inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
+		outputRange: [1, 0],
+		extrapolate: 'clamp',
 	});
 
-	useEffect(() => {
-		if (activity) {
-			setRecentActivity(activity.slice(0, 5)); // Show last 5 attempts
-		}
-	}, [activity]);
+	const miniHeaderOpacity = scrollY.interpolate({
+		inputRange: [
+			HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT - 50,
+			HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT,
+		],
+		outputRange: [0, 1],
+		extrapolate: 'clamp',
+	});
 
-	// Listen for achievement updates
-	useEffect(() => {
-		const socket = socketService.getSocket();
-		if (socket) {
-			socket.on('achievement:unlocked', () => {
-				// Refetch achievements when a new one is unlocked
-				queryClient.invalidateQueries({ queryKey: ['achievements'] });
-			});
-		}
-
-		return () => {
-			const socket = socketService.getSocket();
-			if (socket) {
-				socket.off('achievement:unlocked');
-			}
-		};
-	}, []);
-
-	if (isLoadingAchievements || isLoadingActivity) {
+	if (isLoadingAchievements) {
 		return (
 			<View style={styles.loadingContainer}>
 				<ActivityIndicator size='large' color={Colors.primary} />
@@ -102,56 +59,144 @@ export default function ProfileScreen() {
 
 	return (
 		<LinearGradient
-			colors={[Colors.background, Colors.background2]}
+			colors={[Colors.background3, Colors.background2]}
 			style={styles.container}
 		>
 			<SafeAreaView style={styles.safeArea}>
-				<ScrollView showsVerticalScrollIndicator={false}>
-					{/* Header */}
-					<View style={styles.header}>
-						<View style={styles.profileHeader}>
-							<View style={styles.profileImage}>
-								<Text style={styles.profileImageText}>
+				<Animated.View
+					style={[
+						styles.header,
+						{
+							transform: [{ translateY: headerTranslateY }],
+							opacity: headerOpacity,
+						},
+					]}
+				>
+					{/* back btn */}
+					<TouchableOpacity
+						style={styles.backBtn}
+						onPress={() => navigation.goBack()}
+					>
+						<Ionicons name='arrow-back' size={24} color={Colors.white2} />
+					</TouchableOpacity>
+
+					<View style={styles.profileHeader}>
+						<View style={styles.profileImage}>
+							<Text style={styles.profileImageText}>
+								{user?.name.charAt(0).toUpperCase()}
+							</Text>
+						</View>
+						<Text style={styles.profileName}>{user?.name}</Text>
+						<Text style={styles.profileLevel}>Level {user?.level || 1}</Text>
+					</View>
+
+					<View style={styles.statsContainer}>
+						<View style={styles.statItem}>
+							<Text style={styles.statNumber}>
+								{userRankings?.global?.quizzesCompleted || 0}
+							</Text>
+							<Text style={styles.statLabel}>Quizzes</Text>
+						</View>
+						<View style={[styles.statItem, styles.statBorder]}>
+							<Text style={styles.statNumber}>
+								#{userRankings?.global?.rank || 'N/A'}
+							</Text>
+							<Text style={styles.statLabel}>Rank</Text>
+						</View>
+						<View style={styles.statItem}>
+							<Text style={styles.statNumber}>
+								{userRankings?.global?.totalScore || 0}
+							</Text>
+							<Text style={styles.statLabel}>Points</Text>
+						</View>
+					</View>
+				</Animated.View>
+
+				{/* mini header */}
+
+				<Animated.View
+					style={[
+						styles.miniHeader,
+						{
+							opacity: miniHeaderOpacity,
+						},
+					]}
+				>
+					<View style={styles.miniProfileHeader}>
+						<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+							{/* back btn */}
+							<TouchableOpacity
+								style={{ marginRight: 4 }}
+								onPress={() => navigation.goBack()}
+							>
+								<Ionicons name='arrow-back' size={24} color={Colors.white2} />
+							</TouchableOpacity>
+
+							<View style={styles.miniProfileImage}>
+								<Text style={styles.miniProfileImageText}>
 									{user?.name.charAt(0).toUpperCase()}
 								</Text>
 							</View>
-							<Text style={styles.profileName}>{user?.name}</Text>
-							<Text style={styles.profileLevel}>Level {user?.level || 1}</Text>
+							<View style={styles.miniProfileInfo}>
+								<Text style={styles.miniProfileName}>{user?.name}</Text>
+								<Text style={styles.miniProfileLevel}>
+									Level {user?.level || 1}
+								</Text>
+							</View>
+						</View>
+						<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+							<View style={[styles.miniStats, { marginRight: 10 }]}>
+								<Text style={styles.miniStatNumber}>
+									#{userRankings?.global?.rank || 0}
+								</Text>
+								<Text style={styles.miniStatLabel}>Rank</Text>
+							</View>
+							<View style={styles.miniStats}>
+								<Text style={styles.miniStatNumber}>
+									{userRankings?.global?.totalScore || 0}
+								</Text>
+								<Text style={styles.miniStatLabel}>Points</Text>
+							</View>
 						</View>
 
-						{/* Stats */}
-						<View style={styles.statsContainer}>
-							<View style={styles.statItem}>
-								<Text style={styles.statNumber}>{activity?.length || 0}</Text>
-								<Text style={styles.statLabel}>Quizzes</Text>
-							</View>
-							<View style={[styles.statItem, styles.statBorder]}>
-								<Text style={styles.statNumber}>#{user?.level || 'N/A'}</Text>
-								<Text style={styles.statLabel}>Rank</Text>
-							</View>
-							<View style={styles.statItem}>
-								<Text style={styles.statNumber}>{user?.points || 0}</Text>
-								<Text style={styles.statLabel}>Points</Text>
-							</View>
+						{/* //logout btn  */}
+						<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+							<TouchableOpacity style={styles.miniLogoutBtn} onPress={logout}>
+								<Ionicons name='log-out' size={24} color={Colors.red1} />
+							</TouchableOpacity>
 						</View>
 					</View>
+				</Animated.View>
 
-					{/* Content */}
-					<View style={styles.content}>
-						{/* Achievements */}
-						<View style={styles.section}>
-							<Text style={styles.sectionTitle}>Achievements</Text>
-							{achievements?.map((achievement: Achievement) => (
-								<View key={achievement._id} style={styles.achievementCard}>
+				<Animated.ScrollView
+					showsVerticalScrollIndicator={false}
+					onScroll={Animated.event(
+						[{ nativeEvent: { contentOffset: { y: scrollY } } }],
+						{ useNativeDriver: true }
+					)}
+					scrollEventThrottle={16}
+					contentContainerStyle={[
+						styles.content,
+						{ paddingTop: HEADER_MAX_HEIGHT },
+					]}
+				>
+					{/* Achievements  */}
+					<View style={styles.section}>
+						<Text style={styles.sectionTitle}>Achievements</Text>
+						{achievements?.length === 0 ? (
+							<Text style={styles.noAchievements}>No achievements yet</Text>
+						) : (
+							userRankings?.quizzes?.map((quiz: any) => (
+								<View key={quiz.quiz._id} style={styles.achievementCard}>
 									<View style={styles.achievementIcon}>
-										<Text style={styles.iconText}>{achievement.icon}</Text>
+										<Text style={styles.iconText}>{quiz.rank}</Text>
 									</View>
 									<View style={styles.achievementInfo}>
 										<Text style={styles.achievementTitle}>
-											{achievement.title}
+											{quiz.quiz.category}
 										</Text>
 										<Text style={styles.achievementDescription}>
-											{achievement.description}
+											{quiz.quiz.title}
 										</Text>
 										<View style={styles.progressBar}>
 											<View
@@ -159,52 +204,28 @@ export default function ProfileScreen() {
 													styles.progress,
 													{
 														width: `${
-															(achievement.progress /
-																achievement.criteria.value) *
-															100
+															(quiz.score / quiz.totalPossibleScore) * 100
 														}%`,
 													},
 												]}
 											/>
 										</View>
 										<Text style={styles.progressText}>
-											{achievement.progress}/{achievement.criteria.value}{' '}
-											Completed
+											{quiz.score}/{quiz.totalPossibleScore} Completed
 										</Text>
 									</View>
 								</View>
-							))}
-						</View>
-
-						{/* Recent Activity */}
-						<View style={styles.section}>
-							<Text style={styles.sectionTitle}>Recent Activity</Text>
-							{recentActivity.map((attempt) => (
-								<View key={attempt._id} style={styles.activityCard}>
-									<View style={styles.activityIcon}>
-										<Text style={styles.iconText}>📝</Text>
-									</View>
-									<View style={styles.activityInfo}>
-										<Text style={styles.activityTitle}>
-											{attempt.quiz.title}
-										</Text>
-										<Text style={styles.activityScore}>
-											Score: {attempt.score}/{attempt.totalPossibleScore}
-										</Text>
-									</View>
-									<Text style={styles.activityDate}>
-										{new Date(attempt.completedAt).toLocaleDateString()}
-									</Text>
-								</View>
-							))}
-						</View>
-
-						{/* Logout Button */}
-						<TouchableOpacity style={styles.editButton} onPress={logout}>
-							<Text style={styles.editButtonText}>Logout</Text>
-						</TouchableOpacity>
+							))
+						)}
 					</View>
-				</ScrollView>
+
+					{/* attempted quizs  */}
+
+					{/* Logout Button */}
+					<TouchableOpacity style={styles.editButton} onPress={logout}>
+						<Text style={styles.editButtonText}>Logout</Text>
+					</TouchableOpacity>
+				</Animated.ScrollView>
 			</SafeAreaView>
 		</LinearGradient>
 	);
@@ -218,7 +239,12 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	header: {
-		padding: 20,
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		height: HEADER_MAX_HEIGHT,
+		zIndex: 1,
 	},
 	profileHeader: {
 		alignItems: 'center',
@@ -232,17 +258,17 @@ const styles = StyleSheet.create({
 		height: 100,
 		borderRadius: 50,
 		borderWidth: 3,
-		borderColor: 'white',
+		borderColor: Colors.white2,
 	},
 	profileImageText: {
 		fontSize: 40,
 		fontWeight: 'bold',
-		color: 'white',
+		color: Colors.white2,
 	},
 	profileName: {
 		fontSize: 24,
 		fontWeight: 'bold',
-		color: 'white',
+		color: Colors.white2,
 		marginBottom: 4,
 	},
 	profileLevel: {
@@ -251,10 +277,11 @@ const styles = StyleSheet.create({
 	},
 	statsContainer: {
 		flexDirection: 'row',
-		backgroundColor: 'rgba(255, 255, 255, 0.2)',
+		backgroundColor: Colors.background3,
 		borderRadius: 20,
 		padding: 20,
 		marginTop: 20,
+		marginHorizontal: 10,
 	},
 	statItem: {
 		flex: 1,
@@ -263,50 +290,96 @@ const styles = StyleSheet.create({
 	statBorder: {
 		borderLeftWidth: 1,
 		borderRightWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.2)',
+		borderColor: Colors.background,
 	},
 	statNumber: {
 		fontSize: 20,
 		fontWeight: 'bold',
-		color: 'white',
+		color: Colors.white2,
 		marginBottom: 4,
 	},
 	statLabel: {
 		fontSize: 14,
 		color: 'rgba(255, 255, 255, 0.8)',
 	},
+	miniHeader: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		height: HEADER_MIN_HEIGHT,
+		backgroundColor: Colors.background,
+		zIndex: 1,
+		paddingHorizontal: 10,
+		width: '100%',
+	},
+	miniProfileHeader: {
+		justifyContent: 'space-between',
+		flexDirection: 'row',
+		alignItems: 'center',
+		height: '100%',
+	},
+	miniProfileImage: {
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		borderWidth: 1,
+		borderColor: Colors.background3,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	miniProfileImageText: {
+		fontSize: 18,
+		fontWeight: 'bold',
+		color: Colors.white2,
+	},
+	miniProfileInfo: {
+		marginLeft: 12,
+	},
+	miniProfileName: {
+		fontSize: 16,
+		fontWeight: 'bold',
+		color: Colors.white2,
+	},
+	miniProfileLevel: {
+		fontSize: 12,
+		color: 'rgba(255, 255, 255, 0.8)',
+	},
+	miniStats: {
+		alignItems: 'center',
+	},
+	miniStatNumber: {
+		fontSize: 16,
+		fontWeight: 'bold',
+		color: Colors.warning,
+	},
+	miniStatLabel: {
+		fontSize: 12,
+		color: 'rgba(255, 255, 255, 0.8)',
+	},
 	content: {
-		flex: 1,
-
-		padding: 20,
+		paddingBottom: HEADER_MAX_HEIGHT * 1.4,
+		paddingHorizontal: 15,
 	},
 	section: {
-		marginBottom: 24,
+		marginTop: 35,
 	},
 	sectionTitle: {
 		fontSize: 20,
 		fontWeight: '600',
-		color: '#333',
+		color: Colors.textLight,
 		marginBottom: 16,
 	},
 	achievementCard: {
 		flexDirection: 'row',
-		backgroundColor: '#F8F9FA',
+		backgroundColor: Colors.background3,
 		padding: 16,
 		borderRadius: 12,
 		marginBottom: 12,
 	},
-	achievementIcon: {
-		width: 50,
-		height: 50,
-		backgroundColor: 'white',
-		borderRadius: 25,
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginRight: 12,
-	},
 	iconText: {
 		fontSize: 24,
+		color: Colors.textLight,
 	},
 	achievementInfo: {
 		flex: 1,
@@ -314,19 +387,27 @@ const styles = StyleSheet.create({
 	achievementTitle: {
 		fontSize: 16,
 		fontWeight: '600',
-		color: '#333',
-		marginBottom: 4,
+		color: Colors.textLight,
+		marginLeft: 10,
 	},
 	achievementDescription: {
 		fontSize: 14,
-		color: '#666',
+		color: Colors.textLight,
 		marginBottom: 8,
+		marginLeft: 10,
+	},
+	noAchievements: {
+		fontSize: 16,
+		color: Colors.textLight,
+		marginBottom: 8,
+		marginLeft: 10,
 	},
 	progressBar: {
 		height: 4,
 		backgroundColor: '#E9ECEF',
 		borderRadius: 2,
 		marginBottom: 4,
+		marginLeft: 10,
 	},
 	progress: {
 		height: '100%',
@@ -348,7 +429,7 @@ const styles = StyleSheet.create({
 	activityIcon: {
 		width: 40,
 		height: 40,
-		backgroundColor: 'white',
+		backgroundColor: Colors.white2,
 		borderRadius: 20,
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -372,14 +453,18 @@ const styles = StyleSheet.create({
 		color: '#999',
 	},
 	editButton: {
-		backgroundColor: '#FF6B6B',
+		position: 'relative',
+		bottom: 20,
+		left: 0,
+		right: 0,
+		backgroundColor: Colors.red1,
 		padding: 16,
 		borderRadius: 12,
 		alignItems: 'center',
-		marginTop: 8,
+		marginTop: 40,
 	},
 	editButtonText: {
-		color: 'white',
+		color: Colors.white2,
 		fontSize: 16,
 		fontWeight: '600',
 	},
@@ -387,5 +472,30 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
+	},
+	backBtn: {
+		position: 'absolute',
+		top: 10,
+		left: 20,
+		zIndex: 1,
+	},
+	backBtnText: {
+		fontSize: 24,
+		color: Colors.white2,
+	},
+	miniLogoutBtn: {
+		backgroundColor: Colors.background,
+		padding: 10,
+		borderRadius: 10,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	achievementIcon: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		width: 40,
+		height: 40,
+		backgroundColor: Colors.background2,
+		borderRadius: 20,
 	},
 });

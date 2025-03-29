@@ -6,6 +6,7 @@ import Quiz from '../models/Quiz.model';
 import QuizAttempt from '../models/QuizAttempt.model';
 import AsyncHandler from '../middleware/AsyncHandler';
 import { BadRequestError, NotFoundError, UnauthorizedError } from '../errors';
+import { Leaderboard } from '../models/Leaderboard.model';
 
 class QuizController {
 	/*
@@ -60,11 +61,17 @@ class QuizController {
 	static getCategories = AsyncHandler(async (req: Request, res: Response) => {
 		const quizzes = await Quiz.find();
 
+		const leaderboard = await Leaderboard.find({});
+
 		const categories = quizzes.map((category) => ({
 			name: category.category,
 			icon: category.icon,
 			quizzesCount: quizzes.filter(
 				(quiz) => quiz.category === category.category
+			).length,
+
+			totalPlayers: leaderboard.filter(
+				(leaderboard) => leaderboard.quiz.toString() === category._id.toString()
 			).length,
 		}));
 

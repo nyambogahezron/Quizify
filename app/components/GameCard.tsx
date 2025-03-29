@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import Colors from 'constants/Colors';
 
 type GameCardProps = {
@@ -19,12 +19,12 @@ export default function GameCard({ game, handleOnPress }: GameCardProps) {
 			<Text style={styles.gameIcon}>{game.icon}</Text>
 			<View style={styles.gameInfo}>
 				<Text style={styles.gameName}>{game.name}</Text>
-				<Text style={styles.gameQuestions}>{game.questions} Questions</Text>
+				<Text style={styles.gameQuestions}>{game.quizzesCount} Questions</Text>
 				<View style={styles.gamePlayers}>
 					<Ionicons name='star' size={16} color={Colors.red1} />
-					<Text style={styles.playersCount}>{game.players}</Text>
+					<Text style={styles.playersCount}>{game.totalPlayers || 0}</Text>
 					<View style={styles.gameEnergy}>
-						<Ionicons name='flash' size={16} color={Colors.red1} />
+						<Entypo name='controller-next' size={16} color={Colors.red1} />
 					</View>
 				</View>
 			</View>
@@ -34,10 +34,11 @@ export default function GameCard({ game, handleOnPress }: GameCardProps) {
 
 const styles = StyleSheet.create({
 	gameCard: {
-		backgroundColor: Colors.grayLight,
+		backgroundColor: Colors.background2,
 		borderRadius: 16,
-		padding: 16,
-		marginBottom: 12,
+		paddingVertical: 10,
+		paddingHorizontal: 16,
+		marginBottom: 8,
 		flexDirection: 'row',
 		alignItems: 'center',
 	},
@@ -49,13 +50,14 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	gameName: {
+		color: Colors.white2,
 		fontSize: 16,
 		fontWeight: '600',
 		marginBottom: 4,
 	},
 	gameQuestions: {
-		color: Colors.white2,
-		fontSize: 14,
+		color: Colors.text3,
+		fontSize: 12,
 		marginBottom: 8,
 	},
 	gamePlayers: {
@@ -69,7 +71,7 @@ const styles = StyleSheet.create({
 	},
 	gameEnergy: {
 		marginLeft: 'auto',
-		backgroundColor: Colors.yellow,
+		backgroundColor: Colors.background3,
 		padding: 8,
 		borderRadius: 20,
 		marginTop: -50,

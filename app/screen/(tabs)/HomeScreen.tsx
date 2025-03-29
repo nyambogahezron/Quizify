@@ -14,8 +14,12 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Colors from 'constants/Colors';
 import GameCard from 'components/GameCard';
 import DailyTask from 'components/DailyTask';
-import { useAuthStore } from '@/store/useStore';
-import { useDailyTasks, useCategories } from '@/services/api';
+import { useAuthStore, useAchievementStore } from '@/store/useStore';
+import {
+	useDailyTasks,
+	useCategories,
+	useUserRankings,
+} from '@/services/ApiQuery';
 import { moreGames } from '@/lib/data';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { socketService } from '@/lib/socket';
@@ -32,10 +36,21 @@ export default function HomeScreen() {
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { user } = useAuthStore();
+	const { setUserRankings, initialize } = useAchievementStore();
 
 	const { data: dailyTasks, isLoading: isLoadingTasks } = useDailyTasks();
 	const { data: categories, isLoading: isLoadingCategories } = useCategories();
+	const { data: userRankings, isLoading: isLoadingUserRankings } =
+		useUserRankings();
 
+	useEffect(() => {
+		initialize();
+		if (userRankings && !isLoadingUserRankings) {
+			setUserRankings(userRankings);
+		}
+	}, [userRankings]);
+
+	console.log('userRankings from store', userRankings);
 	//test connection
 	socketService.testConnection();
 
@@ -80,7 +95,7 @@ export default function HomeScreen() {
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
 			<LinearGradient
-				colors={[Colors.background, Colors.background2]}
+				colors={[Colors.background3, Colors.background2]}
 				style={{ flex: 1 }}
 			>
 				<ScrollView showsVerticalScrollIndicator={false}>
@@ -104,7 +119,9 @@ export default function HomeScreen() {
 						</TouchableOpacity>
 						<View style={styles.coins}>
 							<Ionicons name='flash' size={20} color={Colors.red1} />
-							<Text style={styles.coinsText}>{user?.points || 0}</Text>
+							<Text style={styles.coinsText}>
+								{userRankings?.global?.totalScore || 0}
+							</Text>
 						</View>
 					</View>
 
@@ -205,7 +222,7 @@ const styles = StyleSheet.create({
 		width: 50,
 		height: 50,
 		borderRadius: 25,
-		backgroundColor: Colors.primary,
+		backgroundColor: Colors.background2,
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginRight: 10,
@@ -222,7 +239,7 @@ const styles = StyleSheet.create({
 	coins: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		backgroundColor: Colors.grayLight,
+		backgroundColor: Colors.background2,
 		padding: 8,
 		paddingHorizontal: 15,
 		borderRadius: 20,
@@ -270,7 +287,7 @@ const styles = StyleSheet.create({
 		width: 120,
 		height: 120,
 		overflow: 'hidden',
-		backgroundColor: Colors.background2,
+		backgroundColor: Colors.background3,
 		borderRadius: 16,
 		marginHorizontal: 4,
 		alignItems: 'center',

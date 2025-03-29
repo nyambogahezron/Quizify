@@ -50,7 +50,7 @@ export default function DailyTask({ task, onPress }: DailyTaskProps) {
 
 const styles = StyleSheet.create({
 	dailyTask: {
-		backgroundColor: Colors.grayLight,
+		backgroundColor: Colors.background3,
 		marginVertical: 20,
 		marginHorizontal: 10,
 		padding: 15,

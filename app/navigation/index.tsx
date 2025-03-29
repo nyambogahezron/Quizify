@@ -38,11 +38,7 @@ export default function Navigation() {
 						name='Profile'
 						component={SCREENS.ProfileScreen}
 						options={{
-							headerShown: true,
-							headerTitle: 'Profile',
-							headerStyle: { backgroundColor: Colors.background },
-							headerTitleStyle: { color: Colors.white },
-							headerTintColor: Colors.white,
+							headerShown: false,
 						}}
 					/>
 					<Stack.Screen
@@ -78,7 +74,7 @@ export default function Navigation() {
 						options={{
 							headerShown: true,
 							headerTitle: 'Quiz List',
-							headerStyle: { backgroundColor: Colors.background },
+							headerStyle: { backgroundColor: Colors.background3 },
 							headerTitleStyle: { color: Colors.white },
 							headerTintColor: Colors.white,
 						}}

@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../lib/types';
+import { RootStackParamList } from '@/interface/index.d';
 import Colors from 'constants/Colors';
 
 const dummyData = [
@@ -282,7 +282,7 @@ export default function LeaderboardScreen({ navigation }: Props) {
 	return (
 		<SafeAreaView style={styles.container}>
 			<LinearGradient
-				colors={[Colors.background, Colors.background2]}
+				colors={[Colors.background3, Colors.background2]}
 				style={styles.gradient}
 			>
 				<Animated.View
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end',
 		justifyContent: 'space-between',
 		height: HEADER_MAX_HEIGHT,
-		backgroundColor: Colors.background,
+		backgroundColor: Colors.background3,
 		borderRadius: 20,
 		marginHorizontal: 5,
 		marginTop: 10,
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		height: 60,
-		backgroundColor: Colors.background,
+		backgroundColor: Colors.background3,
 		position: 'absolute',
 		top: 15,
 		left: 0,

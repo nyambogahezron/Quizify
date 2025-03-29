@@ -17,6 +17,19 @@
 			}
 		},
 		"plugins": [
+			[
+				"expo-splash-screen",
+				{
+					"backgroundColor": "#385952",
+					"image": "./assets/splash-icon.png",
+					"dark": {
+						"image": "./assets/splash-icon.png",
+						"backgroundColor": "#385952"
+					},
+					"imageWidth": 200
+				}
+			],
+
 			"expo-font",
 			[
 				"expo-audio",
@@ -24,16 +37,7 @@
 					"microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
 				}
 			],
-			"expo-router",
-			[
-				"expo-splash-screen",
-				{
-					"backgroundColor": "#385952",
-					"image": "./assets/splash-icon.png",
-					"imageWidth": 200,
-					"resizeMode": "contain"
-				}
-			]
+			"expo-router"
 		],
 		"sdkVersion": "52.0.0"
 	},

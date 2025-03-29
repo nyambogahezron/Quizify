@@ -12,13 +12,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../lib/types';
-import { useQuizByCategory, useSubmitQuiz } from '../services/api';
+import { useQuizByCategory, useSubmitQuiz } from '../services/ApiQuery';
 import { socketService } from '../lib/socket';
 import { useQuizStore } from '../store/useStore';
 import Colors from 'constants/Colors';
 import { BlurView } from 'expo-blur';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
+import { RootStackParamList } from '@/interface';
 
 interface Question {
 	_id: string;
@@ -248,7 +248,7 @@ export default function QuizScreen({ navigation, route }: Props) {
 	return (
 		<SafeAreaView style={styles.container}>
 			<LinearGradient
-				colors={[Colors.background, Colors.background2]}
+				colors={[Colors.background3, Colors.background2]}
 				style={styles.gradient}
 			>
 				{/* Header */}
@@ -550,15 +550,14 @@ const styles = StyleSheet.create({
 	},
 	blurOverlay: {
 		...StyleSheet.absoluteFillObject,
-		backgroundColor: Colors.background,
+		backgroundColor: Colors.background3,
 		justifyContent: 'center',
 		alignItems: 'center',
-		padding: 20,
-		borderRadius: 12,
 	},
 	startContainer: {
 		alignItems: 'center',
 		padding: 20,
+		marginTop: -30,
 	},
 	startTitle: {
 		color: Colors.text,
@@ -572,10 +571,19 @@ const styles = StyleSheet.create({
 		marginBottom: 30,
 	},
 	startButton: {
-		backgroundColor: Colors.primary,
-		paddingHorizontal: 40,
+		backgroundColor: Colors.background2,
+		width: '100%',
+		paddingHorizontal: 70,
 		paddingVertical: 15,
 		borderRadius: 10,
+		shadowColor: Colors.primary,
+		shadowOffset: {
+			width: 0,
+			height: 5,
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 3.84,
+		elevation: 5,
 	},
 	startButtonText: {
 		color: Colors.textLight,

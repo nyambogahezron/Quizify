@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { api } from '../lib/fetchApi';
 
 // Auth services
 export const useLogin = () => {
@@ -100,6 +100,17 @@ export const useAchievements = () => {
 	});
 };
 
+//get user rankings
+export const useUserRankings = () => {
+	return useQuery({
+		queryKey: ['user-rankings'],
+		queryFn: async () => {
+			const response = await api.get('/leaderboard/user');
+			return response.data;
+		},
+	});
+};
+
 // Daily task services
 export const useDailyTasks = () => {
 	return useQuery({
@@ -111,6 +122,7 @@ export const useDailyTasks = () => {
 	});
 };
 
+// Daily task services
 export const useCompleteDailyTask = () => {
 	const queryClient = useQueryClient();
 
@@ -125,6 +137,7 @@ export const useCompleteDailyTask = () => {
 	});
 };
 
+// Category services
 export const useCategories = () => {
 	return useQuery({
 		queryKey: ['categories'],

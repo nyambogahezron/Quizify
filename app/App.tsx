@@ -2,23 +2,15 @@ import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import Navigation from './navigation';
 import { socketService } from './lib/socket';
 import { useAuthStore } from './store/useStore';
 import { StatusBar } from 'react-native';
 import Colors from './constants/Colors';
+import { queryClient } from './lib/queryClient';
 
 SplashScreen.preventAutoHideAsync();
-
-export const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			staleTime: 1000 * 60 * 5, // 5 minutes
-			retry: 1,
-		},
-	},
-});
 
 export default function App() {
 	const [appIsReady, setAppIsReady] = React.useState(false);

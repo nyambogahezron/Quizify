@@ -45,7 +45,7 @@ export default function QuizList() {
 
 	return (
 		<LinearGradient
-			colors={[Colors.background, Colors.background2]}
+			colors={[Colors.background3, Colors.background2]}
 			style={styles.container}
 		>
 			<ScrollView
