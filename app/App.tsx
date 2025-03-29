@@ -3,7 +3,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ContextProvider } from 'context/ConxtextProvider';
 import Navigation from './navigation';
 import { socketService } from './lib/socket';
 import { useAuthStore } from './store/useStore';
@@ -70,9 +69,7 @@ export default function App() {
 		<QueryClientProvider client={queryClient}>
 			<StatusBar barStyle='light-content' backgroundColor={Colors.background} />
 			<GestureHandlerRootView onLayout={onLayoutRootView}>
-				<ContextProvider>
-					<Navigation />
-				</ContextProvider>
+				<Navigation />
 			</GestureHandlerRootView>
 		</QueryClientProvider>
 	);

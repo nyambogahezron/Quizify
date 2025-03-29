@@ -11,15 +11,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '.';
 import Colors from 'constants/Colors';
 import GameCard from 'components/GameCard';
 import DailyTask from 'components/DailyTask';
-import { useAuthStore } from '../store/useStore';
-import { useDailyTasks, useCategories } from '../services/api';
+import { useAuthStore } from '@/store/useStore';
+import { useDailyTasks, useCategories } from '@/services/api';
 import { moreGames } from '@/lib/data';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { socketService } from '@/lib/socket';
+import { RootStackParamList } from '..';
 
 interface Category {
 	id: string;

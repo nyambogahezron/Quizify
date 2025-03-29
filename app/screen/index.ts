@@ -1,18 +1,17 @@
 import QuizScreen from './QuizScreen';
 import ResultScreen from './ResultScreen';
-import ProfileScreen from './ProfileScreen';
-import SettingsScreen from './SettingsScreen';
-import LeaderboardScreen from './LeaderboardScreen';
-import CreateAccountScreen from './CreateAccountScreen';
+import ProfileScreen from './(tabs)/ProfileScreen';
+import SettingsScreen from './(tabs)/SettingsScreen';
+import LeaderboardScreen from './(tabs)/LeaderboardScreen';
 import WordMakerScreen from './WordMakerGameScreen';
 import BookmarksScreen from './BookmarksScreen';
 import OnboardingScreen from './OnBoardScreen';
-import HomeScreen from './HomeScreen';
+import HomeScreen from './(tabs)/HomeScreen';
 import QuizList from './QuizList';
-import LoginScreen from './Login';
-import RegisterScreen from './Register';
-import ResetPasswordScreen from './ResetPassword';
-import ForgotPasswordScreen from './ForgotPassword';
+import LoginScreen from './(auth)/Login';
+import RegisterScreen from './(auth)/Register';
+import ResetPasswordScreen from './(auth)/ResetPassword';
+import ForgotPasswordScreen from './(auth)/ForgotPassword';
 import DailyTasksScreen from './DailyTasks';
 
 const SCREENS = {
@@ -22,7 +21,6 @@ const SCREENS = {
 	ProfileScreen,
 	SettingsScreen,
 	LeaderboardScreen,
-	CreateAccountScreen,
 	WordMakerScreen,
 	BookmarksScreen,
 	OnboardingScreen,

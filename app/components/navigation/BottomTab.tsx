@@ -86,8 +86,8 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 						<View style={styles.tabs}>
 							{icons[route.name](
 								isFocused
-									? { size: 24, color: Colors.blue, focused: true }
-									: { size: 24, color: Colors.white, focused: false }
+									? { size: 20, color: Colors.blue, focused: true }
+									: { size: 20, color: Colors.white, focused: false }
 							)}
 							<Text
 								style={[
@@ -133,15 +133,15 @@ const styles = StyleSheet.create({
 	wrapper: {
 		position: 'absolute',
 		bottom: 0,
-		left: '3%',
-		right: '3%',
+		left: '2%',
+		right: '2%',
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: '#385952',
-		borderRadius: 25,
+		borderRadius: 30,
 		marginBottom: 15,
-		width: '94%',
+		width: '96%',
 		marginHorizontal: 'auto',
 		overflow: 'hidden',
 	},
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		height: 60,
 		width: '100%',
-		borderRadius: 25,
+		borderRadius: 30,
 	},
 	textFocused: {
 		color: Colors.blue,
