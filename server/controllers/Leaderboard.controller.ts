@@ -1,29 +1,42 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import mongoose from 'mongoose';
 
 import { Leaderboard, GlobalLeaderboard } from '../models/Leaderboard.model';
 import Quiz from '../models/Quiz.model';
 import AsyncHandler from '../middleware/AsyncHandler';
-import { BadRequestError, NotFoundError, UnauthorizedError } from '../errors';
+import { NotFoundError, UnauthorizedError } from '../errors';
 
 class LeaderboardController {
-	// Get global leaderboard (top performers across all quizzes)
+	/*
+	 * @desc Get global leaderboard (top performers across all quizzes)
+	 * @route GET /api/leaderboard/global
+	 * @access Public
+	 */
 	static getGlobalLeaderboard = AsyncHandler(
 		async (req: Request, res: Response) => {
-			const { limit = 10, page = 1 } = req.query;
+			const { limit = 20, page = 1 } = req.query;
 			const skip = (Number(page) - 1) * Number(limit);
 
 			const leaderboard = await GlobalLeaderboard.find()
 				.populate('user', 'username avatar')
-				.sort({ totalScore: -1 })
+				.sort({
+					totalScore: -1,
+					averageScore: -1,
+					quizzesCompleted: -1,
+				})
 				.limit(Number(limit))
 				.skip(skip);
+
+			// Add position to each entry
+			const leaderboardWithPosition = leaderboard.map((entry, index) => ({
+				...entry,
+				position: skip + index + 1,
+			}));
 
 			const totalEntries = await GlobalLeaderboard.countDocuments();
 
 			res.status(StatusCodes.OK).json({
-				leaderboard,
+				leaderboard: leaderboardWithPosition,
 				totalEntries,
 				currentPage: Number(page),
 				totalPages: Math.ceil(totalEntries / Number(limit)),
@@ -31,15 +44,15 @@ class LeaderboardController {
 		}
 	);
 
-	// Get leaderboard for a specific quiz
+	/*
+	 * @desc Get leaderboard for a specific quiz
+	 * @route GET /api/leaderboard/quiz/:quizId
+	 * @access Public
+	 */
 	static getQuizLeaderboard = AsyncHandler(
 		async (req: Request, res: Response) => {
 			const { quizId } = req.params;
-			const { limit = 10, page = 1 } = req.query;
-
-			if (!mongoose.Types.ObjectId.isValid(quizId)) {
-				throw new BadRequestError('Invalid quiz ID');
-			}
+			const { limit = 20, page = 1 } = req.query;
 
 			const quiz = await Quiz.findById(quizId);
 
@@ -72,7 +85,11 @@ class LeaderboardController {
 		}
 	);
 
-	// Get user's rankings across all quizzes
+	/*
+	 * @desc Get user's rankings across all quizzes
+	 * @route GET /api/leaderboard/user
+	 * @access Private
+	 */
 	static getUserRankings = AsyncHandler(async (req: Request, res: Response) => {
 		if (!req.user) {
 			throw new UnauthorizedError('Unauthorized');

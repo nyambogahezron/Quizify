@@ -1,6 +1,7 @@
 import mongoose, { InferSchemaType } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { EmailValidator } from '../utils/validator';
+import { EmailValidator } from '../lib/validator';
+import { BadRequestError } from '../errors';
 
 const UserSchema = new mongoose.Schema(
 	{
@@ -119,6 +120,11 @@ UserSchema.methods.comparePassword = async function (enteredPassword: any) {
 UserSchema.pre('save', async function (next) {
 	if (!this.isModified('password')) {
 		next();
+	}
+
+	const admin = await mongoose.model('User').findOne({ isAdmin: true });
+	if (admin) {
+		throw new BadRequestError('Admin already created');
 	}
 
 	const salt = await bcrypt.genSalt(10);

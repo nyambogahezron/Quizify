@@ -1,23 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, InferSchemaType } from 'mongoose';
 
-interface ILeaderboardEntry extends Document {
-	user: mongoose.Schema.Types.ObjectId;
-	quiz: mongoose.Schema.Types.ObjectId;
-	score: number;
-	timeSpent: number;
-	completedAt: Date;
-}
+type ILeaderboardEntry = InferSchemaType<typeof LeaderboardSchema>;
 
-// Global leaderboard (across all quizzes)
-interface IGlobalLeaderboard extends Document {
-	user: mongoose.Schema.Types.ObjectId;
-	totalScore: number;
-	quizzesCompleted: number;
-	averageScore: number;
-	lastUpdated: Date;
-}
+type IGlobalLeaderboard = InferSchemaType<typeof GlobalLeaderboardSchema>;
 
-const LeaderboardSchema = new Schema<ILeaderboardEntry>({
+const LeaderboardSchema = new Schema({
 	user: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
@@ -32,6 +19,10 @@ const LeaderboardSchema = new Schema<ILeaderboardEntry>({
 		type: Number,
 		required: [true, 'Score is required'],
 	},
+	position: {
+		type: Number,
+		default: 0,
+	},
 	timeSpent: {
 		type: Number,
 		required: [true, 'Time spent is required'],
@@ -45,7 +36,9 @@ const LeaderboardSchema = new Schema<ILeaderboardEntry>({
 // Create a compound index to ensure each user has only one entry per quiz in the leaderboard
 LeaderboardSchema.index({ user: 1, quiz: 1 }, { unique: true });
 
-const GlobalLeaderboardSchema = new Schema<IGlobalLeaderboard>({
+LeaderboardSchema.set('autoIndex', false); // Disable auto indexing
+
+const GlobalLeaderboardSchema = new Schema({
 	user: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
@@ -53,6 +46,10 @@ const GlobalLeaderboardSchema = new Schema<IGlobalLeaderboard>({
 		unique: true,
 	},
 	totalScore: {
+		type: Number,
+		default: 0,
+	},
+	position: {
 		type: Number,
 		default: 0,
 	},
@@ -69,6 +66,8 @@ const GlobalLeaderboardSchema = new Schema<IGlobalLeaderboard>({
 		default: Date.now,
 	},
 });
+
+GlobalLeaderboardSchema.set('autoIndex', false); // Disable auto indexing
 
 export const Leaderboard = mongoose.model<ILeaderboardEntry>(
 	'Leaderboard',

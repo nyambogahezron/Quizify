@@ -71,9 +71,6 @@ export default function SettingsScreen() {
 		}
 	};
 
-	const navigation =
-		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
 	const renderSettingItem = (
 		icon: string,
 		title: string,

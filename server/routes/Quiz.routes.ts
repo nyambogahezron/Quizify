@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import QuizController from '../controllers/Quiz.controller';
 import authenticateUser from '../middleware/Authenticate';
 import requireAdmin from '../middleware/AdminAuth';
+
 const router: Router = express.Router();
 
 // Public routes

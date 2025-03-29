@@ -1,29 +1,9 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import mongoose from 'mongoose';
 
 import { Achievement, UserAchievement } from '../models/Achievement.model';
 import AsyncHandler from '../middleware/AsyncHandler';
 import { UnauthorizedError } from '../errors';
-
-// Define interfaces for the document types
-interface AchievementDocument extends mongoose.Document {
-	_id: mongoose.Types.ObjectId;
-	name: string;
-	description: string;
-	badge: string;
-	criteria: {
-		type: string;
-		value: number;
-	};
-}
-
-interface UserAchievementDocument extends mongoose.Document {
-	_id: mongoose.Types.ObjectId;
-	user: mongoose.Types.ObjectId;
-	achievement: AchievementDocument;
-	unlockedAt: Date;
-}
 
 class AchievementController {
 	/*
@@ -33,10 +13,10 @@ class AchievementController {
 	*/
 	static getAllAchievements = AsyncHandler(
 		async (req: Request, res: Response) => {
-			const achievements = (await Achievement.find().sort({
+			const achievements = await Achievement.find().sort({
 				'criteria.type': 1,
 				'criteria.value': 1,
-			})) as AchievementDocument[];
+			});
 
 			res.status(StatusCodes.OK).json({ achievements });
 		}
@@ -54,24 +34,23 @@ class AchievementController {
 			}
 
 			// Get all achievements
-			const allAchievements =
-				(await Achievement.find()) as AchievementDocument[];
+			const allAchievements = await Achievement.find();
 
 			// Get user unlocked achievements
-			const userAchievements = (await UserAchievement.find({
+			const userAchievements = await UserAchievement.find({
 				user: req.user.userId,
-			}).populate('achievement')) as unknown as UserAchievementDocument[];
+			}).populate('achievement');
 
 			// Create a map of unlocked achievement IDs for quick lookup
 			const unlockedMap = new Map(
-				userAchievements.map((ua) => [ua.achievement._id.toString(), ua])
+				userAchievements.map((ua) => [ua.achievement._id, ua])
 			);
 
 			// Format the results
 			const achievements = allAchievements.map((achievement) => {
-				const unlocked = unlockedMap.has(achievement._id.toString());
+				const unlocked = unlockedMap.has(achievement._id);
 				const userAchievement = unlocked
-					? unlockedMap.get(achievement._id.toString())
+					? unlockedMap.get(achievement._id)
 					: null;
 
 				return {

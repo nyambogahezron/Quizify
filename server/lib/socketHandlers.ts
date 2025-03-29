@@ -432,16 +432,16 @@ async function checkAchievements(userId: string) {
 
 		let unlocked = false;
 
-		switch (achievement.criteria.type) {
+		switch (achievement.criteria?.type) {
 			case 'quizzes_completed':
-				unlocked = userQuizzes.length >= achievement.criteria.value;
+				unlocked = userQuizzes.length >= (achievement.criteria?.value || 0);
 				break;
 
 			case 'perfect_scores':
 				const perfectScores = userQuizzes.filter(
 					(attempt) => attempt.score === attempt.totalPossibleScore
 				).length;
-				unlocked = perfectScores >= achievement.criteria.value;
+				unlocked = perfectScores >= (achievement.criteria?.value || 0);
 				break;
 
 			case 'total_points':
@@ -449,19 +449,20 @@ async function checkAchievements(userId: string) {
 					(sum, attempt) => sum + attempt.score,
 					0
 				);
-				unlocked = totalPoints >= achievement.criteria.value;
+				unlocked = totalPoints >= (achievement.criteria?.value || 0);
 				break;
 
 			case 'specific_quiz':
-				if (achievement.criteria.quizId) {
-					const specificQuizAttempt = userQuizzes.find(
-						(attempt) =>
-							attempt.quiz.toString() ===
-								achievement.criteria.quizId!.toString() &&
-							attempt.score === attempt.totalPossibleScore
-					);
-					unlocked = !!specificQuizAttempt;
+				if (achievement.criteria?.quizId) {
+					unlocked =
+						userQuizzes.some(
+							(quiz) => quiz._id === achievement.criteria?.quizId
+						) && userQuizzes.length >= (achievement.criteria?.value || 0);
 				}
+				break;
+
+			default:
+				unlocked = false;
 				break;
 		}
 

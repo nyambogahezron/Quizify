@@ -31,7 +31,7 @@ app.use(cors(corsOptions));
 const io = new Server(server, {
 	cors: corsOptions,
 	path: '/socket.io/',
-	transports: ['websocket'], // Try websocket first
+	transports: ['websocket'],
 	pingTimeout: 10000,
 	pingInterval: 5000,
 	connectTimeout: 10000,
@@ -52,7 +52,7 @@ import ErrorHandlerMiddleware from './middleware/ErrorsHandler';
 import NotFoundHandler from './middleware/NotFound';
 
 //socket handlers
-import initSocketHandlers from './utils/socketHandlers';
+import initSocketHandlers from './lib/socketHandlers';
 
 app.use(express.json());
 

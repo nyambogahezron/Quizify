@@ -1,30 +1,9 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, InferSchemaType } from 'mongoose';
 
-interface IAchievement extends Document {
-	name: string;
-	description: string;
-	criteria: {
-		type:
-			| 'quizzes_completed'
-			| 'perfect_scores'
-			| 'streak'
-			| 'specific_quiz'
-			| 'total_points';
-		value: number;
-		quizId?: mongoose.Schema.Types.ObjectId; // Only for specific_quiz type
-	};
-	badge: string; // URL or icon name
-	createdAt: Date;
-	updatedAt: Date;
-}
+type IAchievement = InferSchemaType<typeof AchievementSchema>;
+type IUserAchievement = InferSchemaType<typeof UserAchievementSchema>;
 
-interface IUserAchievement extends Document {
-	user: mongoose.Schema.Types.ObjectId;
-	achievement: mongoose.Schema.Types.ObjectId;
-	unlockedAt: Date;
-}
-
-const AchievementSchema = new Schema<IAchievement>(
+const AchievementSchema = new Schema(
 	{
 		name: {
 			type: String,
@@ -67,7 +46,7 @@ const AchievementSchema = new Schema<IAchievement>(
 	{ timestamps: true }
 );
 
-const UserAchievementSchema = new Schema<IUserAchievement>({
+const UserAchievementSchema = new Schema({
 	user: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',

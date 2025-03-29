@@ -1,4 +1,4 @@
-import { verifyJWT } from '../utils/JWT';
+import { verifyJWT } from '../lib/JWT';
 import { UnauthorizedError } from '../errors';
 
 interface Session {

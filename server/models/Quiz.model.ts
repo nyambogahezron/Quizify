@@ -1,28 +1,8 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, InferSchemaType } from 'mongoose';
 
-interface IQuizQuestion extends Document {
-	question: string;
-	options: string[];
-	correctAnswer: string;
-	explanation?: string;
-	points: number;
-}
+type IQuiz = InferSchemaType<typeof QuizSchema>;
 
-interface IQuiz extends Document {
-	title: string;
-	description: string;
-	category: string;
-	icon: string;
-	difficulty: 'easy' | 'medium' | 'hard';
-	timeLimit: number; // in seconds
-	questions: IQuizQuestion[];
-	createdBy: mongoose.Schema.Types.ObjectId;
-	isPublic: boolean;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-const QuizQuestionSchema = new Schema<IQuizQuestion>({
+const QuizQuestionSchema = new Schema({
 	question: {
 		type: String,
 		required: [true, 'Question is required'],
@@ -50,7 +30,7 @@ const QuizQuestionSchema = new Schema<IQuizQuestion>({
 	},
 });
 
-const QuizSchema = new Schema<IQuiz>(
+const QuizSchema = new Schema(
 	{
 		title: {
 			type: String,
@@ -84,7 +64,16 @@ const QuizSchema = new Schema<IQuiz>(
 			type: Number,
 			default: 60, // Default 60 seconds per question
 		},
-		questions: [QuizQuestionSchema],
+		questions: {
+			type: [QuizQuestionSchema],
+			required: [true, 'At least one question is required'],
+			validate: {
+				validator: function (v: any[]) {
+					return v.length > 0; // At least one question required
+				},
+				message: 'At least one question is required',
+			},
+		},
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',

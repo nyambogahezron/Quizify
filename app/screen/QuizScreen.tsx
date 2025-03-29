@@ -237,18 +237,9 @@ export default function QuizScreen({ navigation, route }: Props) {
 		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 	};
 
-	if (isLoading || !quiz?.questions) {
+	if (isLoading || !quiz?.questions || !isConnected) {
 		return (
 			<View style={styles.loadingContainer}>
-				<ActivityIndicator size='large' color={Colors.primary} />
-			</View>
-		);
-	}
-
-	if (!isConnected) {
-		return (
-			<View style={styles.loadingContainer}>
-				<Text style={styles.errorText}>Connecting to server...</Text>
 				<ActivityIndicator size='large' color={Colors.primary} />
 			</View>
 		);

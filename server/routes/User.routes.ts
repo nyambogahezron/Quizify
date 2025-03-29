@@ -1,20 +1,15 @@
-import { Router } from 'express';
-import {
-  GetCurrentUser,
-  UpdatePassword,
-  UpdateUser,
-  GetSingleUser,
-} from '../controllers/User.controller';
+import express, { Router } from 'express';
+import UserController from '../controllers/User.controller';
 import Authenticate from '../middleware/Authenticate';
 
-const router = Router();
+const router: Router = express.Router();
 
-router.get('/:id', GetSingleUser);
+router.get('/:id', UserController.getSingleUser);
 
-router.get('/me', Authenticate, GetCurrentUser);
+router.get('/me', Authenticate, UserController.getCurrentUser);
 
-router.patch('/update', Authenticate, UpdateUser);
+router.patch('/update', Authenticate, UserController.updateUser);
 
-router.patch('/update-password', Authenticate, UpdatePassword);
+router.patch('/update-password', Authenticate, UserController.updatePassword);
 
 export default router;
