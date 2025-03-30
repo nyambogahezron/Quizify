@@ -9,9 +9,9 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '.';
 import Colors from 'constants/Colors';
 import GameCard from 'components/GameCard';
+import { RootStackParamList } from '@/interface';
 
 interface Category {
 	id: string;

@@ -1,20 +1,20 @@
-import QuizScreen from './QuizScreen';
-import ResultScreen from './ResultScreen';
+import QuizScreen from './(quiz)/QuizScreen';
+import ResultScreen from './(quiz)/ResultScreen';
 import ProfileScreen from './(tabs)/ProfileScreen';
 import SettingsScreen from './(tabs)/SettingsScreen';
 import LeaderboardScreen from './(tabs)/LeaderboardScreen';
-import WordMakerScreen from './WordMakerGameScreen';
-import BookmarksScreen from './BookmarksScreen';
+import WordMakerScreen from './(games)/WordMakerGameScreen';
+import BookmarksScreen from './(tabs)/BookmarksScreen';
 import OnboardingScreen from './OnBoardScreen';
 import HomeScreen from './(tabs)/HomeScreen';
-import QuizList from './QuizList';
+import QuizList from './(quiz)/QuizList';
 import LoginScreen from './(auth)/Login';
 import RegisterScreen from './(auth)/Register';
 import ResetPasswordScreen from './(auth)/ResetPassword';
 import ForgotPasswordScreen from './(auth)/ForgotPassword';
 import DailyTasksScreen from './DailyTasks';
-import ReviewScreen from './ReviewScreen';
-
+import ReviewScreen from './(quiz)/ReviewScreen';
+import WordFillScreen from './(games)/WordFill';
 const SCREENS = {
 	HomeScreen,
 	QuizScreen,
@@ -23,6 +23,7 @@ const SCREENS = {
 	SettingsScreen,
 	LeaderboardScreen,
 	WordMakerScreen,
+	WordFillScreen,
 	BookmarksScreen,
 	OnboardingScreen,
 	QuizList,
@@ -68,6 +69,7 @@ export type RootStackParamList = {
 	Leaderboard: undefined;
 	CreateAccount: undefined;
 	WordGame: undefined;
+	WordFill: undefined;
 	OnBoard: undefined;
 	QuizList: { categories: Category[] };
 	Login: undefined;

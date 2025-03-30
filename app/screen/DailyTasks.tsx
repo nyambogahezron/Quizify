@@ -11,9 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../lib/types';
 import { useDailyTasks, useCompleteDailyTask } from '../services/ApiQuery';
 import Colors from 'constants/Colors';
+import { RootStackParamList } from '@/interface';
 
 type Props = {
 	navigation: NativeStackNavigationProp<RootStackParamList, 'DailyTasks'>;

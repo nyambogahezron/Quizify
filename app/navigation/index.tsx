@@ -85,6 +85,7 @@ export default function Navigation() {
 						name='DailyTasks'
 						component={SCREENS.DailyTasksScreen}
 					/>
+					<Stack.Screen name='WordFill' component={SCREENS.WordFillScreen} />
 				</Stack.Navigator>
 			) : (
 				<Stack.Navigator>

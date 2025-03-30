@@ -190,7 +190,9 @@ export default function HomeScreen() {
 								<GameCard
 									key={game.id}
 									game={game}
-									handleOnPress={() => navigation.navigate('WordGame')}
+									handleOnPress={() =>
+										navigation.navigate(game.path as 'WordFill' | 'WordGame')
+									}
 								/>
 							))}
 						</View>

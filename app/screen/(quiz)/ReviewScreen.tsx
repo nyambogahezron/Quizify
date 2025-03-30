@@ -11,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '.';
+import { RootStackParamList } from '@/interface';
 import Colors from 'constants/Colors';
 import Animated, {
 	FadeInUp,
