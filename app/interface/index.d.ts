@@ -2,7 +2,29 @@ interface RootStackParamList {
 	[index: string]: undefined | object;
 	MainTabs: undefined;
 	Quiz: { category: string };
-	Result: { score: number; totalQuestions: number; coins: number };
+	Result: {
+		score: number;
+		totalQuestions: number;
+		quizId: string;
+		reviewData: {
+			questions: any[];
+			answers: Record<string, string>;
+			timeSpent: number;
+			rank: number;
+			totalParticipants: number;
+			percentile: number;
+		};
+	};
+	Review: {
+		reviewData: {
+			questions: any[];
+			answers: Record<string, string>;
+			timeSpent: number;
+			rank: number;
+			totalParticipants: number;
+			percentile: number;
+		};
+	};
 	Profile: undefined;
 	Bookmark: undefined;
 	Settings: undefined;
@@ -66,15 +88,6 @@ interface QuizRanking {
 	quiz: Quiz;
 	score: number;
 	timeSpent: number;
-	rank: number;
-	totalParticipants: number;
-	percentile: number;
-}
-
-interface GlobalRanking {
-	totalScore: number;
-	quizzesCompleted: number;
-	averageScore: number;
 	rank: number;
 	totalParticipants: number;
 	percentile: number;

@@ -1,3 +1,6 @@
+import { playSound } from '@/lib/utils/sounds';
+import * as Haptics from 'expo-haptics';
+
 import {
 	TouchableOpacity,
 	Text,
@@ -25,6 +28,11 @@ export default function CustomButton({
 	isLoading,
 	textStyle,
 }: CustomButtonProps) {
+	const handlePress = () => {
+		playSound('button');
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+		onPress();
+	};
 	return (
 		<TouchableOpacity
 			style={[styles.button, customStyle]}

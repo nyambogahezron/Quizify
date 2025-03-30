@@ -1,25 +1,8 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, InferSchemaType } from 'mongoose';
 
-interface IAnswerResponse {
-	questionId: mongoose.Schema.Types.ObjectId;
-	selectedAnswer: string;
-	isCorrect: boolean;
-	timeSpent: number; // Time spent on this question in seconds
-}
+type IQuizAttempt = InferSchemaType<typeof QuizAttemptSchema>;
 
-interface IQuizAttempt extends Document {
-	quiz: mongoose.Schema.Types.ObjectId;
-	user: mongoose.Schema.Types.ObjectId;
-	answers: IAnswerResponse[];
-	score: number;
-	totalPossibleScore: number;
-	timeSpent: number; // Total time spent in seconds
-	completed: boolean;
-	startedAt: Date;
-	completedAt?: Date;
-}
-
-const AnswerResponseSchema = new Schema<IAnswerResponse>({
+const AnswerResponseSchema = new Schema({
 	questionId: {
 		type: mongoose.Schema.Types.ObjectId,
 		required: true,
@@ -38,7 +21,7 @@ const AnswerResponseSchema = new Schema<IAnswerResponse>({
 	},
 });
 
-const QuizAttemptSchema = new Schema<IQuizAttempt>({
+const QuizAttemptSchema = new Schema({
 	quiz: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Quiz',

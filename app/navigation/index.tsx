@@ -34,6 +34,7 @@ export default function Navigation() {
 					/>
 					<Stack.Screen name='Quiz' component={SCREENS.QuizScreen} />
 					<Stack.Screen name='Result' component={SCREENS.ResultScreen} />
+					<Stack.Screen name='Review' component={SCREENS.ReviewScreen} />
 					<Stack.Screen
 						name='Profile'
 						component={SCREENS.ProfileScreen}

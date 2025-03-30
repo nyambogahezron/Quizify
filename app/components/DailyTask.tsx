@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import React from 'react';
 import Colors from 'constants/Colors';
+import * as Haptics from 'expo-haptics';
 
 interface DailyTaskProps {
 	task: {
@@ -16,8 +17,12 @@ interface DailyTaskProps {
 }
 
 export default function DailyTask({ task, onPress }: DailyTaskProps) {
+	const handlePress = () => {
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+		onPress();
+	};
 	return (
-		<TouchableOpacity style={styles.dailyTask} onPress={onPress}>
+		<TouchableOpacity style={styles.dailyTask} onPress={handlePress}>
 			<View style={styles.taskIcon}>
 				<Text style={styles.taskIconText}>⚓️</Text>
 			</View>

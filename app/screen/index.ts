@@ -13,6 +13,7 @@ import RegisterScreen from './(auth)/Register';
 import ResetPasswordScreen from './(auth)/ResetPassword';
 import ForgotPasswordScreen from './(auth)/ForgotPassword';
 import DailyTasksScreen from './DailyTasks';
+import ReviewScreen from './ReviewScreen';
 
 const SCREENS = {
 	HomeScreen,
@@ -30,6 +31,7 @@ const SCREENS = {
 	ResetPasswordScreen,
 	ForgotPasswordScreen,
 	DailyTasksScreen,
+	ReviewScreen,
 };
 
 export default SCREENS;
@@ -37,7 +39,29 @@ export default SCREENS;
 export type RootStackParamList = {
 	MainTabs: undefined;
 	Quiz: { category: string };
-	Result: { score: number; totalQuestions: number; coins: number };
+	Result: {
+		score: number;
+		totalQuestions: number;
+		quizId: string;
+		reviewData: {
+			questions: any[];
+			answers: Record<string, string>;
+			timeSpent: number;
+			rank: number;
+			totalParticipants: number;
+			percentile: number;
+		};
+	};
+	Review: {
+		reviewData: {
+			questions: any[];
+			answers: Record<string, string>;
+			timeSpent: number;
+			rank: number;
+			totalParticipants: number;
+			percentile: number;
+		};
+	};
 	Profile: undefined;
 	Bookmark: undefined;
 	Settings: undefined;

@@ -26,6 +26,29 @@ export default function ForgotPasswordScreen({
 	const [email, setEmail] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
+
+
+	 // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  // Start animations on mount
+  React.useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+
 	const handleLogin = async () => {
 		if (!email) {
 			Alert.alert('Error', 'Please fill in all fields');

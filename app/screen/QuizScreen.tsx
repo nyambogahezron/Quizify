@@ -14,11 +14,13 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { useQuizByCategory, useSubmitQuiz } from '../services/ApiQuery';
 import { socketService } from '../lib/socket';
-import { useQuizStore } from '../store/useStore';
-import Colors from 'constants/Colors';
+import { useAchievementStore, useQuizStore } from '../store/useStore';
+import Colors, { SHADOWS } from 'constants/Colors';
 import { BlurView } from 'expo-blur';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { RootStackParamList } from '@/interface';
+import { playSoundEffect } from '@/store/useSound';
+import * as Haptics from 'expo-haptics';
 
 interface Question {
 	_id: string;
@@ -51,6 +53,9 @@ export default function QuizScreen({ navigation, route }: Props) {
 		correctAnswer: number;
 		points: number;
 	} | null>(null);
+	const [questions, setQuestions] = useState<Question[]>([]);
+
+	const { setUserRankings, userRankings } = useAchievementStore();
 
 	const { data: quizData, isLoading } = useQuizByCategory(category);
 	const { mutate: submitQuiz } = useSubmitQuiz();
@@ -93,22 +98,93 @@ export default function QuizScreen({ navigation, route }: Props) {
 				setFeedbackData(null);
 			});
 
-			socket.on('quiz:answer-feedback', (data) => {
+			socket.on('quiz:answer-feedback', async (data) => {
 				if (!mounted) return;
 				console.log('Received feedback:', data);
 				setFeedbackData(data);
 				setShowFeedback(true);
 				setScore((prev) => prev + data.points);
+
+				// Play sound and haptic feedback based on correctness
+				if (data.isCorrect) {
+					await playSoundEffect('correct');
+					await Haptics.notificationAsync(
+						Haptics.NotificationFeedbackType.Success
+					);
+				} else {
+					await playSoundEffect('incorrect');
+					await Haptics.notificationAsync(
+						Haptics.NotificationFeedbackType.Error
+					);
+				}
 			});
 
 			socket.on('quiz:completed', (data) => {
 				if (!mounted) return;
-				console.log('Quiz completed:', data);
-				navigation.navigate('Result', {
-					score: data.score,
-					totalQuestions: data.totalQuestions,
-					quizId: quiz?._id || '',
-				});
+				console.log('Quiz completed event received:', data);
+
+				try {
+					const rankingData = {
+						totalScore: data.score + userRankings?.global.totalScore,
+						quizzesCompleted: userRankings?.global.quizzesCompleted + 1,
+						averageScore:
+							(data.score + userRankings?.global.totalScore) /
+							(userRankings?.global.quizzesCompleted + 1),
+						rank: userRankings?.global.rank,
+						totalParticipants: userRankings?.global.totalParticipants,
+						percentile: userRankings?.global.percentile,
+					};
+
+					const quizRankingData = {
+						...userRankings,
+						global: rankingData,
+						quizzes: [
+							...(userRankings?.quizzes || []),
+							{
+								quiz: quiz,
+								score: data.score,
+								timeSpent: data.timeSpent,
+								rank: data.rank,
+								totalParticipants: data.totalParticipants,
+								percentile: data.percentile,
+							},
+						],
+					};
+
+					setUserRankings(quizRankingData);
+
+					console.log('Navigating to Result screen with data:', {
+						score: data.score,
+						totalQuestions: data.totalQuestions,
+						quizId: quiz?._id,
+						reviewData: {
+							questions: quiz.questions,
+							answers,
+							timeSpent: data.timeSpent,
+							rank: data.rank,
+							totalParticipants: data.totalParticipants,
+							percentile: data.percentile,
+						},
+					});
+
+					navigation.navigate('Result', {
+						score: data.score,
+						totalQuestions: data.totalQuestions,
+						quizId: quiz?._id || '',
+						reviewData: {
+							questions: quiz.questions,
+							answers,
+							timeSpent: data.timeSpent,
+							rank: data.rank,
+							totalParticipants: data.totalParticipants,
+							percentile: data.percentile,
+						},
+					});
+				} catch (error) {
+					console.error('Error handling quiz completion:', error);
+					// Fallback to handleQuizComplete if socket event fails
+					handleQuizComplete();
+				}
 			});
 		}
 
@@ -153,14 +229,27 @@ export default function QuizScreen({ navigation, route }: Props) {
 		return () => clearInterval(timer);
 	}, [isStarted]);
 
-	const handleStart = () => {
+	const handleStart = async () => {
 		if (!quiz?._id) return;
 		setIsStarted(true);
 		setTotalTimeLeft(quiz.timeLimit);
 		socketService.joinQuiz(quiz._id);
 	};
 
-	const onClose = () => {};
+	const onClose = () => {
+		navigation.goBack();
+		setIsStarted(false);
+		setTotalTimeLeft(0);
+		setCurrentQuestion(0);
+		setSelectedAnswer(null);
+		setShowFeedback(false);
+		setFeedbackData(null);
+		setAnswers({});
+		setScore(0);
+		setCurrentQuiz(null);
+		setIsConnected(false);
+		socketService.leaveQuiz(quiz?._id || '');
+	};
 
 	const handleTimeUp = () => {
 		if (currentQuestion < quiz.questions.length - 1) {
@@ -205,7 +294,7 @@ export default function QuizScreen({ navigation, route }: Props) {
 	};
 
 	const handleQuizComplete = () => {
-		if (!quiz?._id) return;
+		if (!quiz?._id || !quiz?.questions) return;
 
 		submitQuiz(
 			{
@@ -219,6 +308,14 @@ export default function QuizScreen({ navigation, route }: Props) {
 						score,
 						totalQuestions: quiz.questions.length,
 						quizId: quiz._id,
+						reviewData: {
+							questions: quiz.questions,
+							answers,
+							timeSpent: result.timeSpent,
+							rank: result.rank,
+							totalParticipants: result.totalParticipants,
+							percentile: result.percentile,
+						},
 					});
 				},
 			}
@@ -352,7 +449,7 @@ export default function QuizScreen({ navigation, route }: Props) {
 						{/* close btn */}
 						<TouchableOpacity
 							style={styles.closeButton}
-							onPress={() => navigation.goBack()}
+							onPress={() => onClose()}
 						>
 							<Ionicons name='close' size={24} color={Colors.text} />
 						</TouchableOpacity>
@@ -477,14 +574,7 @@ const styles = StyleSheet.create({
 		zIndex: 1000,
 		maxHeight: 300,
 		width: '90%',
-		shadowColor: '#000',
-		shadowOffset: {
-			width: 0,
-			height: 2,
-		},
-		shadowOpacity: 0.25,
-		shadowRadius: 3.84,
-		elevation: 5,
+		...SHADOWS.small,
 	},
 	questionGrid: {
 		flexDirection: 'row',
@@ -576,14 +666,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 70,
 		paddingVertical: 15,
 		borderRadius: 10,
-		shadowColor: Colors.primary,
-		shadowOffset: {
-			width: 0,
-			height: 5,
-		},
-		shadowOpacity: 0.25,
-		shadowRadius: 3.84,
-		elevation: 5,
+		...SHADOWS.small,
 	},
 	startButtonText: {
 		color: Colors.textLight,

@@ -29,4 +29,66 @@ const Colors = {
 	blue: '#0096ff',
 };
 
+// Typography
+export const FONT = {
+	regular: 'SpaceMono-Regular',
+	medium: 'SpaceMono-Regular',
+	bold: 'SpaceMono-Regular',
+};
+
+// Spacing
+export const SIZES = {
+	xs: 4,
+	sm: 8,
+	md: 16,
+	lg: 24,
+	xl: 32,
+	xxl: 40,
+	xxxl: 80,
+};
+
+// Border radius
+export const RADIUS = {
+	sm: 8,
+	md: 12,
+	lg: 16,
+	xl: 24,
+	xxl: 32,
+	round: 50,
+};
+
+// Shadows
+export const SHADOWS = {
+	small: {
+		shadowColor: Colors.dark,
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 3.84,
+		elevation: 2,
+	},
+	medium: {
+		shadowColor: Colors.dark,
+		shadowOffset: {
+			width: 0,
+			height: 4,
+		},
+		shadowOpacity: 0.3,
+		shadowRadius: 4.65,
+		elevation: 4,
+	},
+	large: {
+		shadowColor: Colors.dark,
+		shadowOffset: {
+			width: 0,
+			height: 6,
+		},
+		shadowOpacity: 0.37,
+		shadowRadius: 7.49,
+		elevation: 6,
+	},
+};
+
 export default Colors;
