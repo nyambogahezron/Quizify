@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
 	View,
 	Text,
 	StyleSheet,
 	Dimensions,
 	TouchableOpacity,
+	PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,7 +15,6 @@ import Animated, {
 	withSpring,
 	withSequence,
 	withTiming,
-	runOnJS,
 	FadeIn,
 	FadeOut,
 	Easing,
@@ -23,9 +23,6 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { playSoundEffect } from '@/store/useSound';
 import levelsData from '@/lib/wordsMaker.json';
-
-const GRID_SIZE = 4;
-const CELL_SIZE = (Dimensions.get('window').width - 40) / GRID_SIZE;
 
 type Position = {
 	row: number;
@@ -38,12 +35,21 @@ type Level = {
 	description: string;
 	hints: string[];
 	words: string[];
-	letters: string[];
+	grid?: string[][];
+	letters?: string[][];
 	gridSize: number;
 	totalPoints: number;
 	timeLimit: number;
 	icon: string;
 };
+
+// Update the grid size calculation to be dynamic based on level
+const getGridSize = (levelGridSize: number) => {
+	return (Dimensions.get('window').width - 40) / levelGridSize;
+};
+
+// Add helper function
+const getGridData = (level: Level) => level.grid || level.letters || [];
 
 export default function WordMakerScreen() {
 	const [score, setScore] = useState(0);
@@ -56,17 +62,28 @@ export default function WordMakerScreen() {
 	const [timeLeft, setTimeLeft] = useState(120);
 	const [gameOver, setGameOver] = useState(false);
 	const [currentLevel, setCurrentLevel] = useState<number>(1);
-	const [levelData, setLevelData] = useState<Level>(levelsData.levels[0]);
-
-	const selectedWord = selectedCells
-		.map((pos) => levelData.letters[pos.row * levelData.gridSize + pos.col])
-		.join('');
+	const [levelData, setLevelData] = useState<Level>(levelsData.levels[7]);
+	const [currentWord, setCurrentWord] = useState('');
 
 	const scale = useSharedValue(1);
 	const scoreOffset = useSharedValue(0);
 	const scoreOpacity = useSharedValue(0);
 	const timerProgress = useSharedValue(1);
 	const levelComplete = useSharedValue(0);
+
+	const selectedIndices = useRef(new Set());
+	const gridRef = useRef<View>(null);
+	const currentWordRef = useRef('');
+
+	// Add a ref for level data
+	const levelDataRef = useRef(levelData);
+
+	// Add this useEffect to track level changes
+	useEffect(() => {
+		console.log('Level data changed to:', levelData.level);
+		console.log('New words array:', levelData.words);
+		levelDataRef.current = levelData;
+	}, [levelData]);
 
 	// Timer effect
 	useEffect(() => {
@@ -102,43 +119,125 @@ export default function WordMakerScreen() {
 		scoreOpacity.value = withTiming(0, { duration: 400 });
 	};
 
-	const checkWord = useCallback(async () => {
-		if (
-			selectedWord.length >= 3 &&
-			levelData.words.includes(selectedWord) &&
-			!foundWords.includes(selectedWord)
-		) {
-			setScore((prev) => prev + 5);
-			setFoundWords((prev) => [...prev, selectedWord]);
-			scale.value = withSpring(1.2, {}, () => {
-				scale.value = withSpring(1);
-			});
-			animateScoreChange(5);
-			await playSoundEffect('correct');
-			await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-		} else {
-			await playSoundEffect('incorrect');
-			await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-		}
-		setSelectedCells([]);
-	}, [selectedWord, foundWords, levelData.words]);
+	const panResponder = useRef(
+		PanResponder.create({
+			onStartShouldSetPanResponder: () => true,
+			onPanResponderGrant: () => {
+				// Reset when starting a new selection
+				selectedIndices.current.clear();
+				setSelectedCells([]);
+				setCurrentWord('');
+				currentWordRef.current = '';
+			},
+			onPanResponderMove: (evt: any, gestureState: any) => {
+				if (!gridRef.current || gameOver) return;
 
-	const handleCellPress = async (row: number, col: number) => {
-		const newPos = { row, col };
-		if (!selectedCells.some((cell) => cell.row === row && cell.col === col)) {
-			setSelectedCells((prev) => [...prev, newPos]);
-			await playSoundEffect('buttonClick');
-			await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-		}
-	};
+				gridRef.current.measure((x, y, width, height, pageX, pageY) => {
+					const cellSize = getGridSize(levelData.gridSize);
+					const touchX = evt.nativeEvent.pageX - pageX;
+					const touchY = evt.nativeEvent.pageY - pageY;
 
-	const handleSubmit = async () => {
-		if (selectedCells.length > 0) {
-			await playSoundEffect('notification');
-			await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-			checkWord();
-		}
-	};
+					const row = Math.floor(touchY / cellSize);
+					const col = Math.floor(touchX / cellSize);
+					const key = `${row}-${col}`;
+
+					if (
+						row >= 0 &&
+						row < levelData.gridSize &&
+						col >= 0 &&
+						col < levelData.gridSize
+					) {
+						const gridData = getGridData(levelData);
+						if (!selectedIndices.current.has(key) && gridData[row][col]) {
+							selectedIndices.current.add(key);
+							const letter = gridData[row][col];
+							console.log('Adding letter:', letter);
+							console.log('From level:', levelDataRef.current.level);
+							setSelectedCells((prev) => [...prev, { row, col }]);
+
+							const newWord = currentWordRef.current + letter;
+							currentWordRef.current = newWord;
+							setCurrentWord(newWord);
+
+							console.log('Building word:', newWord);
+							playSoundEffect('buttonClick');
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+						}
+					}
+				});
+			},
+			onPanResponderRelease: async () => {
+				const word = currentWordRef.current;
+				const currentLevelWords = levelDataRef.current.words;
+
+				console.log('=== Word Check Debug ===');
+				console.log('Current level:', levelDataRef.current.level);
+				console.log('Checking word:', word);
+				console.log('Against words:', currentLevelWords);
+				console.log('Current grid letters:', levelDataRef.current.grid);
+
+				console.log('Level words:', currentLevelWords);
+				console.log('Found words:', foundWords);
+
+				if (word.length >= 3) {
+					await playSoundEffect('notification');
+					await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+					const isWordValid = currentLevelWords.includes(word);
+					const isWordAlreadyFound = foundWords.includes(word);
+
+					console.log('Is word valid:', isWordValid);
+					console.log('Is word already found:', isWordAlreadyFound);
+
+					if (isWordValid && !isWordAlreadyFound) {
+						setScore((prev) => prev + 5);
+						setFoundWords((prev) => [...prev, word]);
+						scale.value = withSpring(1.2, {}, () => {
+							scale.value = withSpring(1);
+						});
+						animateScoreChange(5);
+						await playSoundEffect('correct');
+						await Haptics.notificationAsync(
+							Haptics.NotificationFeedbackType.Success
+						);
+
+						// Clear selection after successful word with delay
+						setTimeout(() => {
+							selectedIndices.current.clear();
+							setSelectedCells([]);
+							setCurrentWord('');
+						}, 1500);
+					} else {
+						await playSoundEffect('incorrect');
+						await Haptics.notificationAsync(
+							Haptics.NotificationFeedbackType.Error
+						);
+
+						// Clear selection after incorrect word with delay
+						setTimeout(() => {
+							selectedIndices.current.clear();
+							setSelectedCells([]);
+							setCurrentWord('');
+						}, 1500);
+					}
+				} else {
+					// Clear selection if word is too short with delay
+					setTimeout(() => {
+						selectedIndices.current.clear();
+						setSelectedCells([]);
+						setCurrentWord('');
+					}, 1500);
+				}
+			},
+			onPanResponderTerminate: () => {
+				selectedIndices.current.clear();
+				setSelectedCells([]);
+				setCurrentWord('');
+				currentWordRef.current = '';
+			},
+			onPanResponderTerminationRequest: () => true,
+		})
+	).current;
 
 	const handleShowHint = async () => {
 		if (score < 3) {
@@ -286,37 +385,53 @@ export default function WordMakerScreen() {
 						</View>
 					) : (
 						<>
-							<View style={styles.grid}>
-								{levelData.letters.map((letter, index) => {
-									const row = Math.floor(index / levelData.gridSize);
-									const col = index % levelData.gridSize;
-									const isSelected = selectedCells.some(
-										(pos) => pos.row === row && pos.col === col
-									);
+							<View
+								ref={gridRef}
+								style={[
+									styles.grid,
+									{
+										width: getGridSize(levelData.gridSize) * levelData.gridSize,
+										height:
+											getGridSize(levelData.gridSize) * levelData.gridSize,
+									},
+								]}
+								{...panResponder.panHandlers}
+							>
+								{getGridData(levelData).map((row, rowIndex) =>
+									row.map((letter, colIndex) => {
+										const isSelected = selectedCells.some(
+											(pos) => pos.row === rowIndex && pos.col === colIndex
+										);
 
-									return (
-										<TouchableOpacity
-											key={index}
-											style={[styles.cell, isSelected && styles.selectedCell]}
-											onPress={() => handleCellPress(row, col)}
-											disabled={gameOver}
-										>
-											<Text
+										return (
+											<View
+												key={`${rowIndex}-${colIndex}`}
 												style={[
-													styles.letter,
-													isSelected && styles.selectedLetter,
+													styles.cell,
+													{
+														width: getGridSize(levelData.gridSize),
+														height: getGridSize(levelData.gridSize),
+													},
+													isSelected && styles.selectedCell,
 												]}
 											>
-												{letter}
-											</Text>
-										</TouchableOpacity>
-									);
-								})}
+												<Text
+													style={[
+														styles.letter,
+														isSelected && styles.selectedLetter,
+													]}
+												>
+													{letter}
+												</Text>
+											</View>
+										);
+									})
+								)}
 							</View>
 
 							{/* Selected Word */}
 							<View style={styles.selectedWordContainer}>
-								<Text style={styles.selectedWordText}>{selectedWord}</Text>
+								<Text style={styles.selectedWordText}>{currentWord}</Text>
 							</View>
 
 							{/* Hint */}
@@ -342,14 +457,6 @@ export default function WordMakerScreen() {
 									disabled={score < 3}
 								>
 									<Text style={styles.hintButtonText}>Show Hint</Text>
-								</TouchableOpacity>
-
-								<TouchableOpacity
-									style={[styles.submitButton, styles.button]}
-									onPress={handleSubmit}
-									disabled={selectedCells.length === 0}
-								>
-									<Text style={styles.submitButtonText}>Submit Word</Text>
 								</TouchableOpacity>
 							</View>
 
@@ -463,21 +570,20 @@ const styles = StyleSheet.create({
 		padding: 20,
 	},
 	grid: {
-		width: CELL_SIZE * 4,
-		height: CELL_SIZE * 4,
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		alignSelf: 'center',
 		marginTop: 20,
 		justifyContent: 'center',
+		backgroundColor: 'white',
+		borderRadius: 10,
+		overflow: 'hidden',
 	},
 	cell: {
-		width: CELL_SIZE,
-		height: CELL_SIZE,
-		borderWidth: 1,
-		borderColor: '#E9ECEF',
 		justifyContent: 'center',
 		alignItems: 'center',
+		borderWidth: 1,
+		borderColor: '#E9ECEF',
 		backgroundColor: 'white',
 	},
 	selectedCell: {

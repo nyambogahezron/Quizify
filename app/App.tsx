@@ -10,6 +10,16 @@ import { StatusBar } from 'react-native';
 import Colors from './constants/Colors';
 import { queryClient } from './lib/queryClient';
 
+import {
+	configureReanimatedLogger,
+	ReanimatedLogLevel,
+} from 'react-native-reanimated';
+
+configureReanimatedLogger({
+	level: ReanimatedLogLevel.warn,
+	strict: false,
+});
+
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {

@@ -98,7 +98,7 @@ export default function SettingsScreen() {
 				style={{ flex: 1 }}
 			>
 				<ScrollView ref={scrollViewRef} style={styles.content}>
-					<View style={styles.section}>
+					<View>
 						<Text style={styles.sectionTitle}>Preferences</Text>
 						{renderSettingItem(
 							'notifications-outline',
@@ -120,7 +120,7 @@ export default function SettingsScreen() {
 						)}
 					</View>
 
-					<View style={styles.section}>
+					<View>
 						<Text style={styles.sectionTitle}>Account</Text>
 						<TouchableOpacity style={styles.menuItem} onPress={toggleForm}>
 							<View style={styles.settingLeft}>
@@ -197,11 +197,10 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
 	content: {
-		padding: 15,
+		flex: 1,
+		paddingHorizontal: 10,
 	},
-	section: {
-		marginBottom: 32,
-	},
+
 	sectionTitle: {
 		fontSize: 18,
 		fontWeight: '600',
@@ -242,7 +241,7 @@ const styles = StyleSheet.create({
 		padding: 16,
 		borderRadius: 12,
 		alignItems: 'center',
-		marginTop: 'auto',
+		marginTop: 30,
 	},
 	logoutText: {
 		color: 'white',

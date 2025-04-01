@@ -21,20 +21,14 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 	};
 	const icons: tabBarIcon = {
 		Home: (props) => <AntDesign name={'home'} {...props} />,
+		Games: (props) => (
+			<Ionicons
+				name={props.focused ? 'game-controller' : 'game-controller-outline'}
+				{...props}
+			/>
+		),
 		Leaderboard: (props) => (
 			<Ionicons name={props.focused ? 'trophy' : 'trophy-outline'} {...props} />
-		),
-		Bookmarks: (props) => (
-			<Ionicons
-				name={props.focused ? 'bookmark' : 'bookmark-outline'}
-				{...props}
-			/>
-		),
-		Settings: (props) => (
-			<Ionicons
-				name={props.focused ? 'settings' : 'settings-outline'}
-				{...props}
-			/>
 		),
 	};
 
@@ -122,9 +116,8 @@ export function BottomTabNavigation() {
 			})}
 		>
 			<Tab.Screen name='Home' component={SCREENS.HomeScreen} />
+			<Tab.Screen name='Games' component={SCREENS.Gamelist} />
 			<Tab.Screen name='Leaderboard' component={SCREENS.LeaderboardScreen} />
-			<Tab.Screen name='Bookmarks' component={SCREENS.BookmarksScreen} />
-			<Tab.Screen name='Settings' component={SCREENS.SettingsScreen} />
 		</Tab.Navigator>
 	);
 }

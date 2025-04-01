@@ -1,17 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-	View,
-	Text,
-	StyleSheet,
-	Dimensions,
-	TouchableOpacity,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
 	useAnimatedStyle,
 	useSharedValue,
-	withSpring,
 	withSequence,
 	withTiming,
 	runOnJS,

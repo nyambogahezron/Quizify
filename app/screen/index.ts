@@ -1,10 +1,9 @@
 import QuizScreen from './(quiz)/QuizScreen';
 import ResultScreen from './(quiz)/ResultScreen';
-import ProfileScreen from './(tabs)/ProfileScreen';
-import SettingsScreen from './(tabs)/SettingsScreen';
+import ProfileScreen from './ProfileScreen';
+import SettingsScreen from './SettingsScreen';
 import LeaderboardScreen from './(tabs)/LeaderboardScreen';
 import WordMakerScreen from './(games)/WordMakerGameScreen';
-import BookmarksScreen from './(tabs)/BookmarksScreen';
 import OnboardingScreen from './OnBoardScreen';
 import HomeScreen from './(tabs)/HomeScreen';
 import QuizList from './(quiz)/QuizList';
@@ -15,6 +14,13 @@ import ForgotPasswordScreen from './(auth)/ForgotPassword';
 import DailyTasksScreen from './DailyTasks';
 import ReviewScreen from './(quiz)/ReviewScreen';
 import WordFillScreen from './(games)/WordFill';
+import Games from './(tabs)/Games';
+import BookmarksScreen from './BookmarksScreen';
+import WordFillLevels from './WordFillLevels';
+import WordMakerLevels from './WordMakerLevels';
+import Gamelist from './Gamelist';
+import NotificationScreen from './Notifications';
+
 const SCREENS = {
 	HomeScreen,
 	QuizScreen,
@@ -33,6 +39,11 @@ const SCREENS = {
 	ForgotPasswordScreen,
 	DailyTasksScreen,
 	ReviewScreen,
+	Games,
+	WordFillLevels,
+	WordMakerLevels,
+	Gamelist,
+	NotificationScreen,
 };
 
 export default SCREENS;
@@ -77,6 +88,12 @@ export type RootStackParamList = {
 	ResetPassword: undefined;
 	ForgotPassword: undefined;
 	DailyTasks: undefined;
+	Games: undefined;
+	WordMakerLevels: undefined;
+	WordFillLevels: undefined;
+	WordMaker: undefined;
+	Gamelist: undefined;
+	Notification: undefined;
 };
 
 interface Category {

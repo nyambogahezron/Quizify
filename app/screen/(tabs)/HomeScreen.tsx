@@ -117,11 +117,39 @@ export default function HomeScreen() {
 								}`}</Text>
 							</View>
 						</TouchableOpacity>
-						<View style={styles.coins}>
-							<Ionicons name='flash' size={20} color={Colors.red1} />
-							<Text style={styles.coinsText}>
-								{userRankings?.global?.totalScore || 0}
-							</Text>
+						<View>
+							{/* <View style={styles.coins}>
+								<Ionicons name='flash' size={20} color={Colors.red1} />
+								<Text style={styles.coinsText}>
+									{userRankings?.global?.totalScore || 0}
+								</Text>
+							</View> */}
+							<View style={{ flexDirection: 'row', gap: 10 }}>
+								<TouchableOpacity
+									onPress={() => navigation.navigate('Notification')}
+									style={{
+										backgroundColor: Colors.background2,
+										padding: 10,
+										borderRadius: 50,
+									}}
+								>
+									<Ionicons
+										name='notifications'
+										color={Colors.white}
+										size={20}
+									/>
+								</TouchableOpacity>
+								<TouchableOpacity
+									onPress={() => navigation.navigate('Settings')}
+									style={{
+										backgroundColor: Colors.background2,
+										padding: 10,
+										borderRadius: 50,
+									}}
+								>
+									<Ionicons name='settings' color={Colors.white} size={20} />
+								</TouchableOpacity>
+							</View>
 						</View>
 					</View>
 
@@ -176,11 +204,7 @@ export default function HomeScreen() {
 						<View style={styles.sectionHeader}>
 							<Text style={styles.sectionTitle}>More Games</Text>
 							<TouchableOpacity
-								onPress={() =>
-									navigation.navigate('QuizList', {
-										categories: categories || [],
-									})
-								}
+								onPress={() => navigation.navigate('WordMakerLevels')}
 							>
 								<Text style={styles.viewAll}>View All</Text>
 							</TouchableOpacity>

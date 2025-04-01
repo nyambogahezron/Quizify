@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { BottomTabNavigation } from 'components/navigation/BottomTab';
+import { BottomTabNavigation } from '@/navigation/BottomTab';
 import SCREENS, { RootStackParamList } from 'screen';
 import Colors from 'constants/Colors';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -35,6 +35,25 @@ export default function Navigation() {
 					<Stack.Screen name='Quiz' component={SCREENS.QuizScreen} />
 					<Stack.Screen name='Result' component={SCREENS.ResultScreen} />
 					<Stack.Screen name='Review' component={SCREENS.ReviewScreen} />
+					<Stack.Screen
+						name='Notification'
+						component={SCREENS.NotificationScreen}
+						options={{
+							headerShown: true,
+							headerTitle: 'Notification',
+							headerStyle: { backgroundColor: Colors.background },
+							headerTitleStyle: { color: Colors.white },
+							headerTintColor: Colors.white,
+						}}
+					/>
+					<Stack.Screen
+						name='WordFillLevels'
+						component={SCREENS.WordFillLevels}
+					/>
+					<Stack.Screen
+						name='WordMakerLevels'
+						component={SCREENS.WordMakerLevels}
+					/>
 					<Stack.Screen
 						name='Profile'
 						component={SCREENS.ProfileScreen}

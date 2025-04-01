@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { bookmarkedQuizzes } from '../../lib/data';
+import { bookmarkedQuizzes } from '../lib/data';
 import Colors from 'constants/Colors';
 
 export default function BookmarksScreen() {
