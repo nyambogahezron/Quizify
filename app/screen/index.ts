@@ -14,11 +14,10 @@ import ForgotPasswordScreen from './(auth)/ForgotPassword';
 import DailyTasksScreen from './DailyTasks';
 import ReviewScreen from './(quiz)/ReviewScreen';
 import WordFillScreen from './(games)/WordFill';
-import Games from './(tabs)/Games';
 import BookmarksScreen from './BookmarksScreen';
 import WordFillLevels from './WordFillLevels';
 import WordMakerLevels from './WordMakerLevels';
-import Gamelist from './Gamelist';
+import Gamelist from './(tabs)/Gamelist';
 import NotificationScreen from './Notifications';
 
 const SCREENS = {
@@ -39,7 +38,6 @@ const SCREENS = {
 	ForgotPasswordScreen,
 	DailyTasksScreen,
 	ReviewScreen,
-	Games,
 	WordFillLevels,
 	WordMakerLevels,
 	Gamelist,
@@ -88,11 +86,10 @@ export type RootStackParamList = {
 	ResetPassword: undefined;
 	ForgotPassword: undefined;
 	DailyTasks: undefined;
-	Games: undefined;
 	WordMakerLevels: undefined;
 	WordFillLevels: undefined;
 	WordMaker: undefined;
-	Gamelist: undefined;
+	Games: undefined;
 	Notification: undefined;
 };
 

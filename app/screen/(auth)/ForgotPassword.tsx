@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
 	View,
 	Text,
@@ -9,6 +9,7 @@ import {
 	Platform,
 	Alert,
 	ActivityIndicator,
+	Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -16,7 +17,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Toaster, toast } from 'sonner-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
-import { StatusBar } from 'expo-status-bar';
 
 export default function ForgotPasswordScreen({
 	navigation,
@@ -26,28 +26,25 @@ export default function ForgotPasswordScreen({
 	const [email, setEmail] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
+	// Animation values
+	const fadeAnim = useRef(new Animated.Value(0)).current;
+	const slideAnim = useRef(new Animated.Value(50)).current;
 
-
-	 // Animation values
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-
-  // Start animations on mount
-  React.useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
+	// Start animations on mount
+	React.useEffect(() => {
+		Animated.parallel([
+			Animated.timing(fadeAnim, {
+				toValue: 1,
+				duration: 500,
+				useNativeDriver: true,
+			}),
+			Animated.timing(slideAnim, {
+				toValue: 0,
+				duration: 500,
+				useNativeDriver: true,
+			}),
+		]).start();
+	}, []);
 
 	const handleLogin = async () => {
 		if (!email) {
@@ -96,7 +93,6 @@ export default function ForgotPasswordScreen({
 	return (
 		<SafeAreaProvider>
 			<SafeAreaView style={[styles.container, isLoading && { opacity: 0.9 }]}>
-				<StatusBar style='light' backgroundColor={Colors.background} />
 				<Toaster />
 				<LinearGradient
 					colors={[Colors.background, Colors.background2]}

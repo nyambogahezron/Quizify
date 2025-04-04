@@ -22,6 +22,11 @@ configureReanimatedLogger({
 
 SplashScreen.preventAutoHideAsync();
 
+SplashScreen.setOptions({
+	duration: 1000,
+	fade: true,
+});
+
 export default function App() {
 	const [appIsReady, setAppIsReady] = React.useState(false);
 	const { isAuthenticated, initialize } = useAuthStore();
@@ -69,7 +74,10 @@ export default function App() {
 
 	return (
 		<QueryClientProvider client={queryClient}>
-			<StatusBar barStyle='light-content' backgroundColor={Colors.background} />
+			<StatusBar
+				barStyle='light-content'
+				backgroundColor={Colors.background3}
+			/>
 			<GestureHandlerRootView onLayout={onLayoutRootView}>
 				<Navigation />
 			</GestureHandlerRootView>

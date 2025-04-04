@@ -10,11 +10,10 @@ import {
 	Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { RootStackParamList } from '@/lib/types';
+import { RootStackParamList } from '@/interface';
 
 import {
 	CustomTextInput,
@@ -117,7 +116,7 @@ export default function RegisterScreen({ navigation }: Props) {
 				style={{ flex: 1 }}
 			>
 				<LinearGradient
-					colors={[Colors.background, Colors.background2]}
+					colors={[Colors.background3, Colors.background2]}
 					style={{ flex: 1 }}
 				>
 					<Animated.ScrollView

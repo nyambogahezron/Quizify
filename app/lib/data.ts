@@ -41,12 +41,12 @@ export const bookmarkedQuizzes = [
 export const moreGames = [
 	{
 		id: 1,
-		name: 'Word Fill',
+		name: 'Quiz Game',
 		questions: 1,
 		players: '24.7k',
-		icon: '🔤',
-		description: 'Fill in the missing letters to complete the word',
-		path: 'WordFill',
+		icon: '🧠',
+		description: 'Test your knowledge with a variety of quizzes',
+		path: 'QuizList',
 	},
 	{
 		id: 2,
@@ -56,6 +56,15 @@ export const moreGames = [
 		icon: '🎯',
 		description: 'Create a word by filling in the missing letters',
 		path: 'WordGame',
+	},
+	{
+		id: 3,
+		name: 'Word Fill',
+		questions: 1,
+		players: '24.7k',
+		icon: '🔤',
+		description: 'Fill in the missing letters to complete the word',
+		path: 'WordFill',
 	},
 ];
 

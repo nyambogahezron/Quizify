@@ -16,7 +16,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Toaster, toast } from 'sonner-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
-import { StatusBar } from 'expo-status-bar';
 import { useRoute } from '@react-navigation/native';
 
 export default function ResetPasswordScreen({
@@ -102,10 +101,9 @@ export default function ResetPasswordScreen({
 	return (
 		<SafeAreaProvider>
 			<SafeAreaView style={[styles.container, isLoading && { opacity: 0.9 }]}>
-				<StatusBar style='light' backgroundColor={Colors.background} />
 				<Toaster />
 				<LinearGradient
-					colors={[Colors.background, Colors.background2]}
+					colors={[Colors.background3, Colors.background2]}
 					style={styles.gradient}
 				>
 					<KeyboardAvoidingView

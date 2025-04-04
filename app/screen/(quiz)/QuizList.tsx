@@ -10,14 +10,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Colors from 'constants/Colors';
-import GameCard from 'components/GameCard';
 import { RootStackParamList } from '@/interface';
+import CategoryCard from '@/components/CategoryCard';
 
 interface Category {
 	id: string;
 	name: string;
 	icon: string;
 	quizzesCount: number;
+	totalPlayers: number;
 }
 
 const width = Dimensions.get('window').width;
@@ -65,8 +66,9 @@ export default function QuizList() {
 								},
 							]}
 						>
-							<GameCard
+							<CategoryCard
 								game={game}
+								index={index}
 								handleOnPress={() =>
 									navigation.navigate('Quiz', { category: game.name })
 								}

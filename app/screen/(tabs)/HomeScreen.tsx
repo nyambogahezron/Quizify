@@ -82,16 +82,6 @@ export default function HomeScreen() {
 		);
 	}
 
-	const CategoryLoadingSkeleton = () => {
-		return (
-			<View style={styles.categoryCard}>
-				{Array.from({ length: 10 }).map((_, index) => (
-					<View key={index} style={styles.categoryCardSkeleton} />
-				))}
-			</View>
-		);
-	};
-
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
 			<LinearGradient
@@ -118,12 +108,6 @@ export default function HomeScreen() {
 							</View>
 						</TouchableOpacity>
 						<View>
-							{/* <View style={styles.coins}>
-								<Ionicons name='flash' size={20} color={Colors.red1} />
-								<Text style={styles.coinsText}>
-									{userRankings?.global?.totalScore || 0}
-								</Text>
-							</View> */}
 							<View style={{ flexDirection: 'row', gap: 10 }}>
 								<TouchableOpacity
 									onPress={() => navigation.navigate('Notification')}
@@ -153,6 +137,31 @@ export default function HomeScreen() {
 						</View>
 					</View>
 
+					{/* //cons  */}
+
+					<View style={styles.coinsContainer}>
+						<View style={styles.ranking}>
+							<Text style={styles.coinsText}>
+								Global Ranking
+								<Text
+									style={{
+										color: Colors.red1,
+										fontWeight: 'bold',
+										fontSize: 20,
+									}}
+								>
+									{''} #{userRankings?.ranking || 1}
+								</Text>
+							</Text>
+						</View>
+						<View style={styles.coins}>
+							<Ionicons name='flash' size={20} color={Colors.red1} />
+							<Text style={styles.coinsText}>
+								{userRankings?.global?.totalScore || ''}
+							</Text>
+						</View>
+					</View>
+
 					{/* Daily Tasks */}
 					<DailyTask
 						task={dailyTasks?.[0]}
@@ -174,49 +183,41 @@ export default function HomeScreen() {
 							</TouchableOpacity>
 						</View>
 						<ScrollView horizontal showsHorizontalScrollIndicator={false}>
-							{isLoadingCategories ? (
-								<CategoryLoadingSkeleton />
-							) : (
-								<View style={styles.categories}>
-									{(categories || [])
-										.slice(0, 10)
-										.map((category: Category, index: number) => (
-											<TouchableOpacity
-												key={index}
-												style={styles.categoryCard}
-												onPress={() =>
-													navigation.navigate('Quiz', {
-														category: category.name,
-													})
-												}
-											>
-												<Text style={styles.categoryIcon}>{category.icon}</Text>
-												<Text style={styles.categoryName}>{category.name}</Text>
-											</TouchableOpacity>
-										))}
-								</View>
-							)}
+							<View style={styles.categories}>
+								{(categories || [])
+									.slice(0, 10)
+									.map((category: Category, index: number) => (
+										<TouchableOpacity
+											key={index}
+											style={styles.categoryCard}
+											onPress={() =>
+												navigation.navigate('Quiz', {
+													category: category.name,
+												})
+											}
+										>
+											<Text style={styles.categoryIcon}>{category.icon}</Text>
+											<Text style={styles.categoryName}>{category.name}</Text>
+										</TouchableOpacity>
+									))}
+							</View>
 						</ScrollView>
 					</View>
 
 					{/* More Games */}
 					<View style={[styles.section, { marginBottom: 80, marginTop: 20 }]}>
 						<View style={styles.sectionHeader}>
-							<Text style={styles.sectionTitle}>More Games</Text>
-							<TouchableOpacity
-								onPress={() => navigation.navigate('WordMakerLevels')}
-							>
+							<Text style={styles.sectionTitle}>Games List</Text>
+							<TouchableOpacity onPress={() => navigation.navigate('Games')}>
 								<Text style={styles.viewAll}>View All</Text>
 							</TouchableOpacity>
 						</View>
 						<View style={styles.moreGames}>
-							{moreGames.map((game) => (
+							{moreGames.slice(1, 3).map((game) => (
 								<GameCard
 									key={game.id}
 									game={game}
-									handleOnPress={() =>
-										navigation.navigate(game.path as 'WordFill' | 'WordGame')
-									}
+									handleOnPress={() => navigation.navigate('WordMakerLevels')}
 								/>
 							))}
 						</View>
@@ -262,6 +263,26 @@ const styles = StyleSheet.create({
 		color: Colors.textLight,
 		fontSize: 14,
 	},
+	coinsContainer: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		marginHorizontal: 10,
+		paddingHorizontal: 10,
+		backgroundColor: Colors.background3,
+		paddingVertical: 10,
+		borderRadius: 15,
+		borderWidth: 1,
+		borderColor: Colors.background3,
+	},
+	ranking: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		paddingHorizontal: 10,
+		paddingVertical: 10,
+		marginRight: 10,
+	},
+
 	coins: {
 		flexDirection: 'row',
 		alignItems: 'center',

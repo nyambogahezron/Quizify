@@ -27,14 +27,12 @@ export default function DailyTask({ task, onPress }: DailyTaskProps) {
 				<Text style={styles.taskIconText}>⚓️</Text>
 			</View>
 			<View style={styles.taskInfo}>
-				<View style={styles.taskHeader}>
-					<Text style={styles.taskTitle}>{task?.title}</Text>
-					<Text style={styles.taskQuestions}>{task?.points} points</Text>
-				</View>
-				<Text style={styles.taskDescription}>{task?.description}</Text>
+				<Text style={styles.taskDescription}>
+					Complete dailt tasks to earn points
+				</Text>
 				{task?.type === 'auto_generated' && task?.questions && (
 					<Text style={styles.questionCount}>
-						{task.questions.length} questions to complete
+						{task.questions.length} Active Task
 					</Text>
 				)}
 				<View style={styles.progressBar}>
@@ -45,9 +43,6 @@ export default function DailyTask({ task, onPress }: DailyTaskProps) {
 						]}
 					/>
 				</View>
-				<Text style={styles.progressText}>
-					{task?.isCompleted ? 'Completed' : 'Not completed'}
-				</Text>
 			</View>
 		</TouchableOpacity>
 	);
@@ -78,20 +73,7 @@ const styles = StyleSheet.create({
 	taskInfo: {
 		flex: 1,
 	},
-	taskHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginBottom: 8,
-	},
-	taskTitle: {
-		color: Colors.text,
-		fontSize: 16,
-		fontFamily: 'Rb-bold',
-	},
-	taskQuestions: {
-		color: Colors.text2,
-		fontSize: 14,
-	},
+
 	taskDescription: {
 		color: Colors.text2,
 		fontSize: 14,
@@ -112,9 +94,5 @@ const styles = StyleSheet.create({
 		height: '100%',
 		backgroundColor: Colors.yellow,
 		borderRadius: 2,
-	},
-	progressText: {
-		color: Colors.text2,
-		fontSize: 12,
 	},
 });

@@ -30,7 +30,6 @@ interface DailyTask {
 
 export default function DailyTasksScreen({ navigation }: Props) {
 	const { data: tasks, isLoading } = useDailyTasks();
-	const { mutate: completeTask } = useCompleteDailyTask();
 
 	if (isLoading) {
 		return (
@@ -53,14 +52,10 @@ export default function DailyTasksScreen({ navigation }: Props) {
 		}
 	};
 
-	const handleCompleteTask = (taskId: string) => {
-		completeTask(taskId);
-	};
-
 	return (
 		<SafeAreaView style={styles.container}>
 			<LinearGradient
-				colors={[Colors.background, Colors.background2]}
+				colors={[Colors.background3, Colors.background2]}
 				style={styles.gradient}
 			>
 				<View style={styles.header}>
@@ -85,7 +80,7 @@ export default function DailyTasksScreen({ navigation }: Props) {
 									/>
 								</View>
 								<View style={styles.taskInfo}>
-									<Text style={styles.taskTitle}>{task.title}</Text>
+									<Text style={styles.taskTitle}>{task.title || 'Tks '}</Text>
 									<Text style={styles.taskDescription}>{task.description}</Text>
 								</View>
 							</View>
@@ -101,11 +96,10 @@ export default function DailyTasksScreen({ navigation }: Props) {
 										styles.completeButton,
 										task.isCompleted && styles.completedButton,
 									]}
-									onPress={() => handleCompleteTask(task.id)}
 									disabled={task.isCompleted}
 								>
 									<Text style={styles.completeButtonText}>
-										{task.isCompleted ? 'Completed' : 'Complete'}
+										{task.isCompleted ? 'Completed' : 'Active'}
 									</Text>
 								</TouchableOpacity>
 							</View>
@@ -146,16 +140,18 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		flex: 1,
-		padding: 20,
+		padding: 10,
 	},
 	taskCard: {
-		backgroundColor: Colors.grayLight,
+		backgroundColor: Colors.background2,
 		borderRadius: 16,
-		padding: 16,
+		paddingHorizontal: 10,
+		paddingVertical: 16,
 		marginBottom: 16,
 	},
 	taskHeader: {
 		flexDirection: 'row',
+		justifyContent: 'center',
 		alignItems: 'flex-start',
 		marginBottom: 16,
 	},
@@ -190,9 +186,8 @@ const styles = StyleSheet.create({
 	pointsContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		backgroundColor: Colors.grayLight,
 		padding: 8,
-		borderRadius: 20,
+		marginLeft: 10,
 	},
 	pointsText: {
 		fontSize: 16,

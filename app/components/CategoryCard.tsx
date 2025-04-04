@@ -3,25 +3,25 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from 'constants/Colors';
 
-type game = {
-	id: number;
-	name: string;
-	questions: number;
-	players: string;
-	icon: string;
-	description: string;
-	path: string;
-};
-
 type GameCardProps = {
-	game: game;
+	game: {
+		name: string;
+		icon: string;
+		quizzesCount: number;
+		totalPlayers: number;
+	};
 	handleOnPress: () => void;
+	index: number;
 };
 
-export default function GameCard({ game, handleOnPress }: GameCardProps) {
+export default function CategoryCard({
+	game,
+	handleOnPress,
+	index,
+}: GameCardProps) {
 	return (
 		<TouchableOpacity
-			key={game.id}
+			key={index}
 			style={styles.gameCard}
 			onPress={() => handleOnPress()}
 			activeOpacity={0.8}
@@ -40,12 +40,18 @@ export default function GameCard({ game, handleOnPress }: GameCardProps) {
 				>
 					<Text style={styles.gameName}>{game.name}</Text>
 				</View>
-				{game.description && (
-					<Text style={styles.gameDescription}>{game.description}</Text>
-				)}
-				<View style={styles.gamePlayers}>
-					<Ionicons name='star' size={16} color={Colors.red1} />
-					<Text style={styles.playersCount}>{game.players || 0}</Text>
+
+				<Text style={styles.gameDescription}>
+					Lorem ipsum dolor sit amet, consectetur adipisicing.
+				</Text>
+				<View style={styles.gameStats}>
+					<Text style={styles.gameQuestions}>
+						{game.quizzesCount} Sub Quizzes
+					</Text>
+					<View style={styles.gamePlayers}>
+						<Ionicons name='star' size={16} color={Colors.red1} />
+						<Text style={styles.playersCount}>{game.totalPlayers || 0}</Text>
+					</View>
 				</View>
 			</View>
 		</TouchableOpacity>
@@ -86,12 +92,12 @@ const styles = StyleSheet.create({
 		marginBottom: 4,
 	},
 	gameQuestions: {
-		color: Colors.text3,
+		color: Colors.success,
 		fontSize: 12,
 	},
 	gameDescription: {
-		color: Colors.text3,
-		fontSize: 12,
+		color: Colors.textLight,
+		fontSize: 14,
 		marginBottom: 8,
 	},
 	gamePlayers: {
@@ -102,5 +108,12 @@ const styles = StyleSheet.create({
 		color: Colors.white2,
 		fontSize: 14,
 		marginLeft: 4,
+	},
+	gameStats: {
+		padding: 2,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		marginTop: 4,
 	},
 });

@@ -169,25 +169,6 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 										<Text style={styles.signupButtonText}>Signup</Text>
 									</TouchableOpacity>
 								</View>
-								<View style={styles.socialLogin}>
-									<Text style={styles.socialText}>Or login with</Text>
-									<View style={styles.socialButtons}>
-										<TouchableOpacity style={styles.socialButton}>
-											<MaterialCommunityIcons
-												name='google'
-												size={24}
-												color='white'
-											/>
-										</TouchableOpacity>
-										<TouchableOpacity style={styles.socialButton}>
-											<MaterialCommunityIcons
-												name='facebook'
-												size={24}
-												color='white'
-											/>
-										</TouchableOpacity>
-									</View>
-								</View>
 							</View>
 						</KeyboardAvoidingView>
 					</LinearGradient>
@@ -245,39 +226,7 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		fontWeight: 'bold',
 	},
-	socialLogin: {
-		marginTop: 40,
-		alignItems: 'center',
-		gap: 20,
-	},
-	socialText: {
-		color: '#E0E0E0',
-		fontSize: 14,
-	},
-	socialButtons: {
-		flexDirection: 'row',
-		gap: 20,
-	},
-	socialButton: {
-		backgroundColor: 'rgba(255, 255, 255, 0.2)',
-		padding: 15,
-		borderRadius: 10,
-	},
-	demoButton: {
-		backgroundColor: 'rgba(255, 255, 255, 0.9)',
-		padding: 12,
-		borderRadius: 10,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 8,
-		marginTop: 10,
-	},
-	demoButtonText: {
-		color: '#3b5998',
-		fontSize: 16,
-		fontWeight: '600',
-	},
+
 	signupContainer: {
 		alignItems: 'center',
 		gap: 10,

@@ -3,9 +3,9 @@ import { useLinkBuilder } from '@react-navigation/native';
 import { Text, PlatformPressable } from '@react-navigation/elements';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import SCREENS from 'screen';
 import Colors from 'constants/Colors';
+import { LinearGradient } from 'expo-linear-gradient';
 
 type tabProps = {
 	state: any;
@@ -33,7 +33,10 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 	};
 
 	return (
-		<BlurView intensity={10} style={styles.wrapper}>
+		<LinearGradient
+			style={styles.wrapper}
+			colors={[Colors.background2, Colors.background]}
+		>
 			{/* Wrap with BlurView */}
 			{state.routes.map((route: any, index: number) => {
 				const { options } = descriptors[route.key];
@@ -99,7 +102,7 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 					</PlatformPressable>
 				);
 			})}
-		</BlurView>
+		</LinearGradient>
 	);
 }
 
@@ -116,7 +119,18 @@ export function BottomTabNavigation() {
 			})}
 		>
 			<Tab.Screen name='Home' component={SCREENS.HomeScreen} />
-			<Tab.Screen name='Games' component={SCREENS.Gamelist} />
+			<Tab.Screen
+				name='Games'
+				component={SCREENS.Gamelist}
+				options={{
+					headerShown: true,
+					headerTitle: 'Game List',
+					headerStyle: { backgroundColor: Colors.background3 },
+					headerTitleStyle: { color: Colors.white },
+					headerTintColor: Colors.white,
+					headerBackButtonDisplayMode: 'minimal',
+				}}
+			/>
 			<Tab.Screen name='Leaderboard' component={SCREENS.LeaderboardScreen} />
 		</Tab.Navigator>
 	);
@@ -129,7 +143,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		backgroundColor: Colors.background3,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		width: '100%',

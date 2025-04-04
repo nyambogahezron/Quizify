@@ -7,9 +7,14 @@ import {
 	FlatList,
 	TouchableOpacity,
 	Animated,
+	Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import Colors from '@/constants/Colors';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '.';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 interface Level {
 	id: number;
@@ -18,26 +23,40 @@ interface Level {
 	stars: number;
 }
 const levelsData: Level[] = [
-	{ id: 1, number: 1, status: 'unlocked', stars: 0 },
-	{ id: 2, number: 2, status: 'locked', stars: 0 },
-	{ id: 3, number: 3, status: 'locked', stars: 0 },
-	{ id: 4, number: 4, status: 'locked', stars: 0 },
+	{ id: 1, number: 1, status: 'locked', stars: 5 },
+	{ id: 2, number: 2, status: 'locked', stars: 5 },
+	{ id: 3, number: 3, status: 'locked', stars: 5 },
+	{ id: 4, number: 4, status: 'locked', stars: 5 },
 	{ id: 5, number: 5, status: 'locked', stars: 0 },
-	{ id: 6, number: 6, status: 'locked', stars: 0 },
-	{ id: 7, number: 7, status: 'locked', stars: 0 },
-	{ id: 8, number: 8, status: 'locked', stars: 0 },
-	{ id: 9, number: 9, status: 'locked', stars: 0 },
+	{ id: 6, number: 6, status: 'completed', stars: 3 },
+	{ id: 7, number: 7, status: 'completed', stars: 4 },
+	{ id: 8, number: 8, status: 'completed', stars: 1 },
+	{ id: 9, number: 9, status: 'unlocked', stars: 0 },
 	{ id: 10, number: 10, status: 'locked', stars: 0 },
 ];
 
+const width = Dimensions.get('window').width;
+
 export default function WordMakerLevels() {
+	const navigation =
+		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const [levels, setLevels] = useState<Level[]>(levelsData);
 
-	// Create a separate component for the LevelItem
+	const slideFromRight = useRef(new Animated.Value(width)).current;
+	const slideIn = () => {
+		Animated.timing(slideFromRight, {
+			toValue: 0,
+			duration: 500,
+			useNativeDriver: false,
+		}).start();
+	};
+	useEffect(() => {
+		slideIn();
+	}, []);
+
 	const LevelItem = ({ item }: { item: Level }) => {
 		const borderAnimation = useRef(new Animated.Value(0)).current;
 
-		// Start the animation for the current level
 		useEffect(() => {
 			if (item.status === 'unlocked') {
 				Animated.loop(
@@ -50,14 +69,9 @@ export default function WordMakerLevels() {
 			}
 		}, [item.status]);
 
-		// Interpolate the border color and width
 		const borderColor = borderAnimation.interpolate({
 			inputRange: [0, 1],
-			outputRange: ['#4F66EB', '#FFD700'], // Colors for the animation
-		});
-		const borderWidth = borderAnimation.interpolate({
-			inputRange: [0, 1],
-			outputRange: [2, 6], // Border width range
+			outputRange: ['#4F66EB', '#FFD700'],
 		});
 
 		return (
@@ -67,19 +81,24 @@ export default function WordMakerLevels() {
 					item.status === 'locked' && styles.lockedLevelItem,
 					item.status === 'unlocked' && {
 						borderColor: borderColor,
-						borderWidth: borderWidth,
 					},
 				]}
 			>
 				<TouchableOpacity
+					activeOpacity={0.4}
 					style={styles.levelTouchable}
 					disabled={item.status === 'locked'}
+					onPress={() => {
+						if (item.status === 'unlocked') {
+							navigation.navigate('WordGame' as 'WordFill' | 'WordGame');
+						}
+					}}
 				>
 					<LinearGradient
 						colors={
 							item.status === 'locked'
-								? ['#3A3E4D', '#252A37']
-								: ['#4F66EB', '#3A4CBA']
+								? [Colors.background3, Colors.background2]
+								: [Colors.background2, Colors.background]
 						}
 						style={styles.levelGradient}
 					>
@@ -116,17 +135,26 @@ export default function WordMakerLevels() {
 
 	return (
 		<SafeAreaView style={styles.container}>
-			{/* Levels grid */}
-			<View style={styles.levelsContainer}>
-				<FlatList
-					data={levels}
-					renderItem={renderLevelItem}
-					keyExtractor={(item) => item.id.toString()}
-					numColumns={3}
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.levelsList}
-				/>
-			</View>
+			<LinearGradient
+				colors={[Colors.background3, Colors.background2]}
+				style={{ flex: 1 }}
+			>
+				<Animated.View
+					style={[
+						styles.levelsContainer,
+						{ transform: [{ translateX: slideFromRight }] },
+					]}
+				>
+					<FlatList
+						data={levels}
+						renderItem={renderLevelItem}
+						keyExtractor={(item) => item.id.toString()}
+						numColumns={3}
+						showsVerticalScrollIndicator={false}
+						contentContainerStyle={styles.levelsList}
+					/>
+				</Animated.View>
+			</LinearGradient>
 		</SafeAreaView>
 	);
 }
@@ -134,100 +162,25 @@ export default function WordMakerLevels() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#121421',
-	},
-	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		paddingHorizontal: 16,
-		paddingVertical: 16,
-	},
-	backButton: {
-		padding: 8,
-	},
-	title: {
-		color: 'white',
-		fontSize: 20,
-		fontWeight: 'bold',
-	},
-	settingsButton: {
-		padding: 8,
-	},
-	worldSelector: {
-		marginBottom: 20,
-	},
-	worldList: {
-		paddingHorizontal: 16,
-	},
-	worldItem: {
-		paddingHorizontal: 20,
-		paddingVertical: 10,
-		marginRight: 10,
-		borderRadius: 20,
-		backgroundColor: '#252A37',
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	selectedWorldItem: {
-		backgroundColor: '#4F66EB',
-	},
-	lockedWorldItem: {
-		backgroundColor: '#1E2330',
-	},
-	worldText: {
-		color: 'white',
-		fontWeight: '500',
-	},
-	selectedWorldText: {
-		fontWeight: 'bold',
-	},
-	lockedWorldText: {
-		color: '#8E8E93',
-	},
-	lockIcon: {
-		marginLeft: 6,
-	},
-	progressContainer: {
-		paddingHorizontal: 16,
-		marginBottom: 20,
-	},
-	progressInfo: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginBottom: 8,
-	},
-	progressLabel: {
-		color: 'white',
-		fontWeight: 'bold',
-	},
-	progressValue: {
-		color: '#8E8E93',
-	},
-	progressBarBackground: {
-		height: 8,
-		backgroundColor: '#252A37',
-		borderRadius: 4,
-	},
-	progressBar: {
-		height: 8,
-		backgroundColor: '#4F66EB',
-		borderRadius: 4,
 	},
 	levelsContainer: {
 		flex: 1,
-		paddingHorizontal: 16,
+		paddingHorizontal: 10,
+		width: width,
 	},
 	levelsList: {
 		paddingBottom: 20,
+		marginTop: 10,
 	},
 	levelItem: {
-		flex: 1 / 3,
-		aspectRatio: 1,
 		padding: 8,
+		width: width / 3 - 15,
+		margin: 4,
 		borderRadius: 16,
 		justifyContent: 'center',
 		alignItems: 'center',
+		borderWidth: 2,
+		borderColor: Colors.background2,
 	},
 	lockedLevelItem: {
 		opacity: 0.8,
@@ -235,13 +188,29 @@ const styles = StyleSheet.create({
 	levelTouchable: {
 		flex: 1,
 		borderRadius: 16,
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: '100%',
+		height: '100%',
 	},
 	levelGradient: {
-		flex: 1,
+		position: 'relative',
 		borderRadius: 16,
 		justifyContent: 'center',
 		alignItems: 'center',
-		padding: 16,
+		paddingHorizontal: 30,
+		paddingVertical: 35,
+		width: '100%',
+		height: '100%',
+		elevation: 5,
+		shadowColor: '#000',
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 3.5,
+		borderColor: 'transparent',
 	},
 	levelNumber: {
 		color: 'white',
@@ -255,7 +224,7 @@ const styles = StyleSheet.create({
 	},
 	starsContainer: {
 		position: 'absolute',
-		bottom: 10,
+		top: 10,
 		flexDirection: 'row',
 	},
 	starIcon: {

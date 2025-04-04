@@ -25,8 +25,6 @@ export default function Navigation() {
 						name='MainTabs'
 						component={BottomTabNavigation}
 						options={{
-							statusBarBackgroundColor: Colors.background,
-							statusBarStyle: 'light',
 							contentStyle: {
 								backgroundColor: Colors.background2,
 							},
@@ -41,7 +39,7 @@ export default function Navigation() {
 						options={{
 							headerShown: true,
 							headerTitle: 'Notification',
-							headerStyle: { backgroundColor: Colors.background },
+							headerStyle: { backgroundColor: Colors.background3 },
 							headerTitleStyle: { color: Colors.white },
 							headerTintColor: Colors.white,
 						}}
@@ -49,10 +47,24 @@ export default function Navigation() {
 					<Stack.Screen
 						name='WordFillLevels'
 						component={SCREENS.WordFillLevels}
+						options={{
+							headerShown: true,
+							headerTitle: 'Word Fill Levels',
+							headerStyle: { backgroundColor: Colors.background3 },
+							headerTitleStyle: { color: Colors.white },
+							headerTintColor: Colors.white,
+						}}
 					/>
 					<Stack.Screen
 						name='WordMakerLevels'
 						component={SCREENS.WordMakerLevels}
+						options={{
+							headerShown: true,
+							headerTitle: 'Word Maker Levels',
+							headerStyle: { backgroundColor: Colors.background3 },
+							headerTitleStyle: { color: Colors.white },
+							headerTintColor: Colors.white,
+						}}
 					/>
 					<Stack.Screen
 						name='Profile'
@@ -67,7 +79,7 @@ export default function Navigation() {
 						options={{
 							headerShown: true,
 							headerTitle: 'Bookmarks',
-							headerStyle: { backgroundColor: Colors.background },
+							headerStyle: { backgroundColor: Colors.background3 },
 							headerTitleStyle: { color: Colors.white },
 							headerTintColor: Colors.white,
 						}}
@@ -78,7 +90,7 @@ export default function Navigation() {
 						options={{
 							headerShown: true,
 							headerTitle: 'Settings',
-							headerStyle: { backgroundColor: Colors.background },
+							headerStyle: { backgroundColor: Colors.background3 },
 							headerTitleStyle: { color: Colors.white },
 							headerTintColor: Colors.white,
 						}}
