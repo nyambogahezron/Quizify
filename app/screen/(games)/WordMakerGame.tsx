@@ -36,8 +36,6 @@ const getGridSize = (levelGridSize: number) => {
 	return (Dimensions.get('window').width - 40) / levelGridSize;
 };
 
-// Add helper function
-
 export default function WordMakerScreen() {
 	const [score, setScore] = useState(0);
 	const [selectedCells, setSelectedCells] = useState<Position[]>([]);
@@ -58,8 +56,6 @@ export default function WordMakerScreen() {
 	const { levelId } = params as { levelId: Level };
 
 	const getGridData = (level: Level) => level.letters || [];
-	// console.log('Level ID:', levelId);
-	// console.log('Levels Data:', levelData);
 
 	useEffect(() => {
 		if (levelId) {
@@ -90,13 +86,13 @@ export default function WordMakerScreen() {
 	const gridRef = useRef<View>(null);
 	const currentWordRef = useRef('');
 
-	// Add a ref for level data
+	// ref for level data
 	const levelDataRef = useRef(levelData);
 
-	// Add a ref for found words
+	// ref for found words
 	const foundWordsRef = useRef<Set<string>>(new Set());
 
-	// Add this effect to sync the ref with state
+	// sync the ref with state
 	useEffect(() => {
 		if (levelData) {
 			levelDataRef.current = levelData;
@@ -105,7 +101,6 @@ export default function WordMakerScreen() {
 
 	// Update useEffect to sync foundWords state with the ref
 	useEffect(() => {
-		// Update the ref whenever foundWords state changes
 		foundWordsRef.current = new Set(foundWords);
 
 		if (foundWords.length === levelDataRef.current?.words.length) {
@@ -163,7 +158,6 @@ export default function WordMakerScreen() {
 					return;
 				}
 
-				// Use levelDataRef instead of levelData
 				if (!levelDataRef.current) {
 					console.log('Level data not available');
 					return;
@@ -172,7 +166,6 @@ export default function WordMakerScreen() {
 				console.log('Touch moving - processing touch event');
 
 				gridRef.current.measure((x, y, width, height, pageX, pageY) => {
-					// Use levelDataRef here too
 					const cellSize = levelDataRef.current
 						? getGridSize(levelDataRef.current.gridSize)
 						: 0;
@@ -187,13 +180,11 @@ export default function WordMakerScreen() {
 					const col = Math.floor(touchX / cellSize);
 					const key = `${row}-${col}`;
 
-					console.log(`Calculated cell: (${row}, ${col}), key: ${key}`);
+					// console.log(`Calculated cell: (${row}, ${col}), key: ${key}`);
 
 					if (row >= 0 && col >= 0) {
-						// Get the grid data first
 						const gridData = levelDataRef.current?.letters ?? [];
 
-						// Then check the row and column against the actual grid dimensions
 						if (
 							row < gridData.length &&
 							col < (gridData[0]?.length || 0) &&
@@ -201,9 +192,7 @@ export default function WordMakerScreen() {
 							gridData[row][col] &&
 							!selectedIndices.current.has(key) // Check if already selected
 						) {
-							console.log(`Cell not yet selected: ${key}`);
 							const letter = gridData[row][col];
-							console.log('Adding letter:', letter);
 
 							// Add this key to the selected indices set
 							selectedIndices.current.add(key);
@@ -220,13 +209,10 @@ export default function WordMakerScreen() {
 							currentWordRef.current = newWord;
 							setCurrentWord(newWord);
 
-							console.log('Building word:', newWord);
-
 							// Provide feedback
 							playSoundEffect('buttonClick');
 							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 						} else {
-							// Log why we're not selecting this cell
 							if (selectedIndices.current.has(key)) {
 								console.log(`Cell already selected: ${key}, skipping`);
 							}
@@ -235,14 +221,8 @@ export default function WordMakerScreen() {
 				});
 			},
 			onPanResponderRelease: async () => {
-				console.log(
-					`onPanResponderRelease - current word: "${currentWordRef.current}"`
-				);
-
 				const word = currentWordRef.current;
-				console.log(`Word to check: "${word}"`);
 
-				// Add safety check to prevent accessing undefined data
 				if (!levelDataRef.current) {
 					console.log('Level data not available yet');
 					return;
@@ -250,29 +230,24 @@ export default function WordMakerScreen() {
 
 				const currentLevelWords = levelDataRef.current.words || [];
 
-				console.log('=== Word Check Debug ===');
-				console.log('Current level:', levelDataRef.current?.level);
-				console.log('Checking word:', word);
-				console.log('Against words:', currentLevelWords);
-				console.log('Current grid letters:', levelDataRef?.current?.letters);
+				// console.log('=== Word Check Debug ===');
+				// console.log('Current level:', levelDataRef.current?.level);
+				// console.log('Checking word:', word);
+				// console.log('Against words:', currentLevelWords);
+				// console.log('Current grid letters:', levelDataRef?.current?.letters);
 
-				console.log('Level words:', currentLevelWords);
-				console.log('Found words:', foundWords);
+				// console.log('Level words:', currentLevelWords);
+				// console.log('Found words:', foundWords);
 
 				if (word.length >= 3) {
 					await playSoundEffect('notification');
 					await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
 					const isWordValid = currentLevelWords.includes(word);
-					// Use both the state and the ref for checking
 					const isWordAlreadyFound =
 						foundWords.includes(word) || foundWordsRef.current.has(word);
 
-					console.log('Is word valid:', isWordValid);
-					console.log('Is word already found:', isWordAlreadyFound);
-
 					if (isWordValid && !isWordAlreadyFound) {
-						// Add to ref immediately
 						foundWordsRef.current.add(word);
 
 						setScore((prev) => prev + 5);

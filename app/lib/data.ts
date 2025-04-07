@@ -1,4 +1,4 @@
-import { slidesProps } from '@/interface';
+import { moreGames } from '@/interface';
 
 export const bookmarkedQuizzes = [
 	{
@@ -38,33 +38,24 @@ export const bookmarkedQuizzes = [
 	},
 ];
 
-export const moreGames = [
+export const moreGamesList: moreGames[] = [
 	{
 		id: 1,
-		name: 'Quiz Game',
-		questions: 1,
-		players: '24.7k',
-		icon: '🧠',
-		description: 'Test your knowledge with a variety of quizzes',
-		path: 'QuizList',
-	},
-	{
-		id: 2,
 		name: 'Word Maker',
 		questions: 12,
 		players: '12.5k',
 		icon: '🎯',
 		description: 'Create a word by filling in the missing letters',
-		path: 'WordGame',
+		path: 'WordMakerLevels',
 	},
 	{
-		id: 3,
+		id: 2,
 		name: 'Word Fill',
 		questions: 1,
 		players: '24.7k',
 		icon: '🔤',
 		description: 'Fill in the missing letters to complete the word',
-		path: 'WordFill',
+		path: 'WordFillLevels',
 	},
 ];
 
@@ -328,7 +319,7 @@ export const mockQuestions = [
 	},
 ];
 
-export const slides: slidesProps[] = [
+export const slides = [
 	{
 		id: 1,
 		key: 'welcome',

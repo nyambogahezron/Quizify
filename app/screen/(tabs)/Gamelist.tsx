@@ -1,13 +1,13 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import GameCard from '@/components/GameCard';
-import { moreGames } from '@/lib/data';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '..';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { LinearGradient } from 'expo-linear-gradient';
+import { moreGamesList } from '@/lib/data';
 
 export default function Gamelist() {
 	const navigation =
@@ -23,13 +23,11 @@ export default function Gamelist() {
 					showsVerticalScrollIndicator={false}
 					showsHorizontalScrollIndicator={false}
 				>
-					{moreGames.map((game) => (
+					{moreGamesList.map((game: any) => (
 						<GameCard
 							key={game.id}
 							game={game}
-							handleOnPress={() =>
-								navigation.navigate(game.path as 'WordFill' | 'WordGame')
-							}
+							handleOnPress={() => navigation.navigate(game.path)}
 						/>
 					))}
 				</ScrollView>

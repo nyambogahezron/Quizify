@@ -20,7 +20,7 @@ import {
 	useCategories,
 	useUserRankings,
 } from '@/services/ApiQuery';
-import { moreGames } from '@/lib/data';
+import { moreGamesList } from '@/lib/data';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { socketService } from '@/lib/socket';
 import { RootStackParamList } from '..';
@@ -212,11 +212,11 @@ export default function HomeScreen() {
 							</TouchableOpacity>
 						</View>
 						<View style={styles.moreGames}>
-							{moreGames.slice(1, 3).map((game) => (
+							{moreGamesList.slice(0, 3).map((game: any) => (
 								<GameCard
 									key={game.id}
 									game={game}
-									handleOnPress={() => navigation.navigate('WordMakerLevels')}
+									handleOnPress={() => navigation.navigate(game.path)}
 								/>
 							))}
 						</View>

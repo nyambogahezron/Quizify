@@ -113,6 +113,16 @@ interface DailyTaskState {
 	updateTask: (taskId: string, updates: any) => void;
 }
 
+interface moreGames {
+	id: number;
+	name: string;
+	questions: number;
+	players: string;
+	icon: string;
+	description: string;
+	path: any;
+}
+
 export type {
 	RootStackParamList,
 	Category,
@@ -125,6 +135,7 @@ export type {
 	GlobalRanking,
 	QuizRanking,
 	Quiz,
+	moreGames,
 };
 
 export type Level = {
