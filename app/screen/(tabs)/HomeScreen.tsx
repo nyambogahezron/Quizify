@@ -50,7 +50,6 @@ export default function HomeScreen() {
 		}
 	}, [userRankings]);
 
-	console.log('userRankings from store', userRankings);
 	//test connection
 	socketService.testConnection();
 

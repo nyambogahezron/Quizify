@@ -90,7 +90,9 @@ export default function WordMakerLevels() {
 					disabled={item.status === 'locked'}
 					onPress={() => {
 						if (item.status === 'unlocked') {
-							navigation.navigate('WordGame' as 'WordFill' | 'WordGame');
+							navigation.navigate('WordGame' as 'WordFill' | 'WordGame', {
+								levelId: item.id,
+							});
 						}
 					}}
 				>

@@ -10,7 +10,6 @@ import {
 	Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Toaster, toast } from 'sonner-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

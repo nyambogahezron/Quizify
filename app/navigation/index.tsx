@@ -109,6 +109,7 @@ export default function Navigation() {
 							headerStyle: { backgroundColor: Colors.background3 },
 							headerTitleStyle: { color: Colors.white },
 							headerTintColor: Colors.white,
+							animation: 'slide_from_right',
 						}}
 					/>
 

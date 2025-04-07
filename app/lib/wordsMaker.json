@@ -187,10 +187,10 @@
 			"words": ["SONG", "DIG", "LAKE", "RULER"],
 			"letters": [
 				["S", "O", "N", "G"],
-				["D", "I", "G", "L"],
-				["A", "K", "E", "R"],
-				["U", "T", "P", "M"],
-				["H", "W", "Y", "E"]
+				["D", "I", "G", "R"],
+				["E", "K", "A", "L"],
+				["U", "T", "P", "R"],
+				["R", "U", "L", "E"]
 			],
 			"gridSize": 4,
 			"totalPoints": 110,
@@ -232,9 +232,10 @@
 			"words": ["TRUCK", "BLOW", "CELL", "MILE"],
 			"letters": [
 				["T", "R", "U", "C"],
-				["K", "B", "L", "O"],
-				["W", "E", "M", "I"],
-				["A", "S", "N", "P"]
+				["B", "L", "O", "K"],
+				["W", "E", "W", "I"],
+				["C", "E", "L", "L"],
+				["M", "I", "L", "E"]
 			],
 			"gridSize": 4,
 			"totalPoints": 130,

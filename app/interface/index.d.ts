@@ -126,3 +126,32 @@ export type {
 	QuizRanking,
 	Quiz,
 };
+
+export type Level = {
+	_id: string;
+	level: number;
+	description: string;
+	hints: string[];
+	words: string[];
+	grid?: string[][];
+	letters?: string[][];
+	gridSize: number;
+	totalPoints: number;
+	timeLimit: number;
+	icon: string;
+};
+export type WordGameState = {
+	levels: Level[];
+	currentLevel: Level | null;
+	setLevels: (levels: Level[]) => void;
+	setCurrentLevel: (level: Level | null) => void;
+	updateLevelProgress: (levelId: string, progress: any) => void;
+};
+export type WordGameProgress = {
+	levelId: string;
+	completed: boolean;
+	points: number;
+	timeSpent: number;
+	hintsUsed: number;
+	wordsFound: string[];
+};

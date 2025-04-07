@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
 	View,
 	Text,
@@ -23,24 +23,12 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { playSoundEffect } from '@/store/useSound';
 import levelsData from '@/lib/wordsMaker.json';
+import { useRoute } from '@react-navigation/native';
+import { Level } from '@/interface';
 
 type Position = {
 	row: number;
 	col: number;
-};
-
-type Level = {
-	_id: string;
-	level: number;
-	description: string;
-	hints: string[];
-	words: string[];
-	grid?: string[][];
-	letters?: string[][];
-	gridSize: number;
-	totalPoints: number;
-	timeLimit: number;
-	icon: string;
 };
 
 // Update the grid size calculation to be dynamic based on level
@@ -49,7 +37,6 @@ const getGridSize = (levelGridSize: number) => {
 };
 
 // Add helper function
-const getGridData = (level: Level) => level.grid || level.letters || [];
 
 export default function WordMakerScreen() {
 	const [score, setScore] = useState(0);
@@ -62,8 +49,36 @@ export default function WordMakerScreen() {
 	const [timeLeft, setTimeLeft] = useState(120);
 	const [gameOver, setGameOver] = useState(false);
 	const [currentLevel, setCurrentLevel] = useState<number>(1);
-	const [levelData, setLevelData] = useState<Level>(levelsData.levels[7]);
+	const [levelData, setLevelData] = useState<Level>();
 	const [currentWord, setCurrentWord] = useState('');
+	const [isLoading, setIsLoading] = useState(true);
+
+	const router = useRoute();
+	const { params } = router;
+	const { levelId } = params as { levelId: Level };
+
+	const getGridData = (level: Level) => level.letters || [];
+	// console.log('Level ID:', levelId);
+	// console.log('Levels Data:', levelData);
+
+	useEffect(() => {
+		if (levelId) {
+			setCurrentLevel(Number(levelId));
+
+			const selectedLevel = levelsData.levels.find(
+				(level) => level.level === Number(levelId)
+			);
+			if (selectedLevel) {
+				setLevelData(selectedLevel);
+				setCurrentLevel(selectedLevel.level);
+			}
+			setIsLoading(false);
+		} else {
+			setLevelData(levelsData.levels[0]);
+			setCurrentLevel(1);
+			setIsLoading(false);
+		}
+	}, [levelId]);
 
 	const scale = useSharedValue(1);
 	const scoreOffset = useSharedValue(0);
@@ -78,12 +93,25 @@ export default function WordMakerScreen() {
 	// Add a ref for level data
 	const levelDataRef = useRef(levelData);
 
-	// Add this useEffect to track level changes
+	// Add a ref for found words
+	const foundWordsRef = useRef<Set<string>>(new Set());
+
+	// Add this effect to sync the ref with state
 	useEffect(() => {
-		console.log('Level data changed to:', levelData.level);
-		console.log('New words array:', levelData.words);
-		levelDataRef.current = levelData;
+		if (levelData) {
+			levelDataRef.current = levelData;
+		}
 	}, [levelData]);
+
+	// Update useEffect to sync foundWords state with the ref
+	useEffect(() => {
+		// Update the ref whenever foundWords state changes
+		foundWordsRef.current = new Set(foundWords);
+
+		if (foundWords.length === levelDataRef.current?.words.length) {
+			handleGameOver();
+		}
+	}, [foundWords]);
 
 	// Timer effect
 	useEffect(() => {
@@ -130,51 +158,103 @@ export default function WordMakerScreen() {
 				currentWordRef.current = '';
 			},
 			onPanResponderMove: (evt: any, gestureState: any) => {
-				if (!gridRef.current || gameOver) return;
+				if (!gridRef.current || gameOver) {
+					console.log('Grid ref not available or game over');
+					return;
+				}
+
+				// Use levelDataRef instead of levelData
+				if (!levelDataRef.current) {
+					console.log('Level data not available');
+					return;
+				}
+
+				console.log('Touch moving - processing touch event');
 
 				gridRef.current.measure((x, y, width, height, pageX, pageY) => {
-					const cellSize = getGridSize(levelData.gridSize);
+					// Use levelDataRef here too
+					const cellSize = levelDataRef.current
+						? getGridSize(levelDataRef.current.gridSize)
+						: 0;
 					const touchX = evt.nativeEvent.pageX - pageX;
 					const touchY = evt.nativeEvent.pageY - pageY;
+
+					console.log(
+						`Touch at: (${touchX}, ${touchY}), Grid at: (${pageX}, ${pageY})`
+					);
 
 					const row = Math.floor(touchY / cellSize);
 					const col = Math.floor(touchX / cellSize);
 					const key = `${row}-${col}`;
 
-					if (
-						row >= 0 &&
-						row < levelData.gridSize &&
-						col >= 0 &&
-						col < levelData.gridSize
-					) {
-						const gridData = getGridData(levelData);
-						if (!selectedIndices.current.has(key) && gridData[row][col]) {
-							selectedIndices.current.add(key);
+					console.log(`Calculated cell: (${row}, ${col}), key: ${key}`);
+
+					if (row >= 0 && col >= 0) {
+						// Get the grid data first
+						const gridData = levelDataRef.current?.letters ?? [];
+
+						// Then check the row and column against the actual grid dimensions
+						if (
+							row < gridData.length &&
+							col < (gridData[0]?.length || 0) &&
+							gridData[row] &&
+							gridData[row][col] &&
+							!selectedIndices.current.has(key) // Check if already selected
+						) {
+							console.log(`Cell not yet selected: ${key}`);
 							const letter = gridData[row][col];
 							console.log('Adding letter:', letter);
-							console.log('From level:', levelDataRef.current.level);
+
+							// Add this key to the selected indices set
+							selectedIndices.current.add(key);
+							console.log(
+								'Updated selected indices:',
+								Array.from(selectedIndices.current)
+							);
+
+							// Update the UI state with the selected cell
 							setSelectedCells((prev) => [...prev, { row, col }]);
 
+							// Build the current word
 							const newWord = currentWordRef.current + letter;
 							currentWordRef.current = newWord;
 							setCurrentWord(newWord);
 
 							console.log('Building word:', newWord);
+
+							// Provide feedback
 							playSoundEffect('buttonClick');
 							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+						} else {
+							// Log why we're not selecting this cell
+							if (selectedIndices.current.has(key)) {
+								console.log(`Cell already selected: ${key}, skipping`);
+							}
 						}
 					}
 				});
 			},
 			onPanResponderRelease: async () => {
+				console.log(
+					`onPanResponderRelease - current word: "${currentWordRef.current}"`
+				);
+
 				const word = currentWordRef.current;
-				const currentLevelWords = levelDataRef.current.words;
+				console.log(`Word to check: "${word}"`);
+
+				// Add safety check to prevent accessing undefined data
+				if (!levelDataRef.current) {
+					console.log('Level data not available yet');
+					return;
+				}
+
+				const currentLevelWords = levelDataRef.current.words || [];
 
 				console.log('=== Word Check Debug ===');
-				console.log('Current level:', levelDataRef.current.level);
+				console.log('Current level:', levelDataRef.current?.level);
 				console.log('Checking word:', word);
 				console.log('Against words:', currentLevelWords);
-				console.log('Current grid letters:', levelDataRef.current.grid);
+				console.log('Current grid letters:', levelDataRef?.current?.letters);
 
 				console.log('Level words:', currentLevelWords);
 				console.log('Found words:', foundWords);
@@ -184,14 +264,30 @@ export default function WordMakerScreen() {
 					await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
 					const isWordValid = currentLevelWords.includes(word);
-					const isWordAlreadyFound = foundWords.includes(word);
+					// Use both the state and the ref for checking
+					const isWordAlreadyFound =
+						foundWords.includes(word) || foundWordsRef.current.has(word);
 
 					console.log('Is word valid:', isWordValid);
 					console.log('Is word already found:', isWordAlreadyFound);
 
 					if (isWordValid && !isWordAlreadyFound) {
+						// Add to ref immediately
+						foundWordsRef.current.add(word);
+
 						setScore((prev) => prev + 5);
-						setFoundWords((prev) => [...prev, word]);
+						setFoundWords((prev) => {
+							const updatedWords = [...prev, word];
+
+							// Check if all words have been found
+							if (updatedWords.length === levelDataRef.current?.words.length) {
+								// Small delay to allow the word to be added to the UI first
+								setTimeout(() => handleGameOver(), 500);
+							}
+
+							return updatedWords;
+						});
+
 						scale.value = withSpring(1.2, {}, () => {
 							scale.value = withSpring(1);
 						});
@@ -247,14 +343,14 @@ export default function WordMakerScreen() {
 			return;
 		}
 
-		const availableWords = levelData.words.filter(
+		const availableWords = levelData?.words.filter(
 			(word) => !foundWords.includes(word)
 		);
-		if (availableWords.length === 0) return;
+		if (availableWords?.length === 0) return;
 
 		const randomHint =
-			levelData.hints[Math.floor(Math.random() * levelData.hints.length)];
-		setHintWord(randomHint);
+			levelData?.hints[Math.floor(Math.random() * levelData?.hints.length)];
+		setHintWord(randomHint || '');
 
 		setShowHint(true);
 		setScore((prev) => prev - 3);
@@ -283,7 +379,7 @@ export default function WordMakerScreen() {
 		setSelectedCells([]);
 		setGameOver(false);
 		setShowResults(false);
-		setTimeLeft(levelData.timeLimit);
+		setTimeLeft(levelData?.timeLimit || 120);
 		timerProgress.value = 1;
 		await playSoundEffect('notification');
 		await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -326,6 +422,18 @@ export default function WordMakerScreen() {
 		),
 	}));
 
+	if (!levelData || isLoading) {
+		return (
+			<LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.container}>
+				<SafeAreaView style={styles.safeArea}>
+					<View style={styles.startGameContainer}>
+						<Text style={styles.startGameText}>Loading...</Text>
+					</View>
+				</SafeAreaView>
+			</LinearGradient>
+		);
+	}
+
 	return (
 		<LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.container}>
 			<SafeAreaView style={styles.safeArea}>
@@ -338,8 +446,10 @@ export default function WordMakerScreen() {
 
 				{/* Header */}
 				<View style={styles.header}>
-					<Text style={styles.title}>Word Maker</Text>
-
+					{/* Selected Word */}
+					<View style={styles.selectedWordContainer}>
+						<Text style={styles.selectedWordText}>{currentWord}</Text>
+					</View>
 					<View style={styles.scoreContainer}>
 						<Animated.Text style={[styles.score, animatedScoreStyle]}>
 							{score}
@@ -356,7 +466,7 @@ export default function WordMakerScreen() {
 					{!gameStarted ? (
 						<View style={styles.startGameContainer}>
 							<Text style={styles.startGameText}>
-								Select {levelData.icon} to start
+								Select {levelData?.icon} to start
 							</Text>
 							<Text style={styles.startGameText}>Level {currentLevel}</Text>
 							<Text style={styles.startGameText}>Points: {score}</Text>
@@ -429,47 +539,44 @@ export default function WordMakerScreen() {
 								)}
 							</View>
 
-							{/* Selected Word */}
-							<View style={styles.selectedWordContainer}>
-								<Text style={styles.selectedWordText}>{currentWord}</Text>
-							</View>
+							<View style={styles.footer}>
+								{/* Hint */}
+								{showHint && (
+									<Animated.View
+										entering={FadeIn}
+										exiting={FadeOut}
+										style={styles.hintContainer}
+									>
+										<Text style={styles.hintText}>Hint: {hintWord}</Text>
+									</Animated.View>
+								)}
 
-							{/* Hint */}
-							{showHint && (
-								<Animated.View
-									entering={FadeIn}
-									exiting={FadeOut}
-									style={styles.hintContainer}
-								>
-									<Text style={styles.hintText}>Hint: {hintWord}</Text>
-								</Animated.View>
-							)}
+								{/* Buttons Row */}
+								<View style={styles.buttonsRow}>
+									<TouchableOpacity
+										style={[
+											styles.hintButton,
+											styles.button,
+											score < 3 && styles.disabledButton,
+										]}
+										onPress={handleShowHint}
+										disabled={score < 3}
+									>
+										<Text style={styles.hintButtonText}>Show Hint</Text>
+									</TouchableOpacity>
+								</View>
 
-							{/* Buttons Row */}
-							<View style={styles.buttonsRow}>
-								<TouchableOpacity
-									style={[
-										styles.hintButton,
-										styles.button,
-										score < 3 && styles.disabledButton,
-									]}
-									onPress={handleShowHint}
-									disabled={score < 3}
-								>
-									<Text style={styles.hintButtonText}>Show Hint</Text>
-								</TouchableOpacity>
-							</View>
-
-							{/* Found Words */}
-							<View style={styles.wordsContainer}>
-								<Text style={styles.wordsTitle}>Found Words</Text>
-								<View style={styles.wordsList}>
-									{foundWords.map((word, index) => (
-										<View key={index} style={styles.wordItem}>
-											<Text style={styles.wordText}>{word}</Text>
-											<Text style={styles.wordPoints}>+5</Text>
-										</View>
-									))}
+								{/* Found Words */}
+								<View style={styles.wordsContainer}>
+									<Text style={styles.wordsTitle}>Found Words</Text>
+									<View style={styles.wordsList}>
+										{foundWords.map((word, index) => (
+											<View key={index} style={styles.wordItem}>
+												<Text style={styles.wordText}>{word}</Text>
+												<Text style={styles.wordPoints}>+5</Text>
+											</View>
+										))}
+									</View>
 								</View>
 							</View>
 						</>
@@ -532,7 +639,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	header: {
-		padding: 20,
+		padding: 10,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
@@ -544,6 +651,7 @@ const styles = StyleSheet.create({
 	},
 	scoreContainer: {
 		alignItems: 'center',
+		marginLeft: 15,
 	},
 	score: {
 		fontSize: 32,
@@ -573,11 +681,10 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		alignSelf: 'center',
-		marginTop: 20,
 		justifyContent: 'center',
-		backgroundColor: 'white',
+		backgroundColor: 'red',
 		borderRadius: 10,
-		overflow: 'hidden',
+		height: 'auto',
 	},
 	cell: {
 		justifyContent: 'center',
@@ -598,8 +705,9 @@ const styles = StyleSheet.create({
 		color: 'white',
 	},
 	selectedWordContainer: {
+		flex: 1,
 		alignItems: 'center',
-		marginTop: 20,
+		marginHorizontal: 5,
 		padding: 10,
 		backgroundColor: '#F8F9FA',
 		borderRadius: 10,
@@ -815,5 +923,8 @@ const styles = StyleSheet.create({
 		color: '#666',
 		textAlign: 'center',
 		marginBottom: 20,
+	},
+	footer: {
+		marginTop: 70,
 	},
 });
