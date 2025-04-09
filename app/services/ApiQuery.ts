@@ -147,3 +147,30 @@ export const useCategories = () => {
 		},
 	});
 };
+
+
+// WordMaker services
+export const useWordMaker = () => {
+	return useQuery({
+		queryKey: ['word-maker'],
+		queryFn: async () => {
+			const response = await api.get('/word-maker');
+			return response.data;
+		},
+	});
+};
+
+
+
+export const useWordMakerLevels = () => {
+	return useQuery({
+		queryKey: ['word-maker-levels'],
+		queryFn: async () => {
+			const response = await api.get('/word-maker/levels');
+			return response.data;
+		},
+	});
+};
+
+
+

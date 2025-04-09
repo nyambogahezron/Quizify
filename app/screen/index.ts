@@ -18,7 +18,7 @@ import BookmarksScreen from './BookmarksScreen';
 import WordFillLevels from './WordFillLevels';
 import WordMakerLevels from './WordMakerLevels';
 import Gamelist from './(tabs)/Gamelist';
-import NotificationScreen from './Notifications';
+import NotificationsScreen from './Notifications';
 
 const SCREENS = {
 	HomeScreen,
@@ -41,7 +41,7 @@ const SCREENS = {
 	WordFillLevels,
 	WordMakerLevels,
 	Gamelist,
-	NotificationScreen,
+	NotificationsScreen,
 };
 
 export default SCREENS;

@@ -25,6 +25,7 @@ import { playSoundEffect } from '@/store/useSound';
 import levelsData from '@/lib/wordsMaker.json';
 import { useRoute } from '@react-navigation/native';
 import { Level } from '@/interface';
+import { updateUserProgress } from '../../services/userProgressService';
 
 type Position = {
 	row: number;
@@ -230,15 +231,6 @@ export default function WordMakerScreen() {
 
 				const currentLevelWords = levelDataRef.current.words || [];
 
-				// console.log('=== Word Check Debug ===');
-				// console.log('Current level:', levelDataRef.current?.level);
-				// console.log('Checking word:', word);
-				// console.log('Against words:', currentLevelWords);
-				// console.log('Current grid letters:', levelDataRef?.current?.letters);
-
-				// console.log('Level words:', currentLevelWords);
-				// console.log('Found words:', foundWords);
-
 				if (word.length >= 3) {
 					await playSoundEffect('notification');
 					await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -339,12 +331,29 @@ export default function WordMakerScreen() {
 		}, 3000);
 	};
 
-	const handleGameOver = () => {
+	const handleGameOver = async () => {
 		setGameOver(true);
 		setShowResults(true);
 		levelComplete.value = withSpring(1);
 		playSoundEffect('notification');
 		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+		// Save progress
+		try {
+			const wordsFoundWithTimestamps = foundWords.map(word => ({
+				word,
+				foundAt: new Date(),
+			}));
+
+			await updateUserProgress(
+				currentLevel,
+				score,
+				wordsFoundWithTimestamps,
+				levelData?.timeLimit ? levelData.timeLimit - timeLeft : 0
+			);
+		} catch (error) {
+			console.error('Error saving progress:', error);
+		}
 	};
 
 	const handleStartGame = async () => {

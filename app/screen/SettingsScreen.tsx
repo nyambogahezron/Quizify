@@ -7,23 +7,12 @@ import {
 	Switch,
 	ScrollView,
 	TextInput,
-	Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from 'constants/Colors';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '.';
-import { useNavigation } from '@react-navigation/native';
-import Animated, {
-	withSpring,
-	useAnimatedStyle,
-	useSharedValue,
-} from 'react-native-reanimated';
 import { useAuthStore } from '@/store/useStore';
-
-const { width, height } = Dimensions.get('window');
 
 export default function SettingsScreen() {
 	const [notifications, setNotifications] = React.useState(true);
@@ -35,41 +24,6 @@ export default function SettingsScreen() {
 	const [name, setName] = React.useState('');
 	const [email, setEmail] = React.useState('');
 	const [username, setUsername] = React.useState('');
-
-	// Animation value
-	const formHeight = useSharedValue(0);
-	const scrollViewRef = React.useRef<ScrollView>(null);
-	const formRef = React.useRef<View>(null);
-
-	const animatedStyles = useAnimatedStyle(() => {
-		return {
-			height: formHeight.value,
-			opacity: formHeight.value === 0 ? 0 : 1,
-			overflow: 'hidden',
-			marginBottom: formHeight.value === 0 ? 0 : 12,
-		};
-	});
-
-	const toggleForm = () => {
-		setIsFormVisible(!isFormVisible);
-		formHeight.value = withSpring(isFormVisible ? 0 : 400, {
-			damping: 20,
-			stiffness: 90,
-			mass: 0.5,
-			velocity: 0.5,
-		});
-
-		if (!isFormVisible) {
-			requestAnimationFrame(() => {
-				formRef.current?.measureInWindow((x, y) => {
-					scrollViewRef.current?.scrollTo({
-						y: y - height / 2,
-						animated: true,
-					});
-				});
-			});
-		}
-	};
 
 	const renderSettingItem = (
 		icon: string,
@@ -94,10 +48,10 @@ export default function SettingsScreen() {
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
 			<LinearGradient
-				colors={[Colors.background, Colors.background2]}
+				colors={[Colors.background3, Colors.background2]}
 				style={{ flex: 1 }}
 			>
-				<ScrollView ref={scrollViewRef} style={styles.content}>
+				<ScrollView style={styles.content}>
 					<View>
 						<Text style={styles.sectionTitle}>Preferences</Text>
 						{renderSettingItem(
@@ -122,7 +76,10 @@ export default function SettingsScreen() {
 
 					<View>
 						<Text style={styles.sectionTitle}>Account</Text>
-						<TouchableOpacity style={styles.menuItem} onPress={toggleForm}>
+						<TouchableOpacity
+							style={styles.menuItem}
+							onPress={() => setIsFormVisible(!isFormVisible)}
+						>
 							<View style={styles.settingLeft}>
 								<Ionicons
 									name='person-outline'
@@ -138,36 +95,35 @@ export default function SettingsScreen() {
 							/>
 						</TouchableOpacity>
 
-						<Animated.View
-							ref={formRef}
-							style={[styles.formContainer, animatedStyles]}
-						>
-							<TextInput
-								style={styles.input}
-								placeholder='Name'
-								placeholderTextColor={Colors.bg3}
-								value={name}
-								onChangeText={setName}
-							/>
-							<TextInput
-								style={styles.input}
-								placeholder='Email'
-								placeholderTextColor={Colors.bg3}
-								value={email}
-								onChangeText={setEmail}
-							/>
-							<TextInput
-								style={styles.input}
-								placeholder='Username'
-								placeholderTextColor={Colors.bg3}
-								value={username}
-								onChangeText={setUsername}
-							/>
+						{isFormVisible && (
+							<View style={styles.formContainer}>
+								<TextInput
+									style={styles.input}
+									placeholder='Name'
+									placeholderTextColor={Colors.bg3}
+									value={name}
+									onChangeText={setName}
+								/>
+								<TextInput
+									style={styles.input}
+									placeholder='Email'
+									placeholderTextColor={Colors.bg3}
+									value={email}
+									onChangeText={setEmail}
+								/>
+								<TextInput
+									style={styles.input}
+									placeholder='Username'
+									placeholderTextColor={Colors.bg3}
+									value={username}
+									onChangeText={setUsername}
+								/>
 
-							<TouchableOpacity style={styles.saveButton}>
-								<Text style={styles.saveButtonText}>Save Changes</Text>
-							</TouchableOpacity>
-						</Animated.View>
+								<TouchableOpacity style={styles.saveButton}>
+									<Text style={styles.saveButtonText}>Save Changes</Text>
+								</TouchableOpacity>
+							</View>
+						)}
 
 						<TouchableOpacity style={[styles.menuItem, styles.noBottomMargin]}>
 							<View style={styles.settingLeft}>
@@ -190,6 +146,11 @@ export default function SettingsScreen() {
 						<Text style={styles.logoutText}>Log Out</Text>
 					</TouchableOpacity>
 				</ScrollView>
+
+				{/* app info */}
+				<View style={styles.appInfo}>
+					<Text style={styles.appInfoText}>App Version 1.0.0</Text>
+				</View>
 			</LinearGradient>
 		</SafeAreaView>
 	);
@@ -200,7 +161,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingHorizontal: 10,
 	},
-
 	sectionTitle: {
 		fontSize: 18,
 		fontWeight: '600',
@@ -211,8 +171,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
-		backgroundColor: Colors.grayLight,
-		paddingVertical: 18,
+		backgroundColor: Colors.background2,
+		paddingVertical: 10,
 		borderRadius: 12,
 		marginBottom: 12,
 		paddingHorizontal: 16,
@@ -231,7 +191,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		paddingVertical: 18,
-		backgroundColor: Colors.grayLight,
+		backgroundColor: Colors.background2,
 		borderRadius: 12,
 		marginBottom: 12,
 		paddingHorizontal: 16,
@@ -253,23 +213,6 @@ const styles = StyleSheet.create({
 		borderRadius: 12,
 		padding: 16,
 		marginTop: 8,
-	},
-	avatarContainer: {
-		alignItems: 'center',
-		marginBottom: 16,
-	},
-	avatar: {
-		width: 100,
-		height: 100,
-		borderRadius: 50,
-		marginBottom: 8,
-	},
-	changeAvatarButton: {
-		padding: 8,
-	},
-	changeAvatarText: {
-		color: Colors.yellow,
-		fontSize: 14,
 	},
 	input: {
 		backgroundColor: Colors.background,
@@ -293,5 +236,14 @@ const styles = StyleSheet.create({
 	},
 	noBottomMargin: {
 		marginBottom: 0,
+	},
+	appInfo: {
+		padding: 13,
+		alignItems: 'center',
+	},
+	appInfoText: {
+		color: Colors.white,
+		fontSize: 13,
+		fontWeight: '600',
 	},
 });

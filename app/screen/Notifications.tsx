@@ -1,123 +1,102 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import Colors from '@/constants/Colors';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { Notification } from '../components/Notification';
+import { api } from '../services/api';
+import { ActivityIndicator } from 'react-native';
+import { useThemeStore } from '@/store/useThemeStore';
 
-const notifications = [
-	{
-		id: '1',
-		date: '12 Jun, 2023',
-		icon: '🎉',
-		message: 'Congratulation your Chapter 1 Successfully Completed.',
-		time: '12:00 am',
-	},
-	{
-		id: '2',
-		date: '12 Jun, 2023',
-		icon: '💰',
-		message: 'Congratulation your Coin Successfully Withdraw.',
-		time: '12:00 am',
-	},
-	{
-		id: '3',
-		date: '12 Jun, 2023',
-		icon: '🎡',
-		message: 'Congratulation Spin to get 5 Coins.',
-		time: '12:00 am',
-	},
-	{
-		id: '4',
-		date: '13 Jun, 2023',
-		icon: '🏦',
-		message: 'Your Bank Account Details Change Successfully.',
-		time: '12:00 am',
-	},
-	{
-		id: '5',
-		date: '13 Jun, 2023',
-		icon: '🎉',
-		message: 'Congratulation your Product Quiz Chapter 1 Completed.',
-		time: '12:00 am',
-	},
-	{
-		id: '6',
-		date: '14 Jun, 2023',
-		icon: '🏦',
-		message: 'Your Bank Account Details Change Successfully.',
-		time: '12:00 am',
-	},
-];
+interface NotificationData {
+  _id: string;
+  title: string;
+  message: string;
+  type: 'level_up' | 'achievement' | 'daily_task' | 'system';
+  isRead: boolean;
+  createdAt: string;
+}
 
-const NotificationScreen = () => {
-	return (
-		<SafeAreaView style={{ flex: 1 }}>
-			<LinearGradient
-				colors={[Colors.background3, Colors.background2]}
-				style={{ flex: 1 }}
-			>
-				<View style={styles.container}>
-					<FlatList
-						showsVerticalScrollIndicator={false}
-						showsHorizontalScrollIndicator={false}
-						data={notifications}
-						keyExtractor={(item) => item.id}
-						renderItem={({ item, index }) => (
-							<View>
-								{(index === 0 ||
-									notifications[index - 1].date !== item.date) && (
-									<Text style={styles.date}>{item.date}</Text>
-								)}
-								<View style={styles.notificationCard}>
-									<Text style={styles.icon}>{item.icon}</Text>
-									<View style={styles.textContainer}>
-										<Text style={styles.message}>{item.message}</Text>
-										<Text style={styles.time}>{item.time}</Text>
-									</View>
-								</View>
-							</View>
-						)}
-					/>
-				</View>
-			</LinearGradient>
-		</SafeAreaView>
-	);
+export default function Notifications() {
+  const { colors } = useThemeStore();
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await api.get('/notifications');
+      setNotifications(response.data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchNotifications();
+  };
+
+  const handleNotificationPress = async (notificationId: string) => {
+    try {
+      await api.patch(`/notifications/${notificationId}/read`);
+      setNotifications(prevNotifications =>
+        prevNotifications.map(notification =>
+          notification._id === notificationId
+            ? { ...notification, isRead: true }
+            : notification
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <FlatList
+        data={notifications}
+        keyExtractor={item => item._id}
+        renderItem={({ item }) => (
+          <Notification
+            title={item.title}
+            message={item.message}
+            type={item.type}
+            isRead={item.isRead}
+            onPress={() => handleNotificationPress(item._id)}
+          />
+        )}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+        contentContainerStyle={styles.listContent}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		paddingHorizontal: 8,
-	},
-
-	date: {
-		color: 'gray',
-		fontSize: 14,
-		marginTop: 10,
-	},
-	notificationCard: {
-		flexDirection: 'row',
-		backgroundColor: Colors.background2,
-		padding: 12,
-		borderRadius: 8,
-		marginTop: 8,
-		alignItems: 'center',
-	},
-	icon: {
-		fontSize: 24,
-		marginRight: 12,
-	},
-	textContainer: {
-		flex: 1,
-	},
-	message: {
-		color: 'white',
-		fontSize: 16,
-	},
-	time: {
-		color: 'gray',
-		fontSize: 12,
-	},
-});
-
-export default NotificationScreen;
+  container: {
+    flex: 1,
+  },
+  listContent: {
+    padding: 16,
+  },
+}); 

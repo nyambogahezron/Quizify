@@ -9,6 +9,11 @@ class SocketService {
 	private connectionAttempts = 0;
 	private maxConnectionAttempts = 5;
 	private reconnectTimer: NodeJS.Timeout | null = null;
+	private onSessionExpired: (() => void) | null = null;
+
+	onSessionExpire(callback: () => void) {
+		this.onSessionExpired = callback;
+	}
 
 	async connect() {
 		if (this.socket?.connected || this.isConnecting) return;
@@ -58,6 +63,12 @@ class SocketService {
 					console.error('Socket connection error:', error.message);
 					console.error('Error details:', error);
 					this.isConnecting = false;
+
+					if (error.message?.includes('Authentication error: Invalid session')) {
+						this.onSessionExpired?.();
+						reject(error);
+						return;
+					}
 
 					if (this.connectionAttempts >= this.maxConnectionAttempts) {
 						reject(

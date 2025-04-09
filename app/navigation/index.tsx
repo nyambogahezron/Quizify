@@ -35,7 +35,7 @@ export default function Navigation() {
 					<Stack.Screen name='Review' component={SCREENS.ReviewScreen} />
 					<Stack.Screen
 						name='Notification'
-						component={SCREENS.NotificationScreen}
+						component={SCREENS.NotificationsScreen}
 						options={{
 							headerShown: true,
 							headerTitle: 'Notification',

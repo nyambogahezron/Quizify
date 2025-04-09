@@ -46,6 +46,8 @@ import LeaderboardRoutes from './routes/Leaderboard.routes';
 import AchievementRoutes from './routes/Achievement.routes';
 import DailyTaskRoutes from './routes/DailyTask.routes';
 import AdminRoutes from './routes/Admin.routes';
+import NotificationRoutes from './routes/notification.routes';
+import UserProgressRoutes from './routes/userProgressRoutes';
 
 //middlewares
 import ErrorHandlerMiddleware from './middleware/ErrorsHandler';
@@ -68,6 +70,8 @@ app.use('/api/v1/leaderboard', LeaderboardRoutes);
 app.use('/api/v1/achievements', AchievementRoutes);
 app.use('/api/v1/daily-tasks', DailyTaskRoutes);
 app.use('/api/v1/admin', AdminRoutes);
+app.use('/api/v1/notifications', NotificationRoutes);
+app.use('/api/v1/user-progress', UserProgressRoutes);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));

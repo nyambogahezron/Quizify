@@ -15,32 +15,29 @@ import Colors from '@/constants/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '.';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { getUserProgress } from '../services/userProgressService';
+import { LevelDetailsModal } from '../components/LevelDetailsModal';
+import { useAuthStore } from '../store/useStore';
 
 interface Level {
 	id: number;
 	number: number;
 	status: 'locked' | 'unlocked' | 'completed';
 	stars: number;
+	score?: number;
+	wordsFound?: Array<{ word: string; foundAt: Date }>;
+	timeSpent?: number;
 }
-const levelsData: Level[] = [
-	{ id: 1, number: 1, status: 'locked', stars: 5 },
-	{ id: 2, number: 2, status: 'locked', stars: 5 },
-	{ id: 3, number: 3, status: 'locked', stars: 5 },
-	{ id: 4, number: 4, status: 'locked', stars: 5 },
-	{ id: 5, number: 5, status: 'locked', stars: 0 },
-	{ id: 6, number: 6, status: 'completed', stars: 3 },
-	{ id: 7, number: 7, status: 'completed', stars: 4 },
-	{ id: 8, number: 8, status: 'completed', stars: 1 },
-	{ id: 9, number: 9, status: 'unlocked', stars: 0 },
-	{ id: 10, number: 10, status: 'locked', stars: 0 },
-];
 
 const width = Dimensions.get('window').width;
 
 export default function WordMakerLevels() {
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-	const [levels, setLevels] = useState<Level[]>(levelsData);
+	const [levels, setLevels] = useState<Level[]>([]);
+	const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
+	const [showLevelDetails, setShowLevelDetails] = useState(false);
+	const { isAuthenticated } = useAuthStore();
 
 	const slideFromRight = useRef(new Animated.Value(width)).current;
 	const slideIn = () => {
@@ -50,9 +47,49 @@ export default function WordMakerLevels() {
 			useNativeDriver: false,
 		}).start();
 	};
+
 	useEffect(() => {
 		slideIn();
-	}, []);
+		if (isAuthenticated) {
+			loadUserProgress();
+		}
+	}, [isAuthenticated]);
+
+	const loadUserProgress = async () => {
+		try {
+			const progress = await getUserProgress();
+			const updatedLevels = progress.map((p) => ({
+				id: p.level,
+				number: p.level,
+				status: p.status,
+				stars: p.stars,
+				score: p.score,
+				wordsFound: p.wordsFound,
+				timeSpent: p.timeSpent,
+			}));
+			setLevels(updatedLevels);
+		} catch (error) {
+			console.error('Error loading user progress:', error);
+		}
+	};
+
+	const handleLevelPress = (level: Level) => {
+		if (level.status === 'locked') return;
+		
+		setSelectedLevel(level);
+		if (level.status === 'completed') {
+			setShowLevelDetails(true);
+		} else {
+			navigation.navigate('WordGame', { levelId: level.id });
+		}
+	};
+
+	const handlePlayLevel = () => {
+		if (selectedLevel) {
+			setShowLevelDetails(false);
+			navigation.navigate('WordGame', { levelId: selectedLevel.id });
+		}
+	};
 
 	const LevelItem = ({ item }: { item: Level }) => {
 		const borderAnimation = useRef(new Animated.Value(0)).current;
@@ -88,13 +125,7 @@ export default function WordMakerLevels() {
 					activeOpacity={0.4}
 					style={styles.levelTouchable}
 					disabled={item.status === 'locked'}
-					onPress={() => {
-						if (item.status === 'unlocked') {
-							navigation.navigate('WordGame' as 'WordFill' | 'WordGame', {
-								levelId: item.id,
-							});
-						}
-					}}
+					onPress={() => handleLevelPress(item)}
 				>
 					<LinearGradient
 						colors={
@@ -156,6 +187,21 @@ export default function WordMakerLevels() {
 						contentContainerStyle={styles.levelsList}
 					/>
 				</Animated.View>
+
+				{selectedLevel && (
+					<LevelDetailsModal
+						visible={showLevelDetails}
+						onClose={() => setShowLevelDetails(false)}
+						onPlay={handlePlayLevel}
+						level={{
+							number: selectedLevel.number,
+							score: selectedLevel.score || 0,
+							wordsFound: selectedLevel.wordsFound || [],
+							stars: selectedLevel.stars,
+							timeSpent: selectedLevel.timeSpent || 0,
+						}}
+					/>
+				)}
 			</LinearGradient>
 		</SafeAreaView>
 	);

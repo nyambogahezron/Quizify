@@ -6,6 +6,7 @@ import { AntDesign, Ionicons } from '@expo/vector-icons';
 import SCREENS from 'screen';
 import Colors from 'constants/Colors';
 import { LinearGradient } from 'expo-linear-gradient';
+import { NotificationBadge } from '../components/NotificationBadge';
 
 type tabProps = {
 	state: any;
@@ -29,6 +30,15 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 		),
 		Leaderboard: (props) => (
 			<Ionicons name={props.focused ? 'trophy' : 'trophy-outline'} {...props} />
+		),
+		Notifications: (props) => (
+			<View>
+				<Ionicons
+					name={props.focused ? 'notifications' : 'notifications-outline'}
+					{...props}
+				/>
+				<NotificationBadge />
+			</View>
 		),
 	};
 
@@ -132,6 +142,17 @@ export function BottomTabNavigation() {
 				}}
 			/>
 			<Tab.Screen name='Leaderboard' component={SCREENS.LeaderboardScreen} />
+			<Tab.Screen
+				name='Notifications'
+				component={SCREENS.NotificationsScreen}
+				options={{
+					headerShown: true,
+					headerTitle: 'Notifications',
+					headerStyle: { backgroundColor: Colors.background3 },
+					headerTitleStyle: { color: Colors.white },
+					headerTintColor: Colors.white,
+				}}
+			/>
 		</Tab.Navigator>
 	);
 }

@@ -7,8 +7,9 @@ import Navigation from './navigation';
 import { socketService } from './lib/socket';
 import { useAuthStore } from './store/useStore';
 import { StatusBar } from 'react-native';
-import Colors from './constants/Colors';
+import { useThemeStore } from './store/useThemeStore';
 import { queryClient } from './lib/queryClient';
+import { SessionExpiredModal } from './components/SessionExpiredModal';
 
 import {
 	configureReanimatedLogger,
@@ -29,7 +30,9 @@ SplashScreen.setOptions({
 
 export default function App() {
 	const [appIsReady, setAppIsReady] = React.useState(false);
-	const { isAuthenticated, initialize } = useAuthStore();
+	const [showSessionExpired, setShowSessionExpired] = React.useState(false);
+	const { isAuthenticated, initialize, logout } = useAuthStore();
+	const { colors } = useThemeStore();
 
 	React.useEffect(() => {
 		async function prepare() {
@@ -62,6 +65,13 @@ export default function App() {
 		};
 	}, [isAuthenticated]);
 
+	React.useEffect(() => {
+		socketService.onSessionExpire(() => {
+			setShowSessionExpired(true);
+			logout();
+		});
+	}, [logout]);
+
 	const onLayoutRootView = React.useCallback(() => {
 		if (appIsReady) {
 			SplashScreen.hideAsync();
@@ -76,10 +86,14 @@ export default function App() {
 		<QueryClientProvider client={queryClient}>
 			<StatusBar
 				barStyle='light-content'
-				backgroundColor={Colors.background3}
+				backgroundColor={colors.background}
 			/>
 			<GestureHandlerRootView onLayout={onLayoutRootView}>
 				<Navigation />
+				<SessionExpiredModal
+					visible={showSessionExpired}
+					onClose={() => setShowSessionExpired(false)}
+				/>
 			</GestureHandlerRootView>
 		</QueryClientProvider>
 	);
