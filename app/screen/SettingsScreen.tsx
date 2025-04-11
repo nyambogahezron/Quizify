@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from 'constants/Colors';
 import { useAuthStore } from '@/store/useStore';
+import { useUpdateUser } from '@/services/ApiQuery';
 
 export default function SettingsScreen() {
 	const [notifications, setNotifications] = React.useState(true);
@@ -20,17 +21,25 @@ export default function SettingsScreen() {
 	const [vibration, setVibration] = React.useState(true);
 	const [isFormVisible, setIsFormVisible] = React.useState(false);
 	const { logout } = useAuthStore();
-	// Form states
 	const [name, setName] = React.useState('');
 	const [email, setEmail] = React.useState('');
 	const [username, setUsername] = React.useState('');
 
-	const renderSettingItem = (
-		icon: string,
-		title: string,
-		value: boolean,
-		onValueChange: (value: boolean) => void
-	) => (
+	const { mutate: updateUser } = useUpdateUser();
+
+	interface RenderSettingItemProps {
+		icon: string;
+		title: string;
+		value: boolean;
+		onValueChange: (value: boolean) => void;
+	}
+
+	const RenderSettingItem: React.FC<RenderSettingItemProps> = ({
+		icon,
+		title,
+		value,
+		onValueChange,
+	}) => (
 		<View style={styles.settingItem}>
 			<View style={styles.settingLeft}>
 				<Ionicons name={icon as any} size={24} color={Colors.yellow} />
@@ -39,7 +48,7 @@ export default function SettingsScreen() {
 			<Switch
 				value={value}
 				onValueChange={onValueChange}
-				trackColor={{ false: '#E9ECEF', true: '#7C3AED' }}
+				trackColor={{ false: '#E9ECEF', true: Colors.yellow }}
 				thumbColor={value ? '#FFFFFF' : '#FFFFFF'}
 			/>
 		</View>
@@ -54,24 +63,24 @@ export default function SettingsScreen() {
 				<ScrollView style={styles.content}>
 					<View>
 						<Text style={styles.sectionTitle}>Preferences</Text>
-						{renderSettingItem(
-							'notifications-outline',
-							'Notifications',
-							notifications,
-							setNotifications
-						)}
-						{renderSettingItem(
-							'volume-medium-outline',
-							'Sound',
-							sound,
-							setSound
-						)}
-						{renderSettingItem(
-							'phone-portrait-outline',
-							'Vibration',
-							vibration,
-							setVibration
-						)}
+						<RenderSettingItem
+							icon='notifications-outline'
+							title='Notifications'
+							value={notifications}
+							onValueChange={setNotifications}
+						/>
+						<RenderSettingItem
+							icon='volume-medium-outline'
+							title='Sound'
+							value={sound}
+							onValueChange={setSound}
+						/>
+						<RenderSettingItem
+							icon='phone-portrait-outline'
+							title='Vibration'
+							value={vibration}
+							onValueChange={setVibration}
+						/>
 					</View>
 
 					<View>

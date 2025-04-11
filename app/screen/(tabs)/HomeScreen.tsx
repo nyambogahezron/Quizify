@@ -101,8 +101,8 @@ export default function HomeScreen() {
 							</View>
 							<View>
 								<Text style={styles.username}>{user?.name}</Text>
-								<Text style={styles.level}>{`Level : ${
-									user?.level ?? '0'
+								<Text style={styles.level}>{`Rank : ${
+									userRankings?.ranking || 1
 								}`}</Text>
 							</View>
 						</TouchableOpacity>

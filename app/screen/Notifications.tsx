@@ -1,102 +1,107 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, FlatList, RefreshControl, Text } from 'react-native';
 import { Notification } from '../components/Notification';
-import { api } from '../services/api';
 import { ActivityIndicator } from 'react-native';
-import { useThemeStore } from '@/store/useThemeStore';
-
-interface NotificationData {
-  _id: string;
-  title: string;
-  message: string;
-  type: 'level_up' | 'achievement' | 'daily_task' | 'system';
-  isRead: boolean;
-  createdAt: string;
-}
+import Colors from '@/constants/Colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import {
+	useMarkNotificationAsRead,
+	useNotifications,
+} from '@/services/ApiQuery';
 
 export default function Notifications() {
-  const { colors } = useThemeStore();
-  const [notifications, setNotifications] = useState<NotificationData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+	const [refreshing, setRefreshing] = useState(false);
 
-  const fetchNotifications = async () => {
-    try {
-      const response = await api.get('/notifications');
-      setNotifications(response.data);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+	const { data: notificationsData, isLoading } = useNotifications();
+	const { mutate: markNotificationAsRead } = useMarkNotificationAsRead();
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchNotifications();
-  };
+	const handleRefresh = () => {
+		setRefreshing(true);
+	};
 
-  const handleNotificationPress = async (notificationId: string) => {
-    try {
-      await api.patch(`/notifications/${notificationId}/read`);
-      setNotifications(prevNotifications =>
-        prevNotifications.map(notification =>
-          notification._id === notificationId
-            ? { ...notification, isRead: true }
-            : notification
-        )
-      );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
+	const handleNotificationPress = async (notificationId: string) => {
+		markNotificationAsRead(notificationId);
+	};
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+	if (isLoading) {
+		return (
+			<View style={[styles.container, { backgroundColor: Colors.background }]}>
+				<ActivityIndicator size='large' color={Colors.primary} />
+			</View>
+		);
+	}
 
-  if (loading) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
+	return (
+		<SafeAreaView style={{ flex: 1 }}>
+			<LinearGradient
+				colors={[Colors.background3, Colors.background2]}
+				style={{ flex: 1 }}
+			>
+				<View
+					style={[styles.container, { backgroundColor: Colors.background }]}
+				>
+					<FlatList
+						data={notificationsData}
+						keyExtractor={(item) => item._id}
+						renderItem={({ item }) => (
+							<Notification
+								title={item.title}
+								message={item.message}
+								type={item.type}
+								isRead={item.isRead}
+								onPress={() => handleNotificationPress(item._id)}
+							/>
+						)}
+						refreshControl={
+							<RefreshControl
+								refreshing={refreshing}
+								onRefresh={handleRefresh}
+								colors={[Colors.primary]}
+								tintColor={Colors.primary}
+							/>
+						}
+						contentContainerStyle={styles.listContent}
+						ListEmptyComponent={<EmptyState />}
+					/>
+				</View>
+			</LinearGradient>
+		</SafeAreaView>
+	);
+}
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <FlatList
-        data={notifications}
-        keyExtractor={item => item._id}
-        renderItem={({ item }) => (
-          <Notification
-            title={item.title}
-            message={item.message}
-            type={item.type}
-            isRead={item.isRead}
-            onPress={() => handleNotificationPress(item._id)}
-          />
-        )}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-        contentContainerStyle={styles.listContent}
-      />
-    </View>
-  );
+const EmptyState = () => {
+	return (
+		<View
+			style={[
+				styles.container,
+				{
+					alignItems: 'center',
+					justifyContent: 'center',
+					width: '100%',
+					height: '100%',
+					marginTop: '45%',
+				},
+			]}
+		>
+			<Ionicons name='notifications-off' size={40} color={Colors.borderColor} />
+			<Text style={styles.emptyText}>No notifications</Text>
+		</View>
+	);
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  listContent: {
-    padding: 16,
-  },
-}); 
+	container: {
+		flex: 1,
+	},
+	listContent: {
+		padding: 16,
+	},
+	emptyText: {
+		fontSize: 16,
+		color: Colors.text,
+		marginTop: 16,
+		textAlign: 'center',
+	},
+});

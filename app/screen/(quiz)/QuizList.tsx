@@ -1,10 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
 	View,
 	StyleSheet,
 	ScrollView,
 	Animated,
 	Dimensions,
+	TextInput,
+	Text,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -25,10 +27,16 @@ const width = Dimensions.get('window').width;
 
 export default function QuizList() {
 	const route = useRoute();
+	const [searchText, setSearchText] = useState('');
 
 	const { categories } = route.params as { categories: Category[] };
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+	const filteredCategories = categories.filter((category) =>
+		category.name.toLowerCase().includes(searchText.toLowerCase())
+	);
+
 	const animations = useRef(
 		categories.map(() => new Animated.Value(100))
 	).current;
@@ -49,6 +57,15 @@ export default function QuizList() {
 			colors={[Colors.background3, Colors.background2]}
 			style={styles.container}
 		>
+			<View style={styles.searchContainer}>
+				<TextInput
+					placeholder='Search quizzes...'
+					placeholderTextColor={Colors.text + '80'}
+					style={styles.searchInput}
+					value={searchText}
+					onChangeText={setSearchText}
+				/>
+			</View>
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				style={{
@@ -56,25 +73,29 @@ export default function QuizList() {
 				}}
 			>
 				<View style={styles.section}>
-					{categories.map((game: Category, index: number) => (
-						<Animated.View
-							key={game.id}
-							style={[
-								{ transform: [{ translateY: animations[index] }] },
-								{
-									width: width - 20,
-								},
-							]}
-						>
-							<CategoryCard
-								game={game}
-								index={index}
-								handleOnPress={() =>
-									navigation.navigate('Quiz', { category: game.name })
-								}
-							/>
-						</Animated.View>
-					))}
+					{filteredCategories.length === 0 ? (
+						<Text style={styles.noResults}>No quizzes found</Text>
+					) : (
+						filteredCategories.map((game: Category, index: number) => (
+							<Animated.View
+								key={index}
+								style={[
+									{ transform: [{ translateY: animations[index] }] },
+									{
+										width: width - 20,
+									},
+								]}
+							>
+								<CategoryCard
+									game={game}
+									index={index}
+									handleOnPress={() =>
+										navigation.navigate('Quiz', { category: game.name })
+									}
+								/>
+							</Animated.View>
+						))
+					)}
 				</View>
 			</ScrollView>
 		</LinearGradient>
@@ -85,10 +106,29 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 	},
+	searchContainer: {
+		padding: 16,
+		paddingBottom: 8,
+	},
+	searchInput: {
+		backgroundColor: Colors.background2,
+		paddingHorizontal: 16,
+		paddingVertical: 12,
+		borderRadius: 12,
+		color: Colors.text,
+		fontFamily: 'Rb-regular',
+		fontSize: 16,
+	},
 	section: {
 		marginBottom: 80,
 		marginTop: 10,
 		alignItems: 'center',
 		justifyContent: 'center',
+	},
+	noResults: {
+		color: Colors.text,
+		fontFamily: 'Rb-medium',
+		fontSize: 16,
+		marginTop: 20,
 	},
 });

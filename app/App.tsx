@@ -7,7 +7,6 @@ import Navigation from './navigation';
 import { socketService } from './lib/socket';
 import { useAuthStore } from './store/useStore';
 import { StatusBar } from 'react-native';
-import { useThemeStore } from './store/useThemeStore';
 import { queryClient } from './lib/queryClient';
 import { SessionExpiredModal } from './components/SessionExpiredModal';
 
@@ -15,6 +14,7 @@ import {
 	configureReanimatedLogger,
 	ReanimatedLogLevel,
 } from 'react-native-reanimated';
+import Colors from './constants/Colors';
 
 configureReanimatedLogger({
 	level: ReanimatedLogLevel.warn,
@@ -32,7 +32,6 @@ export default function App() {
 	const [appIsReady, setAppIsReady] = React.useState(false);
 	const [showSessionExpired, setShowSessionExpired] = React.useState(false);
 	const { isAuthenticated, initialize, logout } = useAuthStore();
-	const { colors } = useThemeStore();
 
 	React.useEffect(() => {
 		async function prepare() {
@@ -86,7 +85,7 @@ export default function App() {
 		<QueryClientProvider client={queryClient}>
 			<StatusBar
 				barStyle='light-content'
-				backgroundColor={colors.background}
+				backgroundColor={Colors.background3}
 			/>
 			<GestureHandlerRootView onLayout={onLayoutRootView}>
 				<Navigation />

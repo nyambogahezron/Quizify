@@ -247,12 +247,12 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 	},
 	correctCard: {
-		borderLeftWidth: 4,
+		borderLeftWidth: 1,
 		borderLeftColor: Colors.success,
 	},
 	incorrectCard: {
-		borderLeftWidth: 4,
-		borderLeftColor: Colors.red1,
+		borderLeftWidth: 1,
+		borderLeftColor: Colors.background2,
 	},
 	questionHeader: {
 		flexDirection: 'row',

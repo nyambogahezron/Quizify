@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		height: HEADER_MIN_HEIGHT,
-		backgroundColor: Colors.background,
+		backgroundColor: Colors.background3,
 		zIndex: 1,
 		paddingHorizontal: 10,
 		width: '100%',
@@ -472,6 +472,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
+		backgroundColor: Colors.background3,
 	},
 	backBtn: {
 		position: 'absolute',
@@ -484,7 +485,6 @@ const styles = StyleSheet.create({
 		color: Colors.white2,
 	},
 	miniLogoutBtn: {
-		backgroundColor: Colors.background,
 		padding: 10,
 		borderRadius: 10,
 		alignItems: 'center',

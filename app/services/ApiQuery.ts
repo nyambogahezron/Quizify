@@ -148,7 +148,6 @@ export const useCategories = () => {
 	});
 };
 
-
 // WordMaker services
 export const useWordMaker = () => {
 	return useQuery({
@@ -160,8 +159,6 @@ export const useWordMaker = () => {
 	});
 };
 
-
-
 export const useWordMakerLevels = () => {
 	return useQuery({
 		queryKey: ['word-maker-levels'],
@@ -172,5 +169,62 @@ export const useWordMakerLevels = () => {
 	});
 };
 
+// Notifications services
 
+export const useNotifications = () => {
+	return useQuery({
+		queryKey: ['notifications'],
+		queryFn: async () => {
+			const response = await api.get('/notifications');
+			return response.data;
+		},
+	});
+};
 
+export const useMarkNotificationAsRead = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (notificationId: string) => {
+			const response = await api.patch(`/notifications/${notificationId}/read`);
+			return response.data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['notifications'] });
+		},
+	});
+};
+
+export const useMarkAllNotificationsAsRead = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async () => {
+			const response = await api.patch('/notifications/mark-all-as-read');
+			return response.data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['notifications'] });
+		},
+	});
+};
+
+// User services
+
+export const useUpdateUser = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: async (userData: {
+			username: string;
+			email: string;
+			password: string;
+		}) => {
+			const response = await api.patch('/user', userData);
+			return response.data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['user'] });
+		},
+	});
+};

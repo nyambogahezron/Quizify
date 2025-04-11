@@ -120,19 +120,19 @@ export default function QuizScreen({ navigation, route }: Props) {
 			});
 
 			socket.on('quiz:completed', (data) => {
-				if (!mounted) return;
+				if (!mounted || !quiz) return;
 				console.log('Quiz completed event received:', data);
 
 				try {
 					const rankingData = {
-						totalScore: data.score + userRankings?.global.totalScore,
-						quizzesCompleted: userRankings?.global.quizzesCompleted + 1,
+						totalScore: data.score + (userRankings?.global?.totalScore || 0),
+						quizzesCompleted: (userRankings?.global?.quizzesCompleted || 0) + 1,
 						averageScore:
-							(data.score + userRankings?.global.totalScore) /
-							(userRankings?.global.quizzesCompleted + 1),
-						rank: userRankings?.global.rank,
-						totalParticipants: userRankings?.global.totalParticipants,
-						percentile: userRankings?.global.percentile,
+							(data.score + (userRankings?.global?.totalScore || 0)) /
+							((userRankings?.global?.quizzesCompleted || 0) + 1),
+						rank: userRankings?.global?.rank || 0,
+						totalParticipants: userRankings?.global?.totalParticipants || 0,
+						percentile: userRankings?.global?.percentile || 0,
 					};
 
 					const quizRankingData = {
@@ -153,10 +153,14 @@ export default function QuizScreen({ navigation, route }: Props) {
 
 					setUserRankings(quizRankingData);
 
+					if (!quiz.questions) {
+						throw new Error('Quiz questions not found');
+					}
+
 					console.log('Navigating to Result screen with data:', {
 						score: data.score,
 						totalQuestions: data.totalQuestions,
-						quizId: quiz?._id,
+						quizId: quiz._id,
 						reviewData: {
 							questions: quiz.questions,
 							answers,
@@ -170,7 +174,7 @@ export default function QuizScreen({ navigation, route }: Props) {
 					navigation.navigate('Result', {
 						score: data.score,
 						totalQuestions: data.totalQuestions,
-						quizId: quiz?._id || '',
+						quizId: quiz._id,
 						reviewData: {
 							questions: quiz.questions,
 							answers,
@@ -182,8 +186,8 @@ export default function QuizScreen({ navigation, route }: Props) {
 					});
 				} catch (error) {
 					console.error('Error handling quiz completion:', error);
-					// Fallback to handleQuizComplete if socket event fails
-					handleQuizComplete();
+					// Show an error message to the user
+					navigation.navigate('Home');
 				}
 			});
 		}
@@ -294,7 +298,17 @@ export default function QuizScreen({ navigation, route }: Props) {
 	};
 
 	const handleQuizComplete = () => {
-		if (!quiz?._id || !quiz?.questions) return;
+		if (!quiz?._id) {
+			console.error('Quiz ID not found');
+			navigation.navigate('Home');
+			return;
+		}
+
+		if (!quiz?.questions) {
+			console.error('Quiz questions not found');
+			navigation.navigate('Home');
+			return;
+		}
 
 		submitQuiz(
 			{
@@ -317,6 +331,10 @@ export default function QuizScreen({ navigation, route }: Props) {
 							percentile: result.percentile,
 						},
 					});
+				},
+				onError: (error) => {
+					console.error('Error submitting quiz:', error);
+					navigation.navigate('Home');
 				},
 			}
 		);
