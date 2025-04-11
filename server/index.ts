@@ -6,7 +6,7 @@ import cors from 'cors';
 import ConnectDB from './config/database';
 import cookieParser from './middleware/CookieParser';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import path from 'path';
 
 const app: Express = express();
@@ -26,6 +26,11 @@ const corsOptions = {
 
 // Apply CORS to Express
 app.use(cors(corsOptions));
+
+// Extend Socket type to include userId
+interface CustomSocket extends Socket {
+	userId?: string;
+}
 
 // Create Socket.IO server with same CORS options
 const io = new Server(server, {
@@ -104,19 +109,29 @@ app.use(NotFoundHandler);
 // Initialize socket handlers
 initSocketHandlers(io);
 
-// Add error handling for socket.io server
-io.engine.on('connection_error', (err) => {
-	console.error('Socket.IO connection error:', err);
-});
+// Store connected users
+const connectedUsers = new Map();
 
-// Debug socket.io server events
-io.engine.on('connection', (socket) => {
+io.on('connection', (socket: CustomSocket) => {
 	console.log('New socket connection:', socket.id);
+
+	// Handle user authentication
+	socket.on('authenticate', (userId: string) => {
+		connectedUsers.set(userId, socket.id);
+		socket.userId = userId;
+	});
+
+	// Handle disconnection
+	socket.on('disconnect', () => {
+		if (socket.userId) {
+			connectedUsers.delete(socket.userId);
+		}
+		console.log('Socket disconnected:', socket.id);
+	});
 });
 
-io.engine.on('disconnect', (socket) => {
-	console.log('Socket disconnected:', socket.id);
-});
+// Store io instance in app
+app.set('io', io);
 
 async function StartApp() {
 	const port = process.env.PORT || 5000;

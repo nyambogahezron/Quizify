@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	View,
 	Text,
@@ -24,6 +24,8 @@ import { moreGamesList } from '@/lib/data';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { socketService } from '@/lib/socket';
 import { RootStackParamList } from '..';
+import { playSoundEffect } from '@/store/useSound';
+import { Badge } from '../../components/Badge';
 
 interface Category {
 	id: string;
@@ -37,6 +39,7 @@ export default function HomeScreen() {
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const { user } = useAuthStore();
 	const { setUserRankings, initialize } = useAchievementStore();
+	const [unreadCount, setUnreadCount] = useState(0);
 
 	const { data: dailyTasks, isLoading: isLoadingTasks } = useDailyTasks();
 	const { data: categories, isLoading: isLoadingCategories } = useCategories();
@@ -49,9 +52,6 @@ export default function HomeScreen() {
 			setUserRankings(userRankings);
 		}
 	}, [userRankings]);
-
-	//test connection
-	socketService.testConnection();
 
 	// Listen for points updates
 	useEffect(() => {
@@ -69,6 +69,38 @@ export default function HomeScreen() {
 			const socket = socketService.getSocket();
 			if (socket) {
 				socket.off('quiz:answer-feedback');
+			}
+		};
+	}, []);
+
+	// Listen for notifications
+	useEffect(() => {
+		const socket = socketService.getSocket();
+		if (socket) {
+			socket.on('notification:data', (data) => {
+				if (data.notifications) {
+					const unread = data.notifications.filter(
+						(n: any) => !n.isRead
+					).length;
+					setUnreadCount(unread);
+				}
+			});
+
+			// Listen for new notifications
+			socket.on('notification:new', () => {
+				playSoundEffect('notification');
+				setUnreadCount((prev) => prev + 1);
+			});
+
+			// Request initial notification count
+			socket.emit('notification:get');
+		}
+
+		return () => {
+			const socket = socketService.getSocket();
+			if (socket) {
+				socket.off('notification:data');
+				socket.off('notification:new');
 			}
 		};
 	}, []);
@@ -114,6 +146,7 @@ export default function HomeScreen() {
 										backgroundColor: Colors.background2,
 										padding: 10,
 										borderRadius: 50,
+										position: 'relative',
 									}}
 								>
 									<Ionicons
@@ -121,6 +154,16 @@ export default function HomeScreen() {
 										color={Colors.white}
 										size={20}
 									/>
+									{unreadCount > 0 && (
+										<Badge
+											count={unreadCount}
+											style={{
+												position: 'absolute',
+												top: -5,
+												right: -5,
+											}}
+										/>
+									)}
 								</TouchableOpacity>
 								<TouchableOpacity
 									onPress={() => navigation.navigate('Settings')}

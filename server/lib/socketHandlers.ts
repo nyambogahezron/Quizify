@@ -1,7 +1,10 @@
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
+import {
+	initNotificationEmitter,
+	emitUserNotifications,
+} from './notificationEmitter';
 
-// Models
 import Quiz from '../models/Quiz.model';
 import QuizAttempt from '../models/QuizAttempt.model';
 import { Leaderboard, GlobalLeaderboard } from '../models/Leaderboard.model';
@@ -9,6 +12,7 @@ import { Achievement, UserAchievement } from '../models/Achievement.model';
 import { DailyTask, UserDailyTask } from '../models/DailyTask.model';
 import authenticateSocket from './AuthenticateSocket';
 import User from '../models/User.model';
+import { Notification } from '../models/Notification.model';
 
 interface UserSocket extends Socket {
 	userId?: string;
@@ -29,6 +33,8 @@ const activeQuizSessions: Map<
 const initSocketHandlers = (
 	io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
 ) => {
+	// Initialize notification emitter
+	initNotificationEmitter(io);
 	// Apply authentication middleware
 	io.use(authenticateSocket);
 
@@ -359,6 +365,111 @@ const initSocketHandlers = (
 			} catch (error) {
 				console.error('Error fetching achievements:', error);
 				socket.emit('error', { message: 'Failed to fetch achievements' });
+			}
+		});
+
+		//notification handler
+
+		// Handle notification fetch request
+		socket.on('notification:get', async () => {
+			try {
+				if (!socket.userId) {
+					socket.emit('error', { message: 'Authentication required' });
+					return;
+				}
+
+				const notifications = await Notification.find({ user: socket.userId })
+					.sort({ createdAt: -1 })
+					.limit(50);
+
+				emitUserNotifications(socket.userId, notifications);
+			} catch (error) {
+				socket.emit('error', { message: 'Failed to fetch notifications' });
+			}
+		});
+
+		// Handle notification send request
+		socket.on('notification:send', async (data) => {
+			try {
+				if (!socket.userId) {
+					socket.emit('error', { message: 'Authentication required' });
+					return;
+				}
+				const notification = new Notification({
+					user: socket.userId,
+					...data,
+				});
+				await notification.save();
+			} catch (error) {
+				console.error('Error sending notification:', error);
+				socket.emit('error', { message: 'Failed to send notification' });
+			}
+		});
+
+		// mark notification as read
+		socket.on('notification:read', async (notificationId) => {
+			try {
+				if (!socket.userId) {
+					socket.emit('error', { message: 'Authentication required' });
+					return;
+				}
+				await Notification.findByIdAndUpdate(notificationId, { isRead: true });
+				socket.emit('notification:read', { notificationId });
+			} catch (error) {
+				console.error('Error marking notification as read:', error);
+				socket.emit('error', {
+					message: 'Failed to mark notification as read',
+				});
+			}
+		});
+
+		// delete notification
+		socket.on('notification:delete', async (notificationId) => {
+			try {
+				if (!socket.userId) {
+					socket.emit('error', { message: 'Authentication required' });
+					return;
+				}
+				await Notification.findByIdAndDelete(notificationId);
+				socket.emit('notification:deleted', { notificationId });
+			} catch (error) {
+				console.error('Error deleting notification:', error);
+				socket.emit('error', { message: 'Failed to delete notification' });
+			}
+		});
+
+		// delete all notifications
+		socket.on('notification:deleteAll', async () => {
+			try {
+				if (!socket.userId) {
+					socket.emit('error', { message: 'Authentication required' });
+					return;
+				}
+				await Notification.deleteMany({ user: socket.userId });
+				socket.emit('notification:deletedAll');
+			} catch (error) {
+				console.error('Error deleting all notifications:', error);
+				socket.emit('error', { message: 'Failed to delete all notifications' });
+			}
+		});
+
+		// mark all notifications as read
+		socket.on('notification:readAll', async () => {
+			try {
+				if (!socket.userId) {
+					socket.emit('error', { message: 'Authentication required' });
+					return;
+				}
+				await Notification.updateMany(
+					{ user: socket.userId },
+					{ isRead: true }
+				);
+				socket.emit('notification:readAll');
+			} catch (error) {
+				console.error('Error marking all notifications as read:', error);
+				socket.emit('error', {
+					message: 'Failed to mark all notifications as read',
+				});
 			}
 		});
 

@@ -4,16 +4,25 @@ import Authenticate from '../middleware/Authenticate';
 
 const router = express.Router();
 
-// Get user notifications
-router.get('/', Authenticate, NotificationController.getNotifications);
+router
+	.route('/')
+	.get(Authenticate, NotificationController.getNotifications)
+	.post(Authenticate, NotificationController.sendNotification);
 
-// Mark notification as read
-router.patch('/:id/read', Authenticate, NotificationController.markAsRead);
+router
+	.route('/:id')
+	.patch(Authenticate, NotificationController.markAsRead)
+	.delete(Authenticate, NotificationController.deleteNotification);
 
-// Mark all notifications as read
 router.patch('/read-all', Authenticate, NotificationController.markAllAsRead);
 
-// Get unread notification count
-router.get('/unread-count', Authenticate, NotificationController.getUnreadCount);
+router.get(
+	'/unread-count',
+	Authenticate,
+	NotificationController.getUnreadCount
+);
 
-export default router; 
+// Delete all notifications
+router.delete('/', Authenticate, NotificationController.deleteAllNotifications);
+
+export default router;

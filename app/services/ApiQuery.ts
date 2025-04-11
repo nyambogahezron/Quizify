@@ -182,29 +182,19 @@ export const useNotifications = () => {
 };
 
 export const useMarkNotificationAsRead = () => {
-	const queryClient = useQueryClient();
-
 	return useMutation({
 		mutationFn: async (notificationId: string) => {
-			const response = await api.patch(`/notifications/${notificationId}/read`);
+			const response = await api.post(`/notifications/${notificationId}/read`);
 			return response.data;
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['notifications'] });
 		},
 	});
 };
 
-export const useMarkAllNotificationsAsRead = () => {
-	const queryClient = useQueryClient();
-
+export const useDeleteNotification = () => {
 	return useMutation({
-		mutationFn: async () => {
-			const response = await api.patch('/notifications/mark-all-as-read');
+		mutationFn: async (notificationId: string) => {
+			const response = await api.delete(`/notifications/${notificationId}`);
 			return response.data;
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['notifications'] });
 		},
 	});
 };

@@ -34,17 +34,6 @@ export default function Navigation() {
 					<Stack.Screen name='Result' component={SCREENS.ResultScreen} />
 					<Stack.Screen name='Review' component={SCREENS.ReviewScreen} />
 					<Stack.Screen
-						name='Notification'
-						component={SCREENS.NotificationsScreen}
-						options={{
-							headerShown: true,
-							headerTitle: 'Notification',
-							headerStyle: { backgroundColor: Colors.background3 },
-							headerTitleStyle: { color: Colors.white },
-							headerTintColor: Colors.white,
-						}}
-					/>
-					<Stack.Screen
 						name='WordFillLevels'
 						component={SCREENS.WordFillLevels}
 						options={{
@@ -66,11 +55,16 @@ export default function Navigation() {
 							headerTintColor: Colors.white,
 						}}
 					/>
+
 					<Stack.Screen
-						name='Profile'
-						component={SCREENS.ProfileScreen}
+						name='Notification'
+						component={SCREENS.NotificationsScreen}
 						options={{
-							headerShown: false,
+							headerShown: true,
+							headerTitle: 'Notifications',
+							headerStyle: { backgroundColor: Colors.background3 },
+							headerTitleStyle: { color: Colors.white },
+							headerTintColor: Colors.white,
 						}}
 					/>
 					<Stack.Screen

@@ -2,11 +2,10 @@ import { StyleSheet, View } from 'react-native';
 import { useLinkBuilder } from '@react-navigation/native';
 import { Text, PlatformPressable } from '@react-navigation/elements';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import SCREENS from 'screen';
 import Colors from 'constants/Colors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { NotificationBadge } from '../components/NotificationBadge';
 
 type tabProps = {
 	state: any;
@@ -31,14 +30,9 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 		Leaderboard: (props) => (
 			<Ionicons name={props.focused ? 'trophy' : 'trophy-outline'} {...props} />
 		),
-		Notifications: (props) => (
-			<View>
-				<Ionicons
-					name={props.focused ? 'notifications' : 'notifications-outline'}
-					{...props}
-				/>
-				<NotificationBadge />
-			</View>
+
+		Profile: (props) => (
+			<FontAwesome5 name={props.focused ? 'user-alt' : 'user'} {...props} />
 		),
 	};
 
@@ -93,7 +87,7 @@ export function BottomTabBar({ state, descriptors, navigation }: tabProps) {
 						<View style={styles.tabs}>
 							{icons[route.name](
 								isFocused
-									? { size: 18, color: Colors.primary, focused: true }
+									? { size: 18, color: Colors.success, focused: true }
 									: { size: 18, color: Colors.white, focused: false }
 							)}
 							<Text
@@ -143,14 +137,10 @@ export function BottomTabNavigation() {
 			/>
 			<Tab.Screen name='Leaderboard' component={SCREENS.LeaderboardScreen} />
 			<Tab.Screen
-				name='Notifications'
-				component={SCREENS.NotificationsScreen}
+				name='Profile'
+				component={SCREENS.ProfileScreen}
 				options={{
-					headerShown: true,
-					headerTitle: 'Notifications',
-					headerStyle: { backgroundColor: Colors.background3 },
-					headerTitleStyle: { color: Colors.white },
-					headerTintColor: Colors.white,
+					headerShown: false,
 				}}
 			/>
 		</Tab.Navigator>
@@ -178,7 +168,7 @@ const styles = StyleSheet.create({
 		borderRadius: 30,
 	},
 	textFocused: {
-		color: Colors.primary,
+		color: Colors.success,
 		fontWeight: 'bold',
 	},
 });
