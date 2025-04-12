@@ -43,16 +43,7 @@ const io = new Server(server, {
 	allowEIO3: true,
 });
 
-//routes
-import AuthRoutes from './routes/Auth.routes';
-import UserRoutes from './routes/User.routes';
-import QuizRoutes from './routes/Quiz.routes';
-import LeaderboardRoutes from './routes/Leaderboard.routes';
-import AchievementRoutes from './routes/Achievement.routes';
-import DailyTaskRoutes from './routes/DailyTask.routes';
-import AdminRoutes from './routes/Admin.routes';
-import NotificationRoutes from './routes/notification.routes';
-import UserProgressRoutes from './routes/userProgressRoutes';
+import { routes } from './routes';
 
 //middlewares
 import ErrorHandlerMiddleware from './middleware/ErrorsHandler';
@@ -68,15 +59,15 @@ if (!process.env.JWT_SECRET) {
 }
 app.use(cookieParser({ secret: process.env.JWT_SECRET }));
 
-app.use('/api/v1/auth', AuthRoutes);
-app.use('/api/v1/users', UserRoutes);
-app.use('/api/v1/quizzes', QuizRoutes);
-app.use('/api/v1/leaderboard', LeaderboardRoutes);
-app.use('/api/v1/achievements', AchievementRoutes);
-app.use('/api/v1/daily-tasks', DailyTaskRoutes);
-app.use('/api/v1/admin', AdminRoutes);
-app.use('/api/v1/notifications', NotificationRoutes);
-app.use('/api/v1/user-progress', UserProgressRoutes);
+app.use('/api/v1/auth', routes.AuthRoutes);
+app.use('/api/v1/users', routes.UserRoutes);
+app.use('/api/v1/quizzes', routes.QuizRoutes);
+app.use('/api/v1/leaderboard', routes.LeaderboardRoutes);
+app.use('/api/v1/achievements', routes.AchievementRoutes);
+app.use('/api/v1/daily-tasks', routes.DailyTaskRoutes);
+app.use('/api/v1/admin', routes.AdminRoutes);
+app.use('/api/v1/notifications', routes.NotificationRoutes);
+app.use('/api/v1/word-maker', routes.WordMakerRoutes);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));

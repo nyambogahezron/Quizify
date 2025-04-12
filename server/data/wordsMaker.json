@@ -1,0 +1,350 @@
+[
+	{
+		"_id": "1",
+		"level": 1,
+		"description": "Beginner - Find simple 3-letter words",
+		"hints": ["A pet that purrs", "A flying mammal", "A head covering"],
+		"words": ["CAT", "BAT", "HAT"],
+		"grid": [
+			["C", "A", "T"],
+			["B", "H", "R"],
+			["N", "P", "S"]
+		],
+		"gridSize": 3,
+		"totalPoints": 30,
+		"timeLimit": 60,
+		"icon": "🐱"
+	},
+	{
+		"_id": "2",
+		"level": 2,
+		"description": "Simple 3-4 letter words",
+		"hints": [
+			"A loyal pet",
+			"A small rodent",
+			"To sit down",
+			"A floor covering"
+		],
+		"words": ["DOG", "RAT", "SIT", "MAT"],
+		"grid": [
+			["D", "O", "G"],
+			["R", "A", "T"],
+			["S", "I", "M"]
+		],
+		"gridSize": 3,
+		"totalPoints": 40,
+		"timeLimit": 75,
+		"icon": "🐭"
+	},
+	{
+		"_id": "3",
+		"level": 3,
+		"description": "Mixed word lengths",
+		"hints": [
+			"To consume food",
+			"A place to rest",
+			"A writing tool",
+			"To move quickly"
+		],
+		"words": ["EAT", "BED", "PEN", "RUN"],
+		"letters": [
+			["E", "A", "T"],
+			["B", "D", "P"],
+			["N", "R", "U"],
+			["M", "S", "I"],
+			["L", "O", "W"],
+			["K", "O", "W"]
+		],
+		"gridSize": 4,
+		"totalPoints": 50,
+		"timeLimit": 90,
+		"icon": "🐶"
+	},
+	{
+		"_id": "4",
+		"level": 4,
+		"description": "Four letter words",
+		"hints": [
+			"Opposite of cold",
+			"To keep something",
+			"A story book",
+			"To jump high"
+		],
+		"words": ["WARM", "SAVE", "TALE", "LEAP"],
+		"letters": [
+			["W", "A", "R", "M"],
+			["S", "V", "E", "T"],
+			["L", "P", "N", "I"],
+			["D", "O", "U", "H"]
+		],
+		"gridSize": 4,
+		"totalPoints": 60,
+		"timeLimit": 100,
+		"icon": "🐱"
+	},
+	{
+		"_id": "5",
+		"level": 5,
+		"description": "Mixed lengths challenge",
+		"hints": [
+			"A bright light",
+			"To move forward",
+			"A cooking vessel",
+			"A place to swim"
+		],
+		"words": ["STAR", "WALK", "POT", "POOL"],
+		"letters": [
+			["S", "T", "A", "R"],
+			["W", "L", "K", "P"],
+			["O", "O", "L", "N"],
+			["M", "B", "E", "I"],
+			["U", "H", "D", "O"]
+		],
+		"gridSize": 4,
+		"totalPoints": 70,
+		"timeLimit": 110,
+		"icon": "🐱"
+	},
+	{
+		"_id": "6",
+		"level": 6,
+		"description": "Advanced word finding",
+		"hints": [
+			"A musical instrument",
+			"To speak loudly",
+			"A small stream",
+			"A writing implement"
+		],
+		"words": ["DRUM", "YELL", "CREEK", "PEN"],
+		"letters": [
+			["D", "R", "U", "M"],
+			["Y", "E", "L", "L"],
+			["C", "R", "E", "E"],
+			["K", "P", "E", "N"]
+		],
+		"gridSize": 4,
+		"totalPoints": 80,
+		"timeLimit": 120,
+		"icon": "🐭"
+	},
+	{
+		"_id": "7",
+		"level": 7,
+		"description": "Complex word patterns",
+		"hints": [
+			"A timepiece",
+			"To consume liquid",
+			"A place to live",
+			"To move in water"
+		],
+		"words": ["CLOCK", "DRINK", "HOME", "SWIM"],
+		"letters": [
+			["C", "L", "O", "K"],
+			["D", "R", "I", "N"],
+			["H", "O", "M", "E"],
+			["S", "W", "I", "M"]
+		],
+		"gridSize": 4,
+		"totalPoints": 90,
+		"timeLimit": 130,
+		"icon": "🐭"
+	},
+	{
+		"_id": "8",
+		"level": 8,
+		"description": "Advanced vocabulary",
+		"hints": [
+			"A celestial body",
+			"To move quickly",
+			"A large cat",
+			"A writing surface"
+		],
+		"words": ["MOON", "RUSH", "TIGER", "PAGE"],
+		"letters": [
+			["M", "O", "N"],
+			["R", "U", "S"],
+			["H", "T", "I"],
+			["G", "E", "P"],
+			["A", "L", "K"],
+			["W", "O", "Y"]
+		],
+		"gridSize": 4,
+		"totalPoints": 100,
+		"timeLimit": 140,
+		"icon": "🐭"
+	},
+	{
+		"_id": "9",
+		"level": 9,
+		"description": "Expert challenge",
+		"hints": [
+			"A musical sound",
+			"To move earth",
+			"A body of water",
+			"A measuring tool"
+		],
+		"words": ["SONG", "DIG", "LAKE", "RULER"],
+		"letters": [
+			["S", "O", "N", "G"],
+			["D", "I", "G", "R"],
+			["E", "K", "A", "L"],
+			["U", "T", "P", "R"],
+			["R", "U", "L", "E"]
+		],
+		"gridSize": 4,
+		"totalPoints": 110,
+		"timeLimit": 150,
+		"icon": "🐭"
+	},
+	{
+		"_id": "10",
+		"level": 10,
+		"description": "Master level",
+		"hints": [
+			"A flying insect",
+			"To make music",
+			"A small horse",
+			"A time period"
+		],
+		"words": ["MOTH", "SING", "PONY", "YEAR"],
+		"letters": [
+			["M", "O", "T", "H"],
+			["S", "I", "N", "G"],
+			["P", "O", "N", "Y"],
+			["Y", "E", "A", "R"]
+		],
+		"gridSize": 4,
+		"totalPoints": 120,
+		"timeLimit": 160,
+		"icon": "🐭"
+	},
+	{
+		"_id": "11",
+		"level": 11,
+		"description": "Word master challenge",
+		"hints": [
+			"A large vehicle",
+			"To move air",
+			"A small room",
+			"A measurement"
+		],
+		"words": ["TRUCK", "BLOW", "CELL", "MILE"],
+		"letters": [
+			["T", "R", "U", "C"],
+			["B", "L", "O", "K"],
+			["W", "E", "W", "I"],
+			["C", "E", "L", "L"],
+			["M", "I", "L", "E"]
+		],
+		"gridSize": 4,
+		"totalPoints": 130,
+		"timeLimit": 170,
+		"icon": "🐭"
+	},
+	{
+		"_id": "12",
+		"level": 12,
+		"description": "Ultimate challenge",
+		"hints": ["A sea creature", "To make food", "A small boat", "A time unit"],
+		"words": ["FISH", "COOK", "RAFT", "HOUR"],
+		"letters": [
+			["F", "I", "S", "H"],
+			["C", "O", "O", "K"],
+			["R", "A", "F", "T"],
+			["H", "O", "U", "R"]
+		],
+		"gridSize": 4,
+		"totalPoints": 140,
+		"timeLimit": 180,
+		"icon": "🐭"
+	},
+	{
+		"_id": "13",
+		"level": 13,
+		"description": "Word master elite",
+		"hints": [
+			"A weather event",
+			"To close eyes",
+			"A small animal",
+			"A body part"
+		],
+		"words": ["RAIN", "SLEEP", "MOUSE", "HAND"],
+		"letters": [
+			["R", "A", "I", "N"],
+			["S", "L", "E", "E"],
+			["M", "O", "U", "S"],
+			["H", "A", "N", "D"]
+		],
+		"gridSize": 4,
+		"totalPoints": 150,
+		"timeLimit": 190,
+		"icon": "🐭"
+	},
+	{
+		"_id": "14",
+		"level": 14,
+		"description": "Supreme challenge",
+		"hints": [
+			"A loud noise",
+			"To move upward",
+			"A water source",
+			"A time division"
+		],
+		"words": ["BOOM", "CLIMB", "WELL", "WEEK"],
+		"letters": [
+			["B", "O", "O", "M"],
+			["C", "L", "I", "M"],
+			["W", "E", "L", "L"],
+			["W", "E", "E", "K"]
+		],
+		"gridSize": 4,
+		"totalPoints": 160,
+		"timeLimit": 200,
+		"icon": "🐭"
+	},
+	{
+		"_id": "15",
+		"level": 15,
+		"description": "Legendary level",
+		"hints": [
+			"An ocean dweller",
+			"To move forward",
+			"A dwelling place",
+			"A measurement of time"
+		],
+		"words": ["SHARK", "MARCH", "HOUSE", "MONTH"],
+		"letters": [
+			["S", "H", "A", "R"],
+			["K", "M", "C", "O"],
+			["U", "E", "N", "T"],
+			["P", "L", "W", "I"]
+		],
+		"gridSize": 4,
+		"totalPoints": 200,
+		"timeLimit": 240,
+		"icon": "🐭"
+	},
+	{
+		"_id": "16",
+		"level": 16,
+		"description": "Legendary level",
+		"hints": [
+			"A small animal",
+			"A body part",
+			"A time unit",
+			"A measurement of time"
+		],
+		"words": ["DOG", "CAT", "MOUSE", "RAT", "FISH"],
+		"letters": [
+			["D", "O", "G", "E"],
+			["C", "A", "T", "R"],
+			["M", "O", "U", "S"],
+			["R", "A", "T", "E"],
+			["F", "I", "S", "H"]
+		],
+		"gridSize": 5,
+		"totalPoints": 200,
+		"timeLimit": 240,
+		"icon": "🐭"
+	}
+]
