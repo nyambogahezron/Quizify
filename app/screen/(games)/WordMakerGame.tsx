@@ -26,6 +26,7 @@ import levelsData from '@/lib/wordsMaker.json';
 import { useRoute } from '@react-navigation/native';
 import { Level } from '@/interface';
 import { updateUserProgress } from '../../services/userProgressService';
+import { socketService } from '../../lib/socket';
 
 type Position = {
 	row: number;
@@ -70,6 +71,31 @@ export default function WordMakerScreen() {
 				setCurrentLevel(selectedLevel.level);
 			}
 			setIsLoading(false);
+
+			// Set up socket listeners
+			socketService.onWordMakerLevelData((data) => {
+				setLevelData(data.level);
+				setTimeLeft(data.timeLimit);
+			});
+
+			socketService.onWordMakerProgressUpdate((data) => {
+				setScore(data.score);
+				setFoundWords(data.wordsFound);
+				setTimeLeft(data.timeSpent);
+			});
+
+			socketService.onWordMakerLevelCompleted((data) => {
+				setScore(data.score);
+				setFoundWords(data.wordsFound);
+				setTimeLeft(data.timeSpent);
+				setGameOver(true);
+				setShowResults(true);
+			});
+
+			// Clean up socket listeners
+			return () => {
+				socketService.leaveWordMakerLevel(levelId.toString());
+			};
 		} else {
 			setLevelData(levelsData.levels[0]);
 			setCurrentLevel(1);
@@ -338,21 +364,13 @@ export default function WordMakerScreen() {
 		playSoundEffect('notification');
 		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-		// Save progress
-		try {
-			const wordsFoundWithTimestamps = foundWords.map(word => ({
-				word,
-				foundAt: new Date(),
-			}));
-
-			await updateUserProgress(
-				currentLevel,
-				score,
-				wordsFoundWithTimestamps,
+		// Save progress through socket
+		if (levelId) {
+			socketService.submitWordFound(
+				levelId.toString(),
+				currentWord,
 				levelData?.timeLimit ? levelData.timeLimit - timeLeft : 0
 			);
-		} catch (error) {
-			console.error('Error saving progress:', error);
 		}
 	};
 

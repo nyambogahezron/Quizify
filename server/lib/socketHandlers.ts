@@ -18,6 +18,8 @@ import {
 import { UserDailyTask } from '../models/DailyTask.model';
 import { UserAchievement } from '../models/Achievement.model';
 import DailyTaskController from '../controllers/DailyTask.controller';
+import WordsMakerModel from '../models/WordsMaker.model';
+import { UserProgress } from '../models/UserProgress';
 
 interface UserSocket extends Socket {
 	userId?: string;
@@ -45,6 +47,19 @@ const userSessions: Map<
 	}
 > = new Map();
 
+// Track active word maker sessions
+const activeWordMakerSessions: Map<
+	string,
+	{
+		levelId: string;
+		userId: string;
+		startTime: Date;
+		score: number;
+		wordsFound: string[];
+		timeSpent: number;
+	}
+> = new Map();
+
 const initSocketHandlers = (
 	io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
 ) => {
@@ -52,6 +67,14 @@ const initSocketHandlers = (
 	initNotificationEmitter(io);
 	// Apply authentication middleware
 	io.use(authenticateSocket);
+
+	// Add calculateStars function
+	const calculateStars = (score: number, timeSpent: number): number => {
+		if (score >= 90) return 3;
+		if (score >= 70) return 2;
+		if (score >= 50) return 1;
+		return 0;
+	};
 
 	io.on('connection', (socket: UserSocket) => {
 		// Handle test connection
@@ -338,18 +361,37 @@ const initSocketHandlers = (
 					leaderboardData = await Leaderboard.find({ quiz: quizId })
 						.sort({ score: -1, timeSpent: 1 })
 						.limit(limit)
-						.populate('user', 'username avatar');
+						.populate('user', 'username avatar')
+						.lean();
 				} else {
 					// Global leaderboard
 					leaderboardData = await GlobalLeaderboard.find()
 						.sort({ totalScore: -1 })
 						.limit(limit)
-						.populate('user', 'username avatar');
+						.populate('user', 'username avatar')
+						.lean();
 				}
+
+				// Transform the data to remove Mongoose internals
+				const transformedData = leaderboardData.map((entry: any, index) => ({
+					position: index + 1,
+					user: {
+						id: entry.user._id,
+						username: entry.user.username,
+						avatar: entry.user.avatar,
+					},
+					score: entry.totalScore || entry.score,
+					quizzesCompleted: entry.quizzesCompleted,
+					averageScore: entry.averageScore,
+					lastUpdated: entry.lastUpdated,
+				}));
 
 				socket.emit('leaderboard:data', {
 					quizId,
-					leaderboard: leaderboardData,
+					leaderboard: transformedData,
+					totalEntries: transformedData.length,
+					currentPage: 1,
+					totalPages: 1,
 				});
 			} catch (error) {
 				console.error('Error fetching leaderboard:', error);
@@ -545,6 +587,157 @@ const initSocketHandlers = (
 				userSessions.delete(socket.userId!);
 			});
 		}
+
+		// Word Maker game handlers
+		socket.on('wordmaker:start', async (levelId: string) => {
+			try {
+				console.log(
+					`Starting word maker level ${levelId} for user ${socket.userId}`
+				);
+
+				if (!socket.userId) {
+					console.error('No user ID found in socket');
+					socket.emit('error', { message: 'Authentication required' });
+					return;
+				}
+
+				// Find by level number instead of _id
+				const levelNumber = parseInt(levelId);
+				if (isNaN(levelNumber)) {
+					console.error(`Invalid level number: ${levelId}`);
+					socket.emit('error', { message: 'Invalid level number' });
+					return;
+				}
+
+				const level = await WordsMakerModel.findOne({
+					level: levelNumber,
+				});
+
+				if (!level) {
+					console.error(`Level ${levelNumber} not found in database`);
+					socket.emit('error', {
+						message: 'Level not found',
+						details: `Level ${levelNumber} does not exist in the database`,
+					});
+					return;
+				}
+
+				// Create session with level's _id
+				const levelObjectId = level._id.toString();
+				const sessionId = `${socket.userId}:${levelObjectId}`;
+
+				activeWordMakerSessions.set(sessionId, {
+					levelId: levelObjectId,
+					userId: socket.userId,
+					startTime: new Date(),
+					score: 0,
+					wordsFound: [],
+					timeSpent: 0,
+				});
+
+				// Join level room
+				socket.join(`wordmaker:${levelObjectId}`);
+				console.log(
+					`User ${socket.userId} joined wordmaker room ${levelObjectId}`
+				);
+
+				// Send level data
+				const levelData = level.toObject();
+				console.log(`Sending level data for level ${levelNumber}`);
+				socket.emit('wordmaker:level-data', {
+					level: levelData,
+					timeLimit: level.timeLimit,
+				});
+			} catch (error) {
+				console.error('Error starting word maker level:', error);
+				socket.emit('error', {
+					message: 'Failed to start level',
+					details: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
+		socket.on('wordmaker:word-found', async ({ levelId, word, timeSpent }) => {
+			try {
+				if (!socket.userId) {
+					socket.emit('error', { message: 'Authentication required' });
+					return;
+				}
+
+				const sessionId = `${socket.userId}:${levelId}`;
+				const session = activeWordMakerSessions.get(sessionId);
+
+				if (!session) {
+					socket.emit('error', { message: 'No active session found' });
+					return;
+				}
+
+				// Update session
+				session.wordsFound.push(word);
+				session.score += 5; // 5 points per word
+				session.timeSpent = timeSpent;
+				activeWordMakerSessions.set(sessionId, session);
+
+				// Check if level is completed
+				const level = await WordsMakerModel.findById(levelId);
+				if (level && session.wordsFound.length === level.words.length) {
+					// Level completed
+					const stars = calculateStars(session.score, session.timeSpent);
+
+					// Save progress
+					await UserProgress.findOneAndUpdate(
+						{ userId: socket.userId, level: level.level },
+						{
+							score: session.score,
+							wordsFound: session.wordsFound.map((word) => ({
+								word,
+								foundAt: new Date(),
+							})),
+							timeSpent: session.timeSpent,
+							stars,
+							status: 'completed',
+							completedAt: new Date(),
+						},
+						{ upsert: true, new: true }
+					);
+
+					// Notify completion
+					socket.emit('wordmaker:level-completed', {
+						score: session.score,
+						wordsFound: session.wordsFound,
+						timeSpent: session.timeSpent,
+						stars,
+					});
+
+					// Notify other users about progress
+					io.to(`wordmaker:${levelId}`).emit('wordmaker:progress-updated', {
+						userId: socket.userId,
+						level: level.level,
+						score: session.score,
+						stars,
+					});
+
+					// Remove session
+					activeWordMakerSessions.delete(sessionId);
+				} else {
+					// Update progress
+					socket.emit('wordmaker:progress-updated', {
+						score: session.score,
+						wordsFound: session.wordsFound,
+						timeSpent: session.timeSpent,
+					});
+				}
+			} catch (error) {
+				console.error('Error processing word found:', error);
+				socket.emit('error', { message: 'Failed to process word' });
+			}
+		});
+
+		socket.on('wordmaker:leave', (levelId: string) => {
+			const sessionId = `${socket.userId}:${levelId}`;
+			activeWordMakerSessions.delete(sessionId);
+			socket.leave(`wordmaker:${levelId}`);
+		});
 	});
 };
 

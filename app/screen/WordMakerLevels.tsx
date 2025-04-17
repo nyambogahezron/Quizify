@@ -17,6 +17,7 @@ import { RootStackParamList } from '.';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LevelDetailsModal } from '../components/LevelDetailsModal';
 import { useUserWordMakerProgress } from '@/services/ApiQuery';
+import { socketService } from '../lib/socket';
 
 interface Level {
 	id: number;
@@ -58,6 +59,7 @@ export default function WordMakerLevels() {
 		if (level.status === 'completed') {
 			setShowLevelDetails(true);
 		} else {
+			socketService.startWordMakerLevel(level.id.toString());
 			navigation.navigate('WordGame', { levelId: level.id });
 		}
 	};

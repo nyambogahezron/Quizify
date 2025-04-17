@@ -27,16 +27,24 @@ class LeaderboardController {
 				.limit(Number(limit))
 				.skip(skip);
 
-			// Add position to each entry
-			const leaderboardWithPosition = leaderboard.map((entry, index) => ({
-				...entry,
+			// Transform the data to return only necessary fields
+			const cleanLeaderboard = leaderboard.map((entry, index) => ({
 				position: skip + index + 1,
+				user: {
+					id: entry.user._id,
+					username: (entry.user as any).username,
+					avatar: (entry.user as any).avatar,
+				},
+				totalScore: entry.totalScore,
+				averageScore: entry.averageScore,
+				quizzesCompleted: entry.quizzesCompleted,
+				lastUpdated: entry.lastUpdated,
 			}));
 
 			const totalEntries = await GlobalLeaderboard.countDocuments();
 
 			res.status(StatusCodes.OK).json({
-				leaderboard: leaderboardWithPosition,
+				leaderboard: cleanLeaderboard,
 				totalEntries,
 				currentPage: Number(page),
 				totalPages: Math.ceil(totalEntries / Number(limit)),

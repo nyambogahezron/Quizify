@@ -210,6 +210,71 @@ class SocketService {
 	onDailyTaskUpdate(callback: (data: any) => void) {
 		this.socket?.on('daily_task_update', callback);
 	}
+
+	// Word Maker game events
+	startWordMakerLevel(levelId: string) {
+		if (!this.socket?.connected) {
+			console.log('Socket not connected, attempting to connect...');
+			this.connect();
+			return;
+		}
+		console.log('Starting word maker level:', levelId);
+
+		// Set up error handler for this specific request
+		const errorHandler = (error: any) => {
+			console.error('Word maker level start error:', error);
+			this.socket?.off('error', errorHandler);
+		};
+
+		this.socket.once('error', errorHandler);
+		this.socket.emit('wordmaker:start', levelId);
+	}
+
+	onWordMakerLevelData(callback: (data: any) => void) {
+		this.socket?.on('wordmaker:level-data', callback);
+	}
+
+	submitWordFound(levelId: string, word: string, timeSpent: number) {
+		if (!this.socket?.connected) {
+			console.log('Socket not connected, attempting to connect...');
+			this.connect();
+			return;
+		}
+		console.log('Submitting word found:', { levelId, word, timeSpent });
+		this.socket.emit('wordmaker:word-found', { levelId, word, timeSpent });
+	}
+
+	onWordMakerProgressUpdate(callback: (data: any) => void) {
+		this.socket?.on('wordmaker:progress-updated', callback);
+	}
+
+	onWordMakerLevelCompleted(callback: (data: any) => void) {
+		this.socket?.on('wordmaker:level-completed', callback);
+	}
+
+	leaveWordMakerLevel(levelId: string) {
+		if (!this.socket?.connected) {
+			console.log('Socket not connected, attempting to connect...');
+			this.connect();
+			return;
+		}
+		console.log('Leaving word maker level:', levelId);
+		this.socket.emit('wordmaker:leave', levelId);
+	}
+
+	public getLeaderboard(quizId?: string) {
+		if (this.socket) {
+			this.socket.emit('leaderboard:get', { quizId });
+		}
+	}
+
+	public onLeaderboardData(callback: (data: any) => void) {
+		this.socket?.on('leaderboard:data', callback);
+	}
+
+	public offLeaderboardData(callback: (data: any) => void) {
+		this.socket?.off('leaderboard:data', callback);
+	}
 }
 
 export const socketService = new SocketService();

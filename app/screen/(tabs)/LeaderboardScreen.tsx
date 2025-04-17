@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
 	View,
 	Text,
@@ -15,89 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/interface/index.d';
 import Colors from 'constants/Colors';
+import { socketService } from '@/lib/socket';
 
-const dummyData = [
-	{
-		id: '1',
-		username: 'John Doe',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 100,
-		rank: '🥇',
-	},
-	{
-		id: '2',
-		username: 'Jane Smith',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 80,
-		rank: '🥈',
-	},
-	{
-		id: '3',
-		username: 'John Doe',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 100,
-		rank: '🥉',
-	},
-	{
-		id: '4',
-		username: 'Jane Smith',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 80,
-		rank: 2,
-	},
-	{
-		id: '5',
-		username: 'Jane Smith',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 80,
-		rank: 2,
-	},
-	{
-		id: '6',
-		username: 'Jane Smith',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 80,
-		rank: 2,
-	},
-	{
-		id: '7',
-		username: 'Jane Smith',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 80,
-		rank: 2,
-	},
-	{
-		id: '8',
-		username: 'Jane Smith',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 80,
-		rank: 2,
-	},
-	{
-		id: '9',
-		username: 'Jane Smith',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 80,
-		rank: 2,
-	},
-	{
-		id: '10',
-		username: 'Jane Smith',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dXNlciUyMHByb2ZpbGV8ZW58MHx8MHx8fDA%3D',
-		score: 80,
-		rank: 2,
-	},
-];
 type Props = {
 	navigation: NativeStackNavigationProp<RootStackParamList, 'Leaderboard'>;
 };
@@ -107,12 +26,13 @@ const rankColors = {
 	1: '#C0C0C0', // Silver
 	2: '#CD7F32', // Bronze
 };
+
 interface LeaderboardItem {
 	id: string;
 	username: string;
 	avatar?: string;
 	score: number;
-	rank: number | string;
+	position: number;
 }
 
 const HEADER_MAX_HEIGHT = 230;
@@ -124,9 +44,38 @@ const AnimatedFlatList = Animated.createAnimatedComponent(
 
 export default function LeaderboardScreen({ navigation }: Props) {
 	const scrollY = useRef(new Animated.Value(0)).current;
-	const fadeAnimations = useRef(
-		dummyData.slice(3).map(() => new Animated.Value(0))
-	).current;
+	const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
+	const fadeAnimations = useRef<Animated.Value[]>([]);
+
+	useEffect(() => {
+		// Request leaderboard data
+		socketService.getLeaderboard();
+
+		// Listen for leaderboard updates
+		const handleLeaderboardData = (data: any) => {
+			const transformedData = data.leaderboard.map((item: any) => ({
+				id: item.user.id,
+				username: item.user.username,
+				avatar: item.user.avatar,
+				score: item.score,
+				position: item.position,
+			}));
+			setLeaderboardData(transformedData);
+		};
+
+		socketService.onLeaderboardData(handleLeaderboardData);
+
+		return () => {
+			socketService.offLeaderboardData(handleLeaderboardData);
+		};
+	}, []);
+
+	// Update fadeAnimations when data changes
+	useEffect(() => {
+		fadeAnimations.current = leaderboardData
+			.slice(3)
+			.map(() => new Animated.Value(0));
+	}, [leaderboardData]);
 
 	const headerTranslateY = scrollY.interpolate({
 		inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
@@ -155,28 +104,15 @@ export default function LeaderboardScreen({ navigation }: Props) {
 		extrapolate: 'clamp',
 	});
 
-	React.useEffect(() => {
-		// Stagger the animations
-		const animations = fadeAnimations.map((anim, index) => {
-			return Animated.timing(anim, {
-				toValue: 1,
-				duration: 500,
-				delay: index * 100, // 100ms delay between each item
-				useNativeDriver: true,
-			});
-		});
-
-		Animated.stagger(100, animations).start();
-	}, []);
-
 	const renderItem: ListRenderItem<LeaderboardItem> = ({ item, index }) => {
+		const animation = fadeAnimations.current[index] || new Animated.Value(0);
 		return (
 			<Animated.View
 				style={{
-					opacity: fadeAnimations[index],
+					opacity: animation,
 					transform: [
 						{
-							translateY: fadeAnimations[index].interpolate({
+							translateY: animation.interpolate({
 								inputRange: [0, 1],
 								outputRange: [50, 0],
 							}),
@@ -186,7 +122,7 @@ export default function LeaderboardScreen({ navigation }: Props) {
 			>
 				<TouchableOpacity activeOpacity={0.8} style={styles.leaderboardItem}>
 					<View style={styles.rankContainer}>
-						<Text style={styles.rankText}>{index + 4}</Text>
+						<Text style={styles.rankText}>{item.position}</Text>
 					</View>
 					<View style={styles.userInfo}>
 						<View style={styles.avatar}>
@@ -213,6 +149,9 @@ export default function LeaderboardScreen({ navigation }: Props) {
 	};
 
 	const FirstThreeItem = ({ index }: { index: number }) => {
+		const item = leaderboardData[index];
+		if (!item) return null;
+
 		return (
 			<Animated.View
 				style={[
@@ -228,13 +167,19 @@ export default function LeaderboardScreen({ navigation }: Props) {
 						},
 					]}
 				>
-					<Image
-						source={{ uri: dummyData[index].avatar }}
-						style={[
-							styles.avatarImage,
-							{ width: '100%', height: '100%', borderRadius: 50 },
-						]}
-					/>
+					{item.avatar ? (
+						<Image
+							source={{ uri: item.avatar }}
+							style={[
+								styles.avatarImage,
+								{ width: '100%', height: '100%', borderRadius: 50 },
+							]}
+						/>
+					) : (
+						<Text style={styles.avatarText}>
+							{item.username.charAt(0).toUpperCase()}
+						</Text>
+					)}
 					<Text
 						style={[
 							styles.topThreeText,
@@ -243,23 +188,32 @@ export default function LeaderboardScreen({ navigation }: Props) {
 							},
 						]}
 					>
-						{dummyData[index].rank}
+						{index + 1}
 					</Text>
 				</Animated.View>
-				<Text style={styles.topThreeText2}>{dummyData[index].username}</Text>
-				<Text style={styles.topThreeText3}>{dummyData[index].score}</Text>
+				<Text style={styles.topThreeText2}>{item.username}</Text>
+				<Text style={styles.topThreeText3}>{item.score}</Text>
 			</Animated.View>
 		);
 	};
 
 	const MiniFirstThreeItem = ({ index }: { index: number }) => {
+		const item = leaderboardData[index];
+		if (!item) return null;
+
 		return (
 			<View style={styles.miniTopConWrapper}>
 				<View style={styles.miniTopThreeItem}>
-					<Image
-						source={{ uri: dummyData[index].avatar }}
-						style={styles.miniAvatarImage}
-					/>
+					{item.avatar ? (
+						<Image
+							source={{ uri: item.avatar }}
+							style={styles.miniAvatarImage}
+						/>
+					) : (
+						<Text style={styles.avatarText}>
+							{item.username.charAt(0).toUpperCase()}
+						</Text>
+					)}
 					<Text
 						style={[
 							styles.miniTopThreeText,
@@ -272,12 +226,27 @@ export default function LeaderboardScreen({ navigation }: Props) {
 					</Text>
 				</View>
 				<View style={styles.miniUserInfo}>
-					<Text style={styles.miniUsername}>{dummyData[index].username}</Text>
-					<Text style={styles.miniScore}>{dummyData[index].score}</Text>
+					<Text style={styles.miniUsername}>{item.username}</Text>
+					<Text style={styles.miniScore}>{item.score}</Text>
 				</View>
 			</View>
 		);
 	};
+
+	if (leaderboardData.length === 0) {
+		return (
+			<SafeAreaView style={styles.container}>
+				<LinearGradient
+					colors={[Colors.background3, Colors.background2]}
+					style={styles.gradient}
+				>
+					<View style={styles.loadingContainer}>
+						<Text style={styles.loadingText}>Loading leaderboard...</Text>
+					</View>
+				</LinearGradient>
+			</SafeAreaView>
+		);
+	}
 
 	return (
 		<SafeAreaView style={styles.container}>
@@ -294,8 +263,8 @@ export default function LeaderboardScreen({ navigation }: Props) {
 						},
 					]}
 				>
-					{dummyData.slice(0, 3).map((item, index) => (
-						<FirstThreeItem key={item.id} index={index} />
+					{leaderboardData.slice(0, 3).map((_, index) => (
+						<FirstThreeItem key={index} index={index} />
 					))}
 				</Animated.View>
 
@@ -307,13 +276,13 @@ export default function LeaderboardScreen({ navigation }: Props) {
 						},
 					]}
 				>
-					{dummyData.slice(0, 3).map((item, index) => (
-						<MiniFirstThreeItem key={item.id} index={index} />
+					{leaderboardData.slice(0, 3).map((_, index) => (
+						<MiniFirstThreeItem key={index} index={index} />
 					))}
 				</Animated.View>
 
 				<AnimatedFlatList
-					data={dummyData.slice(3)}
+					data={leaderboardData.slice(3)}
 					renderItem={renderItem}
 					keyExtractor={(item) => item.id}
 					contentContainerStyle={[
@@ -345,7 +314,11 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		backgroundColor: Colors.background,
 	},
-
+	loadingText: {
+		fontSize: 18,
+		fontFamily: 'Rb-bold',
+		color: Colors.text,
+	},
 	listContainer: {
 		paddingHorizontal: 5,
 		paddingBottom: 80,
