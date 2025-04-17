@@ -62,11 +62,16 @@ export const emitNotificationDeleted = (
 	userId: string,
 	notificationId: string
 ) => {
-	if (!io) return;
+	if (!io) {
+		console.error('[NotificationEmitter] Socket.io instance not initialized');
+		return;
+	}
+
+	const userRoom = `user:${userId}`;
 	console.log(
 		`Emitting notification deleted status for user ${userId}, notification ${notificationId}`
 	);
-	io.to(userId).emit('notification:deleted', { notificationId });
+	io.to(userRoom).emit('notification:deleted', { notificationId });
 };
 
 // Emit all notifications read status
@@ -87,9 +92,14 @@ export const emitAllNotificationsRead = (userId: string) => {
 
 // Emit all notifications deleted status
 export const emitAllNotificationsDeleted = (userId: string) => {
-	if (!io) return;
+	if (!io) {
+		console.error('[NotificationEmitter] Socket.io instance not initialized');
+		return;
+	}
+
+	const userRoom = `user:${userId}`;
 	console.log(`Emitting all notifications deleted status for user ${userId}`);
-	io.to(userId).emit('notification:deleted-all');
+	io.to(userRoom).emit('notification:deleted-all');
 };
 
 // Emit notifications list to a specific user

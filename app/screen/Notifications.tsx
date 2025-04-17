@@ -41,11 +41,28 @@ export default function Notifications() {
 	const deleteMutation = useDeleteNotification();
 
 	const markNotificationAsRead = (notificationId: string) => {
-		markAsReadMutation.mutate(notificationId);
+		markAsReadMutation.mutate(notificationId, {
+			onSuccess: () => {
+				setNotifications((prev) =>
+					prev.map((notification) => {
+						if (notification._id === notificationId) {
+							return { ...notification, isRead: true };
+						}
+						return notification;
+					})
+				);
+			},
+		});
 	};
 
 	const deleteNotification = (notificationId: string) => {
-		deleteMutation.mutate(notificationId);
+		deleteMutation.mutate(notificationId, {
+			onSuccess: () => {
+				setNotifications((prev) =>
+					prev.filter((n) => n._id !== notificationId)
+				);
+			},
+		});
 	};
 
 	const fetchNotifications = () => {
@@ -109,9 +126,9 @@ export default function Notifications() {
 				}
 			);
 
-			// Listen for deleted notifications specific to this user
+			// Listen for deleted notifications
 			socket.on(
-				`notification:deleted:${user?.id}`,
+				'notification:deleted',
 				({ notificationId }: { notificationId: string }) => {
 					if (mounted) {
 						setNotifications((prev) =>
@@ -120,6 +137,13 @@ export default function Notifications() {
 					}
 				}
 			);
+
+			// Listen for all notifications deleted
+			socket.on('notification:deleted-all', () => {
+				if (mounted) {
+					setNotifications([]);
+				}
+			});
 
 			// Request notifications immediately after setting up listeners
 			fetchNotifications();

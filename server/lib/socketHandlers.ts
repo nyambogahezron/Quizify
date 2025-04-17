@@ -9,7 +9,6 @@ import Quiz from '../models/Quiz.model';
 import QuizAttempt from '../models/QuizAttempt.model';
 import { Leaderboard, GlobalLeaderboard } from '../models/Leaderboard.model';
 import authenticateSocket from './AuthenticateSocket';
-import User from '../models/User.model';
 import { Notification } from '../models/Notification.model';
 import {
 	updateLeaderboard,
@@ -18,12 +17,13 @@ import {
 } from '../helpers';
 import { UserDailyTask } from '../models/DailyTask.model';
 import { UserAchievement } from '../models/Achievement.model';
+import DailyTaskController from '../controllers/DailyTask.controller';
 
 interface UserSocket extends Socket {
 	userId?: string;
 }
 
-// Track active quiz sessions
+// Track active quiz sessions and answered questions
 const activeQuizSessions: Map<
 	string,
 	{
@@ -32,6 +32,16 @@ const activeQuizSessions: Map<
 		startTime: Date;
 		currentQuestion: number;
 		attemptId: string;
+		answeredQuestionIds: string[]; // Track answered questions
+	}
+> = new Map();
+
+// Track user session time
+const userSessions: Map<
+	string,
+	{
+		startTime: Date;
+		lastActivity: Date;
 	}
 > = new Map();
 
@@ -77,11 +87,33 @@ const initSocketHandlers = (
 					return;
 				}
 
+				// Get user's answered questions for this quiz
+				const userAttempts = await QuizAttempt.find({
+					user: socket.userId,
+					quiz: quizId,
+				});
+
+				const answeredQuestionIds = userAttempts.flatMap((attempt) =>
+					attempt.answers.map((answer) => answer.questionId.toString())
+				);
+
+				// Filter out answered questions
+				const availableQuestions = quiz.questions.filter(
+					(question) => !answeredQuestionIds.includes(question._id.toString())
+				);
+
+				if (availableQuestions.length === 0) {
+					socket.emit('error', {
+						message: 'No new questions available. Please try another quiz.',
+					});
+					return;
+				}
+
 				// Create quiz attempt
 				const quizAttempt = new QuizAttempt({
 					quiz: quizId,
 					user: socket.userId,
-					totalPossibleScore: quiz.questions.reduce(
+					totalPossibleScore: availableQuestions.reduce(
 						(total, q) => total + q.points,
 						0
 					),
@@ -93,7 +125,7 @@ const initSocketHandlers = (
 					`Created quiz attempt ${quizAttempt.id} for user ${socket.userId}`
 				);
 
-				// Store session info
+				// Store session info with answered questions tracking
 				const sessionId = `${socket.userId}:${quizId}`;
 				activeQuizSessions.set(sessionId, {
 					quizId,
@@ -101,20 +133,21 @@ const initSocketHandlers = (
 					startTime: new Date(),
 					currentQuestion: 0,
 					attemptId: quizAttempt.id.toString(),
+					answeredQuestionIds: [],
 				});
 
 				// Join quiz room
 				socket.join(`quiz:${quizId}`);
 				console.log(`User ${socket.userId} joined quiz room ${quizId}`);
 
-				// Send first question
+				// Send first question from available questions
 				socket.emit('quiz:question', {
 					question: {
-						...quiz.questions[0].toObject(),
-						_id: 0, // Use index instead of MongoDB _id
+						...availableQuestions[0].toObject(),
+						_id: availableQuestions[0]._id.toString(),
 					},
 					questionNumber: 1,
-					totalQuestions: quiz.questions.length,
+					totalQuestions: availableQuestions.length,
 					timeLimit: quiz.timeLimit,
 				});
 				console.log(`Sent first question to user ${socket.userId}`);
@@ -155,22 +188,14 @@ const initSocketHandlers = (
 						return;
 					}
 
-					// Use question index instead of MongoDB _id
-					const questionIndex = parseInt(questionId);
-					if (
-						isNaN(questionIndex) ||
-						questionIndex < 0 ||
-						questionIndex >= quiz.questions.length
-					) {
-						console.log(
-							`Invalid question index ${questionId} for quiz ${quizId}`
-						);
-						socket.emit('error', { message: 'Question not found' });
-						return;
-					}
+					// Get available questions excluding answered ones
+					const availableQuestions = quiz.questions.filter(
+						(question) =>
+							!session.answeredQuestionIds.includes(question._id.toString())
+					);
 
-					const question = quiz.questions[questionIndex];
-					if (!question) {
+					const currentQuestion = availableQuestions[session.currentQuestion];
+					if (!currentQuestion) {
 						console.log(
 							`Question at index ${questionId} not found in quiz ${quizId}`
 						);
@@ -178,19 +203,9 @@ const initSocketHandlers = (
 						return;
 					}
 
-					// Get the selected answer text from the options array
-					const selectedAnswerText = question.options[answer];
-					if (!selectedAnswerText) {
-						console.log(
-							`Invalid answer index ${answer} for question ${questionId}`
-						);
-						socket.emit('error', { message: 'Invalid answer' });
-						return;
-					}
-
-					// Check if answer is correct by comparing the actual text
-					const isCorrect = selectedAnswerText === question.correctAnswer;
-					const points = isCorrect ? 10 : 0; // Set fixed 10 points for correct answers
+					// Check answer and send feedback
+					const isCorrect = answer === currentQuestion.correctAnswer;
+					const points = isCorrect ? currentQuestion.points : 0;
 					console.log(
 						`Answer for question ${questionId} is ${
 							isCorrect ? 'correct' : 'incorrect'
@@ -200,7 +215,7 @@ const initSocketHandlers = (
 					// Send immediate feedback to the client
 					socket.emit('quiz:answer-feedback', {
 						isCorrect,
-						correctAnswer: question.options.indexOf(question.correctAnswer), // Send the index of correct answer
+						correctAnswer: currentQuestion.correctAnswer,
 						points,
 					});
 
@@ -208,8 +223,8 @@ const initSocketHandlers = (
 					await QuizAttempt.findByIdAndUpdate(session.attemptId, {
 						$push: {
 							answers: {
-								questionId: question._id, // Store the actual MongoDB _id
-								selectedAnswer: selectedAnswerText, // Store the actual answer text
+								questionId: currentQuestion._id,
+								selectedAnswer: answer,
 								isCorrect,
 								timeSpent,
 							},
@@ -220,15 +235,14 @@ const initSocketHandlers = (
 						},
 					});
 
-					// Update user's total points
-					await User.findByIdAndUpdate(socket.userId, {
-						$inc: { points: points },
-					});
+					// Track answered question
+					session.answeredQuestionIds.push(currentQuestion._id.toString());
+					activeQuizSessions.set(sessionId, session);
 
 					// Move to next question or end quiz
 					const nextQuestionIndex = session.currentQuestion + 1;
 
-					if (nextQuestionIndex < quiz.questions.length) {
+					if (nextQuestionIndex < availableQuestions.length) {
 						// Update session
 						activeQuizSessions.set(sessionId, {
 							...session,
@@ -238,11 +252,11 @@ const initSocketHandlers = (
 						// Send next question
 						socket.emit('quiz:question', {
 							question: {
-								...quiz.questions[nextQuestionIndex].toObject(),
-								_id: nextQuestionIndex, // Use index instead of MongoDB _id
+								...availableQuestions[nextQuestionIndex].toObject(),
+								_id: availableQuestions[nextQuestionIndex]._id.toString(),
 							},
 							questionNumber: nextQuestionIndex + 1,
-							totalQuestions: quiz.questions.length,
+							totalQuestions: availableQuestions.length,
 							timeLimit: quiz.timeLimit,
 						});
 						console.log(
@@ -289,11 +303,23 @@ const initSocketHandlers = (
 							timeSpent: attempt!.timeSpent,
 							correctAnswers: attempt!.answers.filter((a) => a.isCorrect)
 								.length,
-							totalQuestions: quiz.questions.length,
+							totalQuestions: availableQuestions.length,
 						});
 
 						// Notify other users about leaderboard update
 						io.to(`quiz:${quizId}`).emit('leaderboard:updated', { quizId });
+					}
+
+					// If answer is correct, update quiz tasks
+					if (isCorrect) {
+						await DailyTaskController.checkAndUpdateQuizTask(
+							{
+								currentUser: { userId: socket.userId },
+								body: { correctAnswers: 1 },
+							} as any,
+							{} as any,
+							() => {}
+						);
 					}
 				} catch (error) {
 					console.error('Error submitting answer:', error);
@@ -478,18 +504,47 @@ const initSocketHandlers = (
 			}
 		});
 
-		socket.on('disconnect', () => {
-			console.log(`User disconnected: ${socket.userId}`);
+		// Track user session time
+		if (socket.userId) {
+			userSessions.set(socket.userId, {
+				startTime: new Date(),
+				lastActivity: new Date(),
+			});
 
-			// Clean up any active sessions for this user
-			if (socket.userId) {
-				for (const [sessionId, session] of activeQuizSessions.entries()) {
-					if (session.userId === socket.userId) {
-						activeQuizSessions.delete(sessionId);
+			// Update last activity every minute
+			const activityInterval = setInterval(() => {
+				const session = userSessions.get(socket.userId!);
+				if (session) {
+					session.lastActivity = new Date();
+					userSessions.set(socket.userId!, session);
+
+					// Check if 20 minutes have passed
+					const timeSpent =
+						(session.lastActivity.getTime() - session.startTime.getTime()) /
+						(1000 * 60);
+					if (timeSpent >= 20) {
+						// Update time spent tasks
+						DailyTaskController.checkAndUpdateTimeSpentTask(
+							{
+								currentUser: { userId: socket.userId },
+								body: { timeSpent: 20 },
+							} as any,
+							{} as any,
+							() => {}
+						);
+
+						// Reset session time
+						session.startTime = new Date();
+						userSessions.set(socket.userId!, session);
 					}
 				}
-			}
-		});
+			}, 60000); // Check every minute
+
+			socket.on('disconnect', () => {
+				clearInterval(activityInterval);
+				userSessions.delete(socket.userId!);
+			});
+		}
 	});
 };
 

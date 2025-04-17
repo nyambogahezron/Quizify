@@ -15,9 +15,8 @@ import Colors from '@/constants/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '.';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { getUserProgress } from '../services/userProgressService';
 import { LevelDetailsModal } from '../components/LevelDetailsModal';
-import { useAuthStore } from '../store/useStore';
+import { useUserWordMakerProgress } from '@/services/ApiQuery';
 
 interface Level {
 	id: number;
@@ -34,10 +33,10 @@ const width = Dimensions.get('window').width;
 export default function WordMakerLevels() {
 	const navigation =
 		useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-	const [levels, setLevels] = useState<Level[]>([]);
 	const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
 	const [showLevelDetails, setShowLevelDetails] = useState(false);
-	const { isAuthenticated } = useAuthStore();
+
+	const { data, isLoading } = useUserWordMakerProgress();
 
 	const slideFromRight = useRef(new Animated.Value(width)).current;
 	const slideIn = () => {
@@ -50,32 +49,11 @@ export default function WordMakerLevels() {
 
 	useEffect(() => {
 		slideIn();
-		if (isAuthenticated) {
-			loadUserProgress();
-		}
-	}, [isAuthenticated]);
-
-	const loadUserProgress = async () => {
-		try {
-			const progress = await getUserProgress();
-			const updatedLevels = progress.map((p) => ({
-				id: p.level,
-				number: p.level,
-				status: p.status,
-				stars: p.stars,
-				score: p.score,
-				wordsFound: p.wordsFound,
-				timeSpent: p.timeSpent,
-			}));
-			setLevels(updatedLevels);
-		} catch (error) {
-			console.error('Error loading user progress:', error);
-		}
-	};
+	}, []);
 
 	const handleLevelPress = (level: Level) => {
 		if (level.status === 'locked') return;
-		
+
 		setSelectedLevel(level);
 		if (level.status === 'completed') {
 			setShowLevelDetails(true);
@@ -166,6 +144,38 @@ export default function WordMakerLevels() {
 		return <LevelItem item={item} />;
 	};
 
+	if (isLoading || !data) {
+		return (
+			<SafeAreaView style={styles.container}>
+				<LinearGradient
+					colors={[Colors.background3, Colors.background2]}
+					style={{ flex: 1 }}
+				>
+					<View style={styles.loadingContainer}>
+						<Text style={styles.loadingText}>Loading levels...</Text>
+					</View>
+				</LinearGradient>
+			</SafeAreaView>
+		);
+	}
+
+	// Create levels array based on totalLevels and userProgress
+	const levels = Array.from({ length: data.totalLevels }, (_, index) => {
+		const levelNumber = index + 1;
+		const userProgress = data.userProgress.find((p) => p.level === levelNumber);
+
+		return {
+			id: levelNumber,
+			number: levelNumber,
+			status:
+				userProgress?.status || (levelNumber === 1 ? 'unlocked' : 'locked'),
+			stars: userProgress?.stars || 0,
+			score: userProgress?.score,
+			wordsFound: userProgress?.wordsFound,
+			timeSpent: userProgress?.timeSpent,
+		};
+	});
+
 	return (
 		<SafeAreaView style={styles.container}>
 			<LinearGradient
@@ -210,6 +220,15 @@ export default function WordMakerLevels() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+	},
+	loadingContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	loadingText: {
+		color: 'white',
+		fontSize: 18,
 	},
 	levelsContainer: {
 		flex: 1,

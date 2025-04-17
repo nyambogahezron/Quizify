@@ -77,6 +77,7 @@ export default function HomeScreen() {
 	useEffect(() => {
 		const socket = socketService.getSocket();
 		if (socket) {
+			// Listen for notifications data
 			socket.on('notification:data', (data) => {
 				if (data.notifications) {
 					const unread = data.notifications.filter(
@@ -86,10 +87,19 @@ export default function HomeScreen() {
 				}
 			});
 
-			// Listen for new notifications
-			socket.on('notification:new', () => {
-				playSoundEffect('notification');
-				setUnreadCount((prev) => prev + 1);
+			// Listen for notification read updates
+			socket.on('notification:read', ({ notificationId }) => {
+				setUnreadCount((prev) => Math.max(0, prev - 1));
+			});
+
+			// Listen for notification deleted updates
+			socket.on('notification:deleted', ({ notificationId }) => {
+				setUnreadCount((prev) => Math.max(0, prev - 1));
+			});
+
+			// Listen for all notifications deleted
+			socket.on('notification:deleted-all', () => {
+				setUnreadCount(0);
 			});
 
 			// Request initial notification count
@@ -100,7 +110,9 @@ export default function HomeScreen() {
 			const socket = socketService.getSocket();
 			if (socket) {
 				socket.off('notification:data');
-				socket.off('notification:new');
+				socket.off('notification:read');
+				socket.off('notification:deleted');
+				socket.off('notification:deleted-all');
 			}
 		};
 	}, []);

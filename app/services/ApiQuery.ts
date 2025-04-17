@@ -1,6 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/fetchApi';
 
+interface WordFound {
+	word: string;
+	foundAt: Date;
+}
+
+interface UserProgress {
+	level: number;
+	score: number;
+	wordsFound: WordFound[];
+	timeSpent: number;
+	stars: number;
+	status: 'locked' | 'unlocked' | 'completed';
+	completedAt: Date | null;
+}
+
+export interface UserProgressResponse {
+	totalLevels: number;
+	userProgress: UserProgress[];
+	nextLevel: number;
+}
+
 // Auth services
 export const useLogin = () => {
 	const queryClient = useQueryClient();
@@ -164,6 +185,16 @@ export const useWordMakerLevels = () => {
 		queryKey: ['word-maker-levels'],
 		queryFn: async () => {
 			const response = await api.get('/word-maker/levels');
+			return response.data;
+		},
+	});
+};
+
+export const useUserWordMakerProgress = () => {
+	return useQuery<UserProgressResponse>({
+		queryKey: ['user-progress'],
+		queryFn: async () => {
+			const response = await api.get('/word-maker/user/progress');
 			return response.data;
 		},
 	});

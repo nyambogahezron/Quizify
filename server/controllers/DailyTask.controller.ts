@@ -147,12 +147,12 @@ class DailyTaskController {
 	// Update user's progress on a task (manual update for certain task types)
 	static updateTaskProgress = AsyncHandler(
 		async (req: Request, res: Response) => {
-			if (!req.user) {
-				throw new UnauthorizedError('Unauthorized');
-			}
+			const { taskId, progress } = req.body;
+			const userId = req.currentUser?.userId;
 
-			const { taskId } = req.params;
-			const { progress } = req.body;
+			if (!userId) {
+				throw new BadRequestError('User ID is required');
+			}
 
 			if (!mongoose.Types.ObjectId.isValid(taskId)) {
 				throw new BadRequestError('Invalid task ID');
@@ -171,26 +171,29 @@ class DailyTaskController {
 
 			// Get or create user task
 			let userTask = await UserDailyTask.findOne({
-				user: req.user?.userId,
+				user: userId,
 				task: taskId,
 				assignedDate: { $gte: today },
 			});
 
 			if (!userTask) {
 				userTask = new UserDailyTask({
-					user: req.user?.userId,
+					user: userId,
 					task: taskId,
 					assignedDate: today,
 				});
 			}
 
 			// Update progress
-			userTask.progress = progress;
+			const newProgress = userTask.progress + progress;
 
-			// Check if task is now completed
-			if (progress >= task.requirement && !userTask.completed) {
+			// Check if task is completed
+			if (newProgress >= task.requirement && !userTask.completed) {
+				userTask.progress = task.requirement;
 				userTask.completed = true;
 				userTask.completedAt = new Date();
+			} else {
+				userTask.progress = newProgress;
 			}
 
 			await userTask.save();
@@ -210,6 +213,132 @@ class DailyTaskController {
 					completedAt: userTask.completedAt,
 				},
 			});
+		}
+	);
+
+	static createDailyTask = AsyncHandler(async (req: Request, res: Response) => {
+		const { title, description, type, criteria, reward } = req.body;
+
+		const dailyTask = new DailyTask({
+			title,
+			description,
+			type,
+			criteria,
+			reward,
+			isActive: true,
+		});
+
+		await dailyTask.save();
+
+		res.status(StatusCodes.CREATED).json(dailyTask);
+	});
+
+	static getUserDailyTasks = AsyncHandler(
+		async (req: Request, res: Response) => {
+			const userId = req.currentUser?.userId;
+			if (!userId) {
+				throw new BadRequestError('User ID is required');
+			}
+
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			const userTasks = await UserDailyTask.find({
+				user: userId,
+				assignedDate: { $gte: today },
+			}).populate('task');
+
+			res.status(StatusCodes.OK).json(userTasks);
+		}
+	);
+
+	static checkAndUpdateTimeSpentTask = AsyncHandler(
+		async (req: Request, res: Response) => {
+			const { timeSpent } = req.body;
+			const userId = req.currentUser?.userId;
+
+			if (!userId) {
+				throw new BadRequestError('User ID is required');
+			}
+
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			// Find time-based tasks
+			const timeTasks = await UserDailyTask.find({
+				user: userId,
+				assignedDate: { $gte: today },
+				completed: false,
+			}).populate({
+				path: 'task',
+				match: {
+					'criteria.type': 'time_spent',
+					isActive: true,
+				},
+			});
+
+			for (const userTask of timeTasks) {
+				const task = userTask.task as any;
+				if (!task) continue;
+
+				const newProgress = userTask.progress + timeSpent;
+				if (newProgress >= task.criteria.target) {
+					userTask.progress = task.criteria.target;
+					userTask.completed = true;
+					userTask.completedAt = new Date();
+				} else {
+					userTask.progress = newProgress;
+				}
+
+				await userTask.save();
+			}
+
+			res.status(StatusCodes.OK).json({ message: 'Time spent tasks updated' });
+		}
+	);
+
+	static checkAndUpdateQuizTask = AsyncHandler(
+		async (req: Request, res: Response) => {
+			const { correctAnswers } = req.body;
+			const userId = req.currentUser?.userId;
+
+			if (!userId) {
+				throw new BadRequestError('User ID is required');
+			}
+
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			// Find quiz-based tasks
+			const quizTasks = await UserDailyTask.find({
+				user: userId,
+				assignedDate: { $gte: today },
+				completed: false,
+			}).populate({
+				path: 'task',
+				match: {
+					'criteria.type': 'correct_answers',
+					isActive: true,
+				},
+			});
+
+			for (const userTask of quizTasks) {
+				const task = userTask.task as any;
+				if (!task) continue;
+
+				const newProgress = userTask.progress + correctAnswers;
+				if (newProgress >= task.criteria.target) {
+					userTask.progress = task.criteria.target;
+					userTask.completed = true;
+					userTask.completedAt = new Date();
+				} else {
+					userTask.progress = newProgress;
+				}
+
+				await userTask.save();
+			}
+
+			res.status(StatusCodes.OK).json({ message: 'Quiz tasks updated' });
 		}
 	);
 }

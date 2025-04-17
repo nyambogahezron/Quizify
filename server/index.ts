@@ -33,7 +33,7 @@ interface CustomSocket extends Socket {
 }
 
 // Create Socket.IO server with same CORS options
-const io = new Server(server, {
+export const io = new Server(server, {
 	cors: corsOptions,
 	path: '/socket.io/',
 	transports: ['websocket'],

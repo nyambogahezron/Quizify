@@ -9,6 +9,8 @@ import { useAuthStore } from './store/useStore';
 import { StatusBar } from 'react-native';
 import { queryClient } from './lib/queryClient';
 import { SessionExpiredModal } from './components/SessionExpiredModal';
+import LevelUpModal from './components/LevelUpModal';
+import { useLevelUp } from './hooks/useLevelUp';
 
 import {
 	configureReanimatedLogger,
@@ -32,6 +34,7 @@ export default function App() {
 	const [appIsReady, setAppIsReady] = React.useState(false);
 	const [showSessionExpired, setShowSessionExpired] = React.useState(false);
 	const { isAuthenticated, initialize, logout } = useAuthStore();
+	const { isLevelUpVisible, levelUpData, handleCloseLevelUp } = useLevelUp();
 
 	React.useEffect(() => {
 		async function prepare() {
@@ -92,6 +95,12 @@ export default function App() {
 				<SessionExpiredModal
 					visible={showSessionExpired}
 					onClose={() => setShowSessionExpired(false)}
+				/>
+				<LevelUpModal
+					isVisible={isLevelUpVisible}
+					newLevel={levelUpData?.newLevel || 0}
+					previousLevel={levelUpData?.previousLevel || 0}
+					onClose={handleCloseLevelUp}
 				/>
 			</GestureHandlerRootView>
 		</QueryClientProvider>

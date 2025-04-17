@@ -86,16 +86,54 @@ class QuizController {
 	static getQuizByCategory = AsyncHandler(
 		async (req: Request, res: Response) => {
 			const { category } = req.params;
+			const userId = req.currentUser?.userId;
+
+			// Get all quizzes in the category
 			const quizzes = await Quiz.find({
 				category,
 				isPublic: true,
 			}).select('-questions.correctAnswer');
 
 			if (quizzes.length === 0) {
-				throw new NotFoundError(`No quizzes found '${category}' category`);
+				throw new NotFoundError(`No quizzes found in '${category}' category`);
 			}
 
-			res.status(StatusCodes.OK).json({ quizzes });
+			// Get all answered question IDs for this user
+			let answeredQuestionIds: mongoose.Types.ObjectId[] = [];
+			if (userId) {
+				const userAttempts = await QuizAttempt.find({
+					user: userId,
+					quiz: { $in: quizzes.map((q) => q._id) },
+				});
+
+				answeredQuestionIds = userAttempts.flatMap((attempt) =>
+					attempt.answers.map((answer) => answer.questionId)
+				);
+			}
+
+			// Process each quiz to get first 10 unanswered questions
+			const processedQuizzes = quizzes.map((quiz) => {
+				// Filter out answered questions and get first 10
+				const unansweredQuestions = quiz.questions
+					.filter((question) => !answeredQuestionIds.includes(question._id))
+					.slice(0, 10);
+
+				// If no unanswered questions, return empty array
+				if (unansweredQuestions.length === 0) {
+					return {
+						...quiz.toObject(),
+						questions: [],
+						message: 'No new questions available. Please try another category.',
+					};
+				}
+
+				return {
+					...quiz.toObject(),
+					questions: unansweredQuestions,
+				};
+			});
+
+			res.status(StatusCodes.OK).json({ quizzes: processedQuizzes });
 		}
 	);
 

@@ -6,6 +6,7 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 	ScrollView,
+	Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -352,6 +353,35 @@ export default function QuizScreen({ navigation, route }: Props) {
 		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 	};
 
+	const handleQuit = () => {
+		Alert.alert(
+			'Quit Quiz',
+			'Are you sure you want to quit? Your progress will be lost.',
+			[
+				{
+					text: 'Cancel',
+					style: 'cancel',
+				},
+				{
+					text: 'Quit',
+					style: 'destructive',
+					onPress: () => {
+						// Leave socket room
+						socketService.leaveQuiz(quiz?._id || '');
+						// Reset state
+						setCurrentQuestion(0);
+						setSelectedAnswer(null);
+						setScore(0);
+						setTotalTimeLeft(0);
+						setIsStarted(false);
+						// Navigate back
+						navigation.goBack();
+					},
+				},
+			]
+		);
+	};
+
 	if (isLoading || !quiz?.questions || !isConnected) {
 		return (
 			<View style={styles.loadingContainer}>
@@ -395,6 +425,38 @@ export default function QuizScreen({ navigation, route }: Props) {
 						<Ionicons name='time-outline' size={20} color={Colors.text} />
 						<Text style={styles.timerText}>{formatTime(totalTimeLeft)}</Text>
 					</View>
+					{isStarted && (
+						<TouchableOpacity
+							onPress={() => {
+								Alert.alert(
+									'Quit Quiz',
+									'Are you sure you want to quit? Your progress will be lost.',
+									[
+										{
+											text: 'Cancel',
+											style: 'cancel',
+										},
+										{
+											text: 'Quit',
+											style: 'destructive',
+											onPress: () => {
+												socketService.leaveQuiz(quiz?._id || '');
+												setCurrentQuestion(0);
+												setSelectedAnswer(null);
+												setScore(0);
+												setTotalTimeLeft(0);
+												setIsStarted(false);
+												navigation.goBack();
+											},
+										},
+									]
+								);
+							}}
+							style={styles.quitButton}
+						>
+							<Ionicons name='exit-outline' size={24} color={Colors.red1} />
+						</TouchableOpacity>
+					)}
 				</View>
 
 				{/* Question */}
@@ -727,5 +789,10 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontFamily: 'Rb-medium',
 		textAlign: 'center',
+	},
+	quitButton: {
+		padding: 8,
+		backgroundColor: 'rgba(255, 0, 0, 0.1)',
+		borderRadius: 8,
 	},
 });

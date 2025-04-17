@@ -7,6 +7,7 @@ import {
 	emitNotificationRead,
 	emitAllNotificationsDeleted,
 	emitUserNotifications,
+	emitNotificationDeleted,
 } from '../lib/notificationEmitter';
 
 class NotificationController {
@@ -81,9 +82,6 @@ class NotificationController {
 			throw new NotFoundError('Invalid notification ID');
 		}
 
-		console.log(
-			`[NotificationController] Marking notification ${req.params.id} as read for user ${req.user.userId}`
-		);
 		const notification = await NotificationService.markAsRead(
 			new Types.ObjectId(req.params.id)
 		);
@@ -91,8 +89,14 @@ class NotificationController {
 			throw new NotFoundError('Notification not found');
 		}
 
-		// Emit notification read status
+		// Get updated notifications list
+		const notifications = await NotificationService.getUserNotifications(
+			new Types.ObjectId(req.user.userId)
+		);
+
+		// Emit both the read status and updated notifications list
 		emitNotificationRead(req.user.userId.toString(), req.params.id);
+		emitUserNotifications(req.user.userId.toString(), notifications);
 
 		res.json(notification);
 	});
@@ -156,13 +160,14 @@ class NotificationController {
 				throw new NotFoundError('Notification not found');
 			}
 
-			// Emit socket event for real-time update
-			const io = req.app.get('io');
-			io.emit(`notification:deleted:${notification.user}`, {
-				notificationId: req.params.id,
-			});
+			// Emit notification deleted event
+			emitNotificationDeleted(req.user.userId.toString(), req.params.id);
 
-			req.app.get('io').emit('notification:get', { userId: notification.user });
+			// Get updated notifications list and emit
+			const notifications = await NotificationService.getUserNotifications(
+				new Types.ObjectId(req.user.userId)
+			);
+			emitUserNotifications(req.user.userId.toString(), notifications);
 
 			res.json({ message: 'Notification deleted successfully' });
 		}
@@ -185,6 +190,9 @@ class NotificationController {
 
 			// Emit all notifications deleted status
 			emitAllNotificationsDeleted(req.user.userId.toString());
+
+			// Emit empty notifications list
+			emitUserNotifications(req.user.userId.toString(), []);
 
 			res.json({ message: 'All notifications deleted successfully' });
 		}
