@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import AsyncHandler from '../middleware/AsyncHandler';
 import User from '../models/User.model';
 import { BadRequestError, UnauthorizedError } from '../errors';
+import { StatusCodes } from 'http-status-codes';
+import { processImage } from '../middleware/upload.middleware';
 
 class UserController {
 	/**
@@ -86,6 +88,35 @@ class UserController {
 		}
 
 		res.json({ success: true, data: user });
+	});
+
+	static uploadAvatar = AsyncHandler(async (req: Request, res: Response) => {
+		if (!req.user) {
+			throw new UnauthorizedError('Unauthorized');
+		}
+
+		if (!req.file) {
+			throw new BadRequestError('Please upload an image');
+		}
+
+		// Process the image
+		const processedImagePath = await processImage(req.file.path);
+
+		// Get the relative path for the database
+		const relativePath = processedImagePath.replace('uploads/', '');
+
+		const user = await User.findByIdAndUpdate(
+			req.user.userId,
+			{ avatar: relativePath },
+			{ new: true }
+		);
+
+		res.status(StatusCodes.OK).json({
+			success: true,
+			data: {
+				avatar: user?.avatar,
+			},
+		});
 	});
 }
 

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
 	View,
 	Text,
@@ -6,6 +6,7 @@ import {
 	TouchableOpacity,
 	ActivityIndicator,
 	Animated,
+	Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,19 +15,63 @@ import { useAchievementStore, useAuthStore } from '@/store/useStore';
 import { useAchievements } from '@/services/ApiQuery';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+import { useMutation } from '@tanstack/react-query';
+import { uploadAvatar } from '@/services/ApiQuery';
 
 const HEADER_MAX_HEIGHT = 250;
 const HEADER_MIN_HEIGHT = 80;
 
 export default function ProfileScreen() {
-	const { user, logout } = useAuthStore();
+	const { user, logout, updateUser } = useAuthStore();
 	const { userRankings } = useAchievementStore();
 	const scrollY = useRef(new Animated.Value(0)).current;
+	const [isUploading, setIsUploading] = useState(false);
 
 	const navigation = useNavigation();
 
 	const { data: achievements, isLoading: isLoadingAchievements } =
 		useAchievements();
+
+	const { mutate: uploadAvatarMutation } = useMutation({
+		mutationFn: uploadAvatar,
+		onSuccess: (data) => {
+			updateUser({ ...user, avatar: data.data.avatar });
+			setIsUploading(false);
+		},
+		onError: () => {
+			setIsUploading(false);
+		},
+	});
+
+	const pickImage = async () => {
+		// Request permissions
+		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+		if (status !== 'granted') {
+			alert('Sorry, we need camera roll permissions to make this work!');
+			return;
+		}
+
+		const result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: 'images',
+			allowsEditing: true,
+			aspect: [1, 1],
+			quality: 0.5,
+		});
+
+		if (!result.canceled) {
+			setIsUploading(true);
+			const formData = new FormData();
+			formData.append('avatar', {
+				uri: result.assets[0].uri,
+				type: 'image/jpeg',
+				name: 'avatar.jpg',
+			} as any);
+
+			uploadAvatarMutation(formData);
+		}
+	};
 
 	const headerTranslateY = scrollY.interpolate({
 		inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
@@ -82,9 +127,23 @@ export default function ProfileScreen() {
 
 					<View style={styles.profileHeader}>
 						<View style={styles.profileImage}>
-							<Text style={styles.profileImageText}>
-								{user?.name.charAt(0).toUpperCase()}
-							</Text>
+							<TouchableOpacity onPress={pickImage} disabled={isUploading}>
+								{user?.avatar ? (
+									<Image
+										source={{ uri: user.avatar }}
+										style={styles.avatarImage}
+									/>
+								) : (
+									<Text style={styles.profileImageText}>
+										{user?.name.charAt(0).toUpperCase()}
+									</Text>
+								)}
+								{isUploading && (
+									<View style={styles.uploadingOverlay}>
+										<ActivityIndicator color={Colors.white2} />
+									</View>
+								)}
+							</TouchableOpacity>
 						</View>
 						<Text style={styles.profileName}>{user?.name}</Text>
 						<Text style={styles.profileLevel}>Level {user?.level || 1}</Text>
@@ -244,11 +303,12 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		height: HEADER_MAX_HEIGHT,
-		zIndex: 1,
+		zIndex: 10,
 	},
 	profileHeader: {
 		alignItems: 'center',
 		marginBottom: 20,
+		zIndex: 99,
 	},
 	profileImage: {
 		alignContent: 'center',
@@ -497,5 +557,21 @@ const styles = StyleSheet.create({
 		height: 40,
 		backgroundColor: Colors.background2,
 		borderRadius: 20,
+	},
+	avatarImage: {
+		width: '100%',
+		height: '100%',
+		borderRadius: 50,
+	},
+	uploadingOverlay: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0,
+		backgroundColor: 'rgba(0,0,0,0.5)',
+		justifyContent: 'center',
+		alignItems: 'center',
+		borderRadius: 50,
 	},
 });

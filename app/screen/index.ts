@@ -1,6 +1,6 @@
 import QuizScreen from './(quiz)/QuizScreen';
 import ResultScreen from './(quiz)/ResultScreen';
-import ProfileScreen from './ProfileScreen';
+import ProfileScreen from './(tabs)/ProfileScreen';
 import SettingsScreen from './SettingsScreen';
 import LeaderboardScreen from './(tabs)/LeaderboardScreen';
 import WordMakerScreen from './(games)/WordMakerGame';

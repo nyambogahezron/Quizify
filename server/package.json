@@ -14,7 +14,6 @@
 	"author": "Nyamboga Hezron",
 	"license": "ISC",
 	"dependencies": {
-		"@types/socket.io": "^3.0.1",
 		"bcryptjs": "^2.4.3",
 		"cookie": "^1.0.2",
 		"cookie-signature": "^1.2.2",
@@ -25,10 +24,13 @@
 		"jsonwebtoken": "^9.0.2",
 		"mailgen": "^2.0.29",
 		"mongoose": "^8.12.1",
+		"multer": "^1.4.5-lts.2",
 		"nodemailer": "^6.10.0",
+		"sharp": "^0.34.1",
 		"socket.io": "^4.8.1"
 	},
 	"devDependencies": {
+		"@types/socket.io": "^3.0.1",
 		"@types/bcryptjs": "^2.4.6",
 		"@types/cookie-signature": "^1.1.2",
 		"@types/cors": "^2.8.17",
@@ -36,6 +38,7 @@
 		"@types/jest": "^29.5.14",
 		"@types/jsonwebtoken": "^9.0.9",
 		"@types/mocha": "^10.0.10",
+		"@types/multer": "^1.4.12",
 		"@types/node": "^22.13.10",
 		"@types/nodemailer": "^6.4.17",
 		"@types/validator": "^13.12.2",

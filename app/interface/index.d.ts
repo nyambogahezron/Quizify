@@ -68,6 +68,7 @@ interface AuthState {
 	logout: () => Promise<void>;
 	initialize: () => Promise<void>;
 	updatePoints: (points: number) => void;
+	updateUser: (user: Partial<User>) => void;
 }
 
 interface QuizState {

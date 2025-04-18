@@ -24,6 +24,9 @@ const UserSchema = new mongoose.Schema(
 		avatar: {
 			type: String,
 			default: 'default.jpg',
+			get: (avatar: string) => {
+				return `${process.env.API_URL}/uploads/${avatar}`;
+			},
 		},
 		bio: {
 			type: String,
