@@ -637,14 +637,17 @@ const initSocketHandlers = (
 
 				const sessionId = `${socket.userId}:${levelObjectId}`;
 
-				activeWordMakerSessions.set(sessionId, {
-					levelId: levelObjectId.toString(),
-					userId: socket.userId,
-					startTime: new Date(),
-					score: 0,
-					wordsFound: [],
-					timeSpent: 0,
-				});
+				// Check if session already exists
+				if (!activeWordMakerSessions.has(sessionId)) {
+					activeWordMakerSessions.set(sessionId, {
+						levelId: levelObjectId.toString(),
+						userId: socket.userId,
+						startTime: new Date(),
+						score: 0,
+						wordsFound: [],
+						timeSpent: 0,
+					});
+				}
 
 				// Join level room
 				socket.join(`wordmaker:${levelObjectId}`);
@@ -682,13 +685,16 @@ const initSocketHandlers = (
 				const session = activeWordMakerSessions.get(sessionId);
 
 				if (!session) {
+					console.error(`No active session found for ${sessionId}`);
 					socket.emit('error', { message: 'No active session found' });
 					return;
 				}
 
 				// Update session
-				session.wordsFound.push(word);
-				session.score += 5; // 5 points per word
+				if (!session.wordsFound.includes(word)) {
+					session.wordsFound.push(word);
+					session.score += 5; // 5 points per word
+				}
 				session.timeSpent = timeSpent;
 				activeWordMakerSessions.set(sessionId, session);
 
@@ -714,6 +720,18 @@ const initSocketHandlers = (
 						},
 						{ upsert: true, new: true }
 					);
+
+					// Unlock next level if it exists
+					const nextLevel = await WordsMakerModel.findOne({
+						level: level.level + 1,
+					});
+					if (nextLevel) {
+						await UserProgress.findOneAndUpdate(
+							{ userId: socket.userId, level: nextLevel.level },
+							{ status: 'unlocked' },
+							{ upsert: true }
+						);
+					}
 
 					// Notify completion
 					socket.emit('wordmaker:level-completed', {
@@ -751,6 +769,15 @@ const initSocketHandlers = (
 			const sessionId = `${socket.userId}:${levelId}`;
 			activeWordMakerSessions.delete(sessionId);
 			socket.leave(`wordmaker:${levelId}`);
+		});
+
+		socket.on('disconnect', () => {
+			// Clean up any active sessions for this socket
+			for (const [sessionId, session] of activeWordMakerSessions.entries()) {
+				if (session.userId === socket.userId) {
+					activeWordMakerSessions.delete(sessionId);
+				}
+			}
 		});
 	});
 };

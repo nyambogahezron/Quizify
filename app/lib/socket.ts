@@ -278,6 +278,19 @@ class SocketService {
 	public offLeaderboardData(callback: (data: any) => void) {
 		this.socket?.off('leaderboard:data', callback);
 	}
+
+	off(event: string, callback: (data: any) => void) {
+		this.socket?.off(event, callback);
+	}
+
+	emit(event: string, data: any) {
+		if (!this.socket?.connected) {
+			console.log('Socket not connected, attempting to connect...');
+			this.connect();
+			return;
+		}
+		this.socket.emit(event, data);
+	}
 }
 
 export const socketService = new SocketService();

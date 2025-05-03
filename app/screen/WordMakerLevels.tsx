@@ -20,7 +20,7 @@ import { useUserWordMakerProgress } from '@/services/ApiQuery';
 import { socketService } from '../lib/socket';
 
 interface Level {
-	id: number;
+	id: string;
 	number: number;
 	status: 'locked' | 'unlocked' | 'completed';
 	stars: number;
@@ -37,7 +37,7 @@ export default function WordMakerLevels() {
 	const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
 	const [showLevelDetails, setShowLevelDetails] = useState(false);
 
-	const { data, isLoading } = useUserWordMakerProgress();
+	const { data, isLoading, refetch } = useUserWordMakerProgress();
 
 	const slideFromRight = useRef(new Animated.Value(width)).current;
 	const slideIn = () => {
@@ -50,7 +50,20 @@ export default function WordMakerLevels() {
 
 	useEffect(() => {
 		slideIn();
-	}, []);
+
+		// Set up socket listener for progress updates
+		const handleProgressUpdate = () => {
+			refetch(); // Refresh progress data when updates occur
+		};
+
+		socketService.onWordMakerProgressUpdate(handleProgressUpdate);
+		socketService.onWordMakerLevelCompleted(handleProgressUpdate);
+
+		return () => {
+			socketService.off('wordmaker:progress-updated', handleProgressUpdate);
+			socketService.off('wordmaker:level-completed', handleProgressUpdate);
+		};
+	}, [refetch]);
 
 	const handleLevelPress = (level: Level) => {
 		if (level.status === 'locked') return;
@@ -60,8 +73,8 @@ export default function WordMakerLevels() {
 			setShowLevelDetails(true);
 		} else {
 			if (level.id) {
-				socketService.startWordMakerLevel(String(level.id));
-				navigation.navigate('WordGame', { levelId: level.id });
+				socketService.startWordMakerLevel(level.id);
+				navigation.navigate('WordGame', { levelId: Number(level.id) });
 			}
 		}
 	};
@@ -69,8 +82,8 @@ export default function WordMakerLevels() {
 	const handlePlayLevel = () => {
 		if (selectedLevel && selectedLevel.id) {
 			setShowLevelDetails(false);
-			socketService.startWordMakerLevel(String(selectedLevel.id));
-			navigation.navigate('WordGame', { levelId: selectedLevel.id });
+			socketService.startWordMakerLevel(selectedLevel.id);
+			navigation.navigate('WordGame', { levelId: Number(selectedLevel.id) });
 		}
 	};
 
@@ -170,7 +183,7 @@ export default function WordMakerLevels() {
 		const userProgress = data.userProgress.find((p) => p.level === levelNumber);
 
 		return {
-			id: levelNumber,
+			id: levelNumber.toString(),
 			number: levelNumber,
 			status:
 				userProgress?.status || (levelNumber === 1 ? 'unlocked' : 'locked'),

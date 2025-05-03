@@ -28,7 +28,7 @@ export default function DailyTask({ task, onPress }: DailyTaskProps) {
 			</View>
 			<View style={styles.taskInfo}>
 				<Text style={styles.taskDescription}>
-					Complete dailt tasks to earn points
+					Complete daily tasks to earn points
 				</Text>
 				{task?.type === 'auto_generated' && task?.questions && (
 					<Text style={styles.questionCount}>

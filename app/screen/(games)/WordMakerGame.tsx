@@ -25,7 +25,6 @@ import { playSoundEffect } from '@/store/useSound';
 import levelsData from '@/lib/wordsMaker.json';
 import { useRoute } from '@react-navigation/native';
 import { Level } from '@/interface';
-import { updateUserProgress } from '../../services/userProgressService';
 import { socketService } from '../../lib/socket';
 
 type Position = {
@@ -52,20 +51,21 @@ export default function WordMakerScreen() {
 	const [levelData, setLevelData] = useState<Level>();
 	const [currentWord, setCurrentWord] = useState('');
 	const [isLoading, setIsLoading] = useState(true);
+	const [levelId, setLevelId] = useState<string>('');
 
 	const router = useRoute();
 	const { params } = router;
-	const { levelId } = params as { levelId: Level };
+	const { levelId: routeLevelId } = params as { levelId: string };
 
 	const getGridData = (level: Level) => level.letters || [];
 
 	useEffect(() => {
-		if (levelId) {
-			setCurrentLevel(Number(levelId));
+		if (routeLevelId) {
+			setCurrentLevel(Number(routeLevelId));
 
 			// First try to find the level in local data
 			const selectedLevel = levelsData.levels.find(
-				(level) => level.level === Number(levelId)
+				(level) => level.level === Number(routeLevelId)
 			);
 			if (selectedLevel) {
 				setLevelData(selectedLevel);
@@ -82,18 +82,21 @@ export default function WordMakerScreen() {
 						data.level.letters = data.level.grid;
 					}
 					setLevelData(data.level);
+					setLevelId(data.level._id); // Store the MongoDB _id
 					setTimeLeft(data.timeLimit || 120);
 					setIsLoading(false);
 				}
 			});
 
 			socketService.onWordMakerProgressUpdate((data) => {
+				console.log('Progress update:', data);
 				setScore(data.score);
 				setFoundWords(data.wordsFound);
 				setTimeLeft(data.timeSpent);
 			});
 
 			socketService.onWordMakerLevelCompleted((data) => {
+				console.log('Level completed:', data);
 				setScore(data.score);
 				setFoundWords(data.wordsFound);
 				setTimeLeft(data.timeSpent);
@@ -101,16 +104,21 @@ export default function WordMakerScreen() {
 				setShowResults(true);
 			});
 
+			// Start the level
+			socketService.startWordMakerLevel(routeLevelId);
+
 			// Clean up socket listeners
 			return () => {
-				socketService.leaveWordMakerLevel(levelId.toString());
+				if (levelId) {
+					socketService.leaveWordMakerLevel(levelId);
+				}
 			};
 		} else {
 			setLevelData(levelsData.levels[0]);
 			setCurrentLevel(1);
 			setIsLoading(false);
 		}
-	}, [levelId]);
+	}, [routeLevelId]);
 
 	const scale = useSharedValue(1);
 	const scoreOffset = useSharedValue(0);
@@ -138,10 +146,6 @@ export default function WordMakerScreen() {
 	// Update useEffect to sync foundWords state with the ref
 	useEffect(() => {
 		foundWordsRef.current = new Set(foundWords);
-
-		if (foundWords.length === levelDataRef.current?.words.length) {
-			handleGameOver();
-		}
 	}, [foundWords]);
 
 	// Timer effect
@@ -253,24 +257,14 @@ export default function WordMakerScreen() {
 					await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
 					const isWordValid = currentLevelWords.includes(word);
-					const isWordAlreadyFound =
-						foundWords.includes(word) || foundWordsRef.current.has(word);
+					const isWordAlreadyFound = foundWordsRef.current.has(word);
 
 					if (isWordValid && !isWordAlreadyFound) {
 						foundWordsRef.current.add(word);
+						const updatedWords = Array.from(foundWordsRef.current);
 
 						setScore((prev) => prev + 5);
-						setFoundWords((prev) => {
-							const updatedWords = [...prev, word];
-
-							// Check if all words have been found
-							if (updatedWords.length === levelDataRef.current?.words.length) {
-								// Small delay to allow the word to be added to the UI first
-								setTimeout(() => handleGameOver(), 500);
-							}
-
-							return updatedWords;
-						});
+						setFoundWords(updatedWords);
 
 						scale.value = withSpring(1.2, {}, () => {
 							scale.value = withSpring(1);
@@ -280,6 +274,20 @@ export default function WordMakerScreen() {
 						await Haptics.notificationAsync(
 							Haptics.NotificationFeedbackType.Success
 						);
+
+						// Submit word found through socket
+						if (levelId) {
+							socketService.submitWordFound(
+								levelId,
+								word,
+								levelData?.timeLimit ? levelData.timeLimit - timeLeft : 0
+							);
+						}
+
+						// Check if all words are found
+						if (updatedWords.length === levelDataRef.current.words.length) {
+							setTimeout(() => handleGameOver(), 500);
+						}
 					} else {
 						await playSoundEffect('incorrect');
 						await Haptics.notificationAsync(
@@ -342,13 +350,41 @@ export default function WordMakerScreen() {
 
 		// Save progress through socket
 		if (levelId) {
+			// Submit all found words and final progress
 			socketService.submitWordFound(
-				levelId.toString(),
+				levelId,
 				currentWord,
 				levelData?.timeLimit ? levelData.timeLimit - timeLeft : 0
 			);
+
+			// If all words are found, emit level completed event
+			if (foundWords.length === levelData?.words.length) {
+				socketService.emit('wordmaker:level-completed', {
+					levelId,
+					score,
+					wordsFound: foundWords,
+					timeSpent: levelData?.timeLimit ? levelData.timeLimit - timeLeft : 0,
+				});
+			}
 		}
 	};
+
+	// Add socket listener for progress updates
+	useEffect(() => {
+		const handleProgressUpdate = (data: any) => {
+			setScore(data.score);
+			setFoundWords(data.wordsFound);
+			setTimeLeft(data.timeSpent);
+		};
+
+		socketService.onWordMakerProgressUpdate(handleProgressUpdate);
+		socketService.onWordMakerLevelCompleted(handleProgressUpdate);
+
+		return () => {
+			socketService.off('wordmaker:progress-updated', handleProgressUpdate);
+			socketService.off('wordmaker:level-completed', handleProgressUpdate);
+		};
+	}, []);
 
 	const handleStartGame = async () => {
 		setGameStarted(true);
@@ -587,8 +623,23 @@ export default function WordMakerScreen() {
 										<Text style={styles.levelText}>Level {currentLevel}</Text>
 										<Text style={styles.resultsScore}>Score: {score}</Text>
 										<Text style={styles.resultsStats}>
-											Words Found: {foundWords.length}/{levelData?.words.length}
+											Words Found: {foundWords.length}/
+											{levelData?.words?.length || 0}
 										</Text>
+										<View style={styles.foundWordsList}>
+											{levelData?.words?.map((word, index) => (
+												<Text
+													key={index}
+													style={[
+														styles.foundWord,
+														foundWords.includes(word) &&
+															styles.foundWordHighlight,
+													]}
+												>
+													{word}
+												</Text>
+											))}
+										</View>
 
 										{currentLevel < levelsData.levels.length ? (
 											<TouchableOpacity
@@ -936,5 +987,23 @@ const styles = StyleSheet.create({
 		color: 'white',
 		fontSize: 18,
 		fontWeight: 'bold',
+	},
+	foundWordsList: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'center',
+		marginTop: 20,
+		gap: 10,
+	},
+	foundWord: {
+		fontSize: 18,
+		color: '#666',
+		padding: 8,
+		backgroundColor: '#F3F4F6',
+		borderRadius: 8,
+	},
+	foundWordHighlight: {
+		backgroundColor: '#7C3AED',
+		color: 'white',
 	},
 });
