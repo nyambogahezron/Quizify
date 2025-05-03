@@ -63,19 +63,28 @@ export default function WordMakerScreen() {
 		if (levelId) {
 			setCurrentLevel(Number(levelId));
 
+			// First try to find the level in local data
 			const selectedLevel = levelsData.levels.find(
 				(level) => level.level === Number(levelId)
 			);
 			if (selectedLevel) {
 				setLevelData(selectedLevel);
 				setCurrentLevel(selectedLevel.level);
+				setIsLoading(false);
 			}
-			setIsLoading(false);
 
 			// Set up socket listeners
 			socketService.onWordMakerLevelData((data) => {
-				setLevelData(data.level);
-				setTimeLeft(data.timeLimit);
+				console.log('Received level data:', data);
+				if (data.level) {
+					// Ensure we have either letters or grid data
+					if (!data.level.letters && data.level.grid) {
+						data.level.letters = data.level.grid;
+					}
+					setLevelData(data.level);
+					setTimeLeft(data.timeLimit || 120);
+					setIsLoading(false);
+				}
 			});
 
 			socketService.onWordMakerProgressUpdate((data) => {
@@ -190,43 +199,29 @@ export default function WordMakerScreen() {
 					return;
 				}
 
-				console.log('Touch moving - processing touch event');
-
 				gridRef.current.measure((x, y, width, height, pageX, pageY) => {
-					const cellSize = levelDataRef.current
-						? getGridSize(levelDataRef.current.gridSize)
-						: 0;
-					const touchX = evt.nativeEvent.pageX - pageX;
-					const touchY = evt.nativeEvent.pageY - pageY;
-
-					console.log(
-						`Touch at: (${touchX}, ${touchY}), Grid at: (${pageX}, ${pageY})`
-					);
+					const cellSize = getGridSize(levelDataRef.current?.gridSize || 3);
+					const touchX = evt.nativeEvent.pageX - pageX - 10; // Adjust for grid padding
+					const touchY = evt.nativeEvent.pageY - pageY - 10; // Adjust for grid padding
 
 					const row = Math.floor(touchY / cellSize);
 					const col = Math.floor(touchX / cellSize);
 					const key = `${row}-${col}`;
 
-					// console.log(`Calculated cell: (${row}, ${col}), key: ${key}`);
-
 					if (row >= 0 && col >= 0) {
-						const gridData = levelDataRef.current?.letters ?? [];
+						const gridData = levelDataRef.current?.grid ?? [];
 
 						if (
 							row < gridData.length &&
 							col < (gridData[0]?.length || 0) &&
 							gridData[row] &&
 							gridData[row][col] &&
-							!selectedIndices.current.has(key) // Check if already selected
+							!selectedIndices.current.has(key)
 						) {
 							const letter = gridData[row][col];
 
 							// Add this key to the selected indices set
 							selectedIndices.current.add(key);
-							console.log(
-								'Updated selected indices:',
-								Array.from(selectedIndices.current)
-							);
 
 							// Update the UI state with the selected cell
 							setSelectedCells((prev) => [...prev, { row, col }]);
@@ -239,10 +234,6 @@ export default function WordMakerScreen() {
 							// Provide feedback
 							playSoundEffect('buttonClick');
 							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-						} else {
-							if (selectedIndices.current.has(key)) {
-								console.log(`Cell already selected: ${key}, skipping`);
-							}
 						}
 					}
 				});
@@ -289,34 +280,19 @@ export default function WordMakerScreen() {
 						await Haptics.notificationAsync(
 							Haptics.NotificationFeedbackType.Success
 						);
-
-						// Clear selection after successful word with delay
-						setTimeout(() => {
-							selectedIndices.current.clear();
-							setSelectedCells([]);
-							setCurrentWord('');
-						}, 1500);
 					} else {
 						await playSoundEffect('incorrect');
 						await Haptics.notificationAsync(
 							Haptics.NotificationFeedbackType.Error
 						);
-
-						// Clear selection after incorrect word with delay
-						setTimeout(() => {
-							selectedIndices.current.clear();
-							setSelectedCells([]);
-							setCurrentWord('');
-						}, 1500);
 					}
-				} else {
-					// Clear selection if word is too short with delay
-					setTimeout(() => {
-						selectedIndices.current.clear();
-						setSelectedCells([]);
-						setCurrentWord('');
-					}, 1500);
 				}
+
+				// Clear selection
+				selectedIndices.current.clear();
+				setSelectedCells([]);
+				setCurrentWord('');
+				currentWordRef.current = '';
 			},
 			onPanResponderTerminate: () => {
 				selectedIndices.current.clear();
@@ -424,12 +400,12 @@ export default function WordMakerScreen() {
 		),
 	}));
 
-	if (!levelData || isLoading) {
+	if (isLoading) {
 		return (
 			<LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.container}>
 				<SafeAreaView style={styles.safeArea}>
-					<View style={styles.startGameContainer}>
-						<Text style={styles.startGameText}>Loading...</Text>
+					<View style={styles.loadingContainer}>
+						<Text style={styles.loadingText}>Loading...</Text>
 					</View>
 				</SafeAreaView>
 			</LinearGradient>
@@ -439,195 +415,215 @@ export default function WordMakerScreen() {
 	return (
 		<LinearGradient colors={['#8B5CF6', '#7C3AED']} style={styles.container}>
 			<SafeAreaView style={styles.safeArea}>
-				{/* Timer Bar */}
-				{gameStarted && !gameOver && (
-					<View style={styles.timerBar}>
-						<Animated.View style={[styles.timerProgress, timerStyle]} />
+				{isLoading ? (
+					<View style={styles.loadingContainer}>
+						<Text style={styles.loadingText}>Loading...</Text>
 					</View>
-				)}
+				) : (
+					<>
+						{/* Timer Bar */}
+						{gameStarted && !gameOver && (
+							<View style={styles.timerBar}>
+								<Animated.View style={[styles.timerProgress, timerStyle]} />
+							</View>
+						)}
 
-				{/* Header */}
-				<View style={styles.header}>
-					{/* Selected Word */}
-					<View style={styles.selectedWordContainer}>
-						<Text style={styles.selectedWordText}>{currentWord}</Text>
-					</View>
-					<View style={styles.scoreContainer}>
-						<Animated.Text style={[styles.score, animatedScoreStyle]}>
-							{score}
-						</Animated.Text>
-						<Animated.Text style={[styles.scoreChange, scoreChangeStyle]}>
-							{scoreOffset.value > 0 ? '+5' : '-3'}
-						</Animated.Text>
-						<Text style={styles.scoreLabel}>points</Text>
-					</View>
-				</View>
-
-				{/* Game Grid */}
-				<View style={styles.content}>
-					{!gameStarted ? (
-						<View style={styles.startGameContainer}>
-							<Text style={styles.startGameText}>
-								Select {levelData?.icon} to start
-							</Text>
-							<Text style={styles.startGameText}>Level {currentLevel}</Text>
-							<Text style={styles.startGameText}>Points: {score}</Text>
-
-							<TouchableOpacity
-								style={styles.startButton}
-								onPress={handleStartGame}
-							>
-								<Text style={styles.startButtonText}>Start Game</Text>
-							</TouchableOpacity>
-
-							{/* all levels completed */}
-							{currentLevel === levelsData.levels.length && (
-								<Text style={styles.allLevelsCompletedText}>
-									Congratulations! You've completed all levels!
-								</Text>
-							)}
-
-							{/* game levels  list */}
-
-							<View style={styles.gameLevelsList}>
-								{levelsData.levels.map((level) => (
-									<Text style={styles.gameLevelText}>{level.level}</Text>
-								))}
+						{/* Header */}
+						<View style={styles.header}>
+							{/* Selected Word */}
+							<View style={styles.selectedWordContainer}>
+								<Text style={styles.selectedWordText}>{currentWord}</Text>
+							</View>
+							<View style={styles.scoreContainer}>
+								<Animated.Text style={[styles.score, animatedScoreStyle]}>
+									{score}
+								</Animated.Text>
+								<Animated.Text style={[styles.scoreChange, scoreChangeStyle]}>
+									{scoreOffset.value > 0 ? '+5' : '-3'}
+								</Animated.Text>
+								<Text style={styles.scoreLabel}>points</Text>
 							</View>
 						</View>
-					) : (
-						<>
-							<View
-								ref={gridRef}
-								style={[
-									styles.grid,
-									{
-										width: getGridSize(levelData.gridSize) * levelData.gridSize,
-										height:
-											getGridSize(levelData.gridSize) * levelData.gridSize,
-									},
-								]}
-								{...panResponder.panHandlers}
-							>
-								{getGridData(levelData).map((row, rowIndex) =>
-									row.map((letter, colIndex) => {
-										const isSelected = selectedCells.some(
-											(pos) => pos.row === rowIndex && pos.col === colIndex
-										);
 
-										return (
-											<View
-												key={`${rowIndex}-${colIndex}`}
-												style={[
-													styles.cell,
-													{
-														width: getGridSize(levelData.gridSize),
-														height: getGridSize(levelData.gridSize),
-													},
-													isSelected && styles.selectedCell,
-												]}
-											>
-												<Text
-													style={[
-														styles.letter,
-														isSelected && styles.selectedLetter,
-													]}
-												>
-													{letter}
-												</Text>
-											</View>
-										);
-									})
-								)}
-							</View>
+						{/* Game Grid */}
+						<View style={styles.content}>
+							{!gameStarted ? (
+								<View style={styles.startGameContainer}>
+									<Text style={styles.startGameText}>
+										Select {levelData?.icon} to start
+									</Text>
+									<Text style={styles.startGameText}>Level {currentLevel}</Text>
+									<Text style={styles.startGameText}>Points: {score}</Text>
 
-							<View style={styles.footer}>
-								{/* Hint */}
-								{showHint && (
-									<Animated.View
-										entering={FadeIn}
-										exiting={FadeOut}
-										style={styles.hintContainer}
-									>
-										<Text style={styles.hintText}>Hint: {hintWord}</Text>
-									</Animated.View>
-								)}
-
-								{/* Buttons Row */}
-								<View style={styles.buttonsRow}>
 									<TouchableOpacity
-										style={[
-											styles.hintButton,
-											styles.button,
-											score < 3 && styles.disabledButton,
-										]}
-										onPress={handleShowHint}
-										disabled={score < 3}
+										style={styles.startButton}
+										onPress={handleStartGame}
 									>
-										<Text style={styles.hintButtonText}>Show Hint</Text>
+										<Text style={styles.startButtonText}>Start Game</Text>
 									</TouchableOpacity>
-								</View>
 
-								{/* Found Words */}
-								<View style={styles.wordsContainer}>
-									<Text style={styles.wordsTitle}>Found Words</Text>
-									<View style={styles.wordsList}>
-										{foundWords.map((word, index) => (
-											<View key={index} style={styles.wordItem}>
-												<Text style={styles.wordText}>{word}</Text>
-												<Text style={styles.wordPoints}>+5</Text>
-											</View>
+									{/* all levels completed */}
+									{currentLevel === levelsData.levels.length && (
+										<Text style={styles.allLevelsCompletedText}>
+											Congratulations! You've completed all levels!
+										</Text>
+									)}
+
+									{/* game levels  list */}
+
+									<View style={styles.gameLevelsList}>
+										{levelsData.levels.map((level) => (
+											<Text key={level.level} style={styles.gameLevelText}>
+												{level.level}
+											</Text>
 										))}
 									</View>
 								</View>
-							</View>
-						</>
-					)}
-
-					{/* Results Modal */}
-					{showResults && (
-						<Animated.View
-							entering={FadeIn.duration(400).springify()}
-							style={styles.resultsModal}
-						>
-							<View style={styles.resultsContent}>
-								<Text style={styles.resultsTitle}>
-									{timeLeft === 0 ? "Time's Up!" : 'Level Complete!'}
-								</Text>
-								<Text style={styles.levelText}>Level {currentLevel}</Text>
-								<Text style={styles.resultsScore}>Score: {score}</Text>
-								<Text style={styles.resultsStats}>
-									Words Found: {foundWords.length}/{levelData.words.length}
-								</Text>
-
-								{currentLevel < levelsData.levels.length ? (
-									<TouchableOpacity
-										style={styles.nextLevelButton}
-										onPress={handleNextLevel}
+							) : (
+								<>
+									<View
+										ref={gridRef}
+										style={[
+											styles.grid,
+											{
+												width:
+													getGridSize(levelData?.gridSize || 3) *
+													(levelData?.gridSize || 3),
+												height:
+													getGridSize(levelData?.gridSize || 3) *
+													(levelData?.gridSize || 3),
+											},
+										]}
+										{...panResponder.panHandlers}
 									>
-										<Text style={styles.nextLevelButtonText}>Next Level</Text>
-									</TouchableOpacity>
-								) : (
-									<View style={styles.gameCompleteContainer}>
-										<Text style={styles.gameCompleteText}>
-											Congratulations! You've completed all levels!
-										</Text>
-										<TouchableOpacity
-											style={styles.playAgainButton}
-											onPress={() => {
-												setCurrentLevel(1);
-												setLevelData(levelsData.levels[0]);
-												handleStartGame();
-											}}
-										>
-											<Text style={styles.playAgainButtonText}>Play Again</Text>
-										</TouchableOpacity>
+										{levelData?.grid?.map((row, rowIndex) => (
+											<View key={`row-${rowIndex}`} style={styles.gridRow}>
+												{row.map((letter, colIndex) => {
+													const isSelected = selectedCells.some(
+														(pos) =>
+															pos.row === rowIndex && pos.col === colIndex
+													);
+
+													return (
+														<View
+															key={`${rowIndex}-${colIndex}`}
+															style={[
+																styles.cell,
+																{
+																	width: getGridSize(levelData?.gridSize || 3),
+																	height: getGridSize(levelData?.gridSize || 3),
+																},
+																isSelected && styles.selectedCell,
+															]}
+														>
+															<Text
+																style={[
+																	styles.letter,
+																	isSelected && styles.selectedLetter,
+																]}
+															>
+																{letter}
+															</Text>
+														</View>
+													);
+												})}
+											</View>
+										))}
 									</View>
-								)}
-							</View>
-						</Animated.View>
-					)}
-				</View>
+
+									<View style={styles.footer}>
+										{/* Hint */}
+										{showHint && (
+											<Animated.View
+												entering={FadeIn}
+												exiting={FadeOut}
+												style={styles.hintContainer}
+											>
+												<Text style={styles.hintText}>Hint: {hintWord}</Text>
+											</Animated.View>
+										)}
+
+										{/* Buttons Row */}
+										<View style={styles.buttonsRow}>
+											<TouchableOpacity
+												style={[
+													styles.hintButton,
+													styles.button,
+													score < 3 && styles.disabledButton,
+												]}
+												onPress={handleShowHint}
+												disabled={score < 3}
+											>
+												<Text style={styles.hintButtonText}>Show Hint</Text>
+											</TouchableOpacity>
+										</View>
+
+										{/* Found Words */}
+										<View style={styles.wordsContainer}>
+											<Text style={styles.wordsTitle}>Found Words</Text>
+											<View style={styles.wordsList}>
+												{foundWords.map((word, index) => (
+													<View key={index} style={styles.wordItem}>
+														<Text style={styles.wordText}>{word}</Text>
+														<Text style={styles.wordPoints}>+5</Text>
+													</View>
+												))}
+											</View>
+										</View>
+									</View>
+								</>
+							)}
+
+							{/* Results Modal */}
+							{showResults && (
+								<Animated.View
+									entering={FadeIn.duration(400).springify()}
+									style={styles.resultsModal}
+								>
+									<View style={styles.resultsContent}>
+										<Text style={styles.resultsTitle}>
+											{timeLeft === 0 ? "Time's Up!" : 'Level Complete!'}
+										</Text>
+										<Text style={styles.levelText}>Level {currentLevel}</Text>
+										<Text style={styles.resultsScore}>Score: {score}</Text>
+										<Text style={styles.resultsStats}>
+											Words Found: {foundWords.length}/{levelData?.words.length}
+										</Text>
+
+										{currentLevel < levelsData.levels.length ? (
+											<TouchableOpacity
+												style={styles.nextLevelButton}
+												onPress={handleNextLevel}
+											>
+												<Text style={styles.nextLevelButtonText}>
+													Next Level
+												</Text>
+											</TouchableOpacity>
+										) : (
+											<View style={styles.gameCompleteContainer}>
+												<Text style={styles.gameCompleteText}>
+													Congratulations! You've completed all levels!
+												</Text>
+												<TouchableOpacity
+													style={styles.playAgainButton}
+													onPress={() => {
+														setCurrentLevel(1);
+														setLevelData(levelsData.levels[0]);
+														handleStartGame();
+													}}
+												>
+													<Text style={styles.playAgainButtonText}>
+														Play Again
+													</Text>
+												</TouchableOpacity>
+											</View>
+										)}
+									</View>
+								</Animated.View>
+							)}
+						</View>
+					</>
+				)}
 			</SafeAreaView>
 		</LinearGradient>
 	);
@@ -680,13 +676,15 @@ const styles = StyleSheet.create({
 		padding: 20,
 	},
 	grid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		alignSelf: 'center',
-		justifyContent: 'center',
-		backgroundColor: 'red',
+		flexDirection: 'column',
+		backgroundColor: '#F8F9FA',
 		borderRadius: 10,
-		height: 'auto',
+		padding: 10,
+		alignSelf: 'center',
+	},
+	gridRow: {
+		flexDirection: 'row',
+		justifyContent: 'center',
 	},
 	cell: {
 		justifyContent: 'center',
@@ -928,5 +926,15 @@ const styles = StyleSheet.create({
 	},
 	footer: {
 		marginTop: 70,
+	},
+	loadingContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	loadingText: {
+		color: 'white',
+		fontSize: 18,
+		fontWeight: 'bold',
 	},
 });

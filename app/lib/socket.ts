@@ -215,18 +215,21 @@ class SocketService {
 	startWordMakerLevel(levelId: string) {
 		if (!this.socket?.connected) {
 			console.log('Socket not connected, attempting to connect...');
-			this.connect();
+			this.connect()
+				.then(() => {
+					if (this.socket?.connected) {
+						console.log('Starting word maker level:', levelId);
+						this.socket.emit('wordmaker:start', levelId);
+					} else {
+						console.error('Failed to connect to socket');
+					}
+				})
+				.catch((error) => {
+					console.error('Error connecting to socket:', error);
+				});
 			return;
 		}
 		console.log('Starting word maker level:', levelId);
-
-		// Set up error handler for this specific request
-		const errorHandler = (error: any) => {
-			console.error('Word maker level start error:', error);
-			this.socket?.off('error', errorHandler);
-		};
-
-		this.socket.once('error', errorHandler);
 		this.socket.emit('wordmaker:start', levelId);
 	}
 

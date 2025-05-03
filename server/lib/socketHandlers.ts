@@ -20,6 +20,7 @@ import { UserAchievement } from '../models/Achievement.model';
 import DailyTaskController from '../controllers/DailyTask.controller';
 import WordsMakerModel from '../models/WordsMaker.model';
 import { UserProgress } from '../models/UserProgress';
+import mongoose from 'mongoose';
 
 interface UserSocket extends Socket {
 	userId?: string;
@@ -601,18 +602,27 @@ const initSocketHandlers = (
 					return;
 				}
 
-				// Find by level number instead of _id
-				const levelNumber = parseInt(levelId);
-				if (isNaN(levelNumber)) {
-					console.error(`Invalid level number: ${levelId}`);
-					socket.emit('error', { message: 'Invalid level number' });
+				if (!levelId) {
+					console.error('No level ID provided');
+					socket.emit('error', {
+						message: 'Invalid level data',
+						details: 'Level ID is required',
+					});
 					return;
 				}
 
-				const level = await WordsMakerModel.findOne({
-					level: levelNumber,
-				});
+				// First try to find by level number
+				const levelNumber = parseInt(levelId);
+				if (isNaN(levelNumber)) {
+					console.error(`Invalid level number: ${levelId}`);
+					socket.emit('error', {
+						message: 'Invalid level data',
+						details: 'Level number must be a valid number',
+					});
+					return;
+				}
 
+				const level = await WordsMakerModel.findOne({ level: levelNumber });
 				if (!level) {
 					console.error(`Level ${levelNumber} not found in database`);
 					socket.emit('error', {
@@ -622,12 +632,13 @@ const initSocketHandlers = (
 					return;
 				}
 
-				// Create session with level's _id
-				const levelObjectId = level._id.toString();
+				// Use the level's _id or create a new one if it doesn't exist
+				const levelObjectId = level._id || new mongoose.Types.ObjectId();
+
 				const sessionId = `${socket.userId}:${levelObjectId}`;
 
 				activeWordMakerSessions.set(sessionId, {
-					levelId: levelObjectId,
+					levelId: levelObjectId.toString(),
 					userId: socket.userId,
 					startTime: new Date(),
 					score: 0,
@@ -642,8 +653,11 @@ const initSocketHandlers = (
 				);
 
 				// Send level data
-				const levelData = level.toObject();
-				console.log(`Sending level data for level ${levelNumber}`);
+				const levelData = {
+					...level.toObject(),
+					_id: levelObjectId.toString(),
+				};
+				console.log(`Sending level data for level ${level.level}`);
 				socket.emit('wordmaker:level-data', {
 					level: levelData,
 					timeLimit: level.timeLimit,

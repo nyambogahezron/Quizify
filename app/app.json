@@ -14,7 +14,14 @@
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/adaptive-icon.png",
 				"backgroundColor": "#ffffff"
-			}
+			},
+			"permissions": [
+				"android.permission.RECORD_AUDIO",
+				"android.permission.MODIFY_AUDIO_SETTINGS",
+				"android.permission.RECORD_AUDIO",
+				"android.permission.MODIFY_AUDIO_SETTINGS"
+			],
+			"package": "com.hezron.Quizify"
 		},
 		"plugins": [
 			[
@@ -25,7 +32,6 @@
 					"imageWidth": 200
 				}
 			],
-
 			"expo-font",
 			[
 				"expo-audio",

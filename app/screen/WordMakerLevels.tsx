@@ -59,14 +59,17 @@ export default function WordMakerLevels() {
 		if (level.status === 'completed') {
 			setShowLevelDetails(true);
 		} else {
-			socketService.startWordMakerLevel(level.id.toString());
-			navigation.navigate('WordGame', { levelId: level.id });
+			if (level.id) {
+				socketService.startWordMakerLevel(String(level.id));
+				navigation.navigate('WordGame', { levelId: level.id });
+			}
 		}
 	};
 
 	const handlePlayLevel = () => {
-		if (selectedLevel) {
+		if (selectedLevel && selectedLevel.id) {
 			setShowLevelDetails(false);
+			socketService.startWordMakerLevel(String(selectedLevel.id));
 			navigation.navigate('WordGame', { levelId: selectedLevel.id });
 		}
 	};
