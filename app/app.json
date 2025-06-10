@@ -1,53 +1,67 @@
 {
-	"expo": {
-		"name": "Quizify",
-		"slug": "Quizify",
-		"version": "1.0.0",
-		"orientation": "portrait",
-		"icon": "./assets/icon.png",
-		"userInterfaceStyle": "light",
-		"newArchEnabled": true,
-		"ios": {
-			"supportsTablet": true
-		},
-		"android": {
-			"adaptiveIcon": {
-				"foregroundImage": "./assets/adaptive-icon.png",
-				"backgroundColor": "#ffffff"
-			},
-			"permissions": [
-				"android.permission.RECORD_AUDIO",
-				"android.permission.MODIFY_AUDIO_SETTINGS",
-				"android.permission.RECORD_AUDIO",
-				"android.permission.MODIFY_AUDIO_SETTINGS"
-			],
-			"package": "com.hezron.Quizify"
-		},
-		"plugins": [
-			[
-				"expo-splash-screen",
-				{
-					"backgroundColor": "#214b44",
-					"image": "./assets/splash-icon.png",
-					"imageWidth": 200
-				}
-			],
-			"expo-font",
-			[
-				"expo-audio",
-				{
-					"microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
-				}
-			],
-			[
-				"expo-image-picker",
-				{
-					"photosPermission": "The app accesses your photos to let you share them with your friends."
-				}
-			],
-			"expo-router"
-		],
-		"sdkVersion": "52.0.0"
-	},
-	"name": "quizify"
+  "expo": {
+    "name": "Quizify",
+    "slug": "Quizify",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.hezron.Quizify"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#214b44",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200
+        }
+      ],
+      "expo-font",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ],
+      "expo-router"
+    ],
+    "sdkVersion": "52.0.0",
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "fd3fbc41-5579-4e80-ae03-b77b7ed6b70b"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/fd3fbc41-5579-4e80-ae03-b77b7ed6b70b"
+    }
+  },
+  "name": "quizify"
 }
