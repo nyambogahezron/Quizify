@@ -1,7 +1,7 @@
 {
-	"name": "quizify-server",
+	"name": "server",
 	"version": "1.0.0",
-	"description": "quizify-server",
+	"description": "quizify server",
 	"main": "index.js",
 	"scripts": {
 		"test": "jest",

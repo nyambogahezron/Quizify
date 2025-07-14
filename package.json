@@ -1,24 +1,31 @@
 {
-  "name": "repo",
-  "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
-  },
-  "devDependencies": {
-    "prettier": "^3.6.2",
-    "turbo": "^2.5.4",
-    "typescript": "5.8.3"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "packageManager": "bun@1.2.17",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+	"name": "repo",
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"lint": "turbo run lint",
+		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
+		"check-types": "turbo run check-types",
+		"create-package": "bun run scripts/create-package/index.ts",
+		"db": "bun run scripts/database/index.ts",
+		"docker": "bun run scripts/docker/index.ts",
+		"test": "bun run scripts/test/index.ts",
+		"deploy": "bun run scripts/deploy/index.ts",
+		"maintenance": "bun run scripts/maintenance/index.ts",
+		"env": "bun run scripts/environment/index.ts"
+	},
+	"devDependencies": {
+		"prettier": "^3.6.2",
+		"turbo": "^2.5.4",
+		"typescript": "5.8.3"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"packageManager": "bun@1.2.17",
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	]
 }
